@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.env
+.env.local
+*.tsbuildinfo
+next-env.d.ts
+test-results
+playwright-report
+.playwright
+coverage
+
+# Local dev server config for the Claude Code browser pane
+.claude/launch.json

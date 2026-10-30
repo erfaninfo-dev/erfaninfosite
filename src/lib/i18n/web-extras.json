@@ -1,0 +1,180 @@
+{
+  "_README": [
+    "Web-only UI strings: concepts that exist on a website but not in the Flutter app,",
+    "so the .arb files have no approved wording for them (a skip link, a 404 page,",
+    "breadcrumbs, 'view all', the note that web review progress does not sync).",
+    "",
+    "Everything the app already names comes from src/lib/i18n/messages/*.json, which is",
+    "generated from the app's .arb files by `pnpm i18n:import` — never hand-edited.",
+    "This file is the only place new Persian and Kurdish copy is written, kept separate",
+    "so it can be reviewed in one sitting. Vocabulary follows the app's own usage:",
+    "داگرتن for download, نوێ for new, گەڕانەوە for back, بینین for view.",
+    "",
+    "Erfan: these are the strings to check. If any wording is off, change it here."
+  ],
+  "skipToContent": {
+    "en": "Skip to content",
+    "fa": "پرش به محتوا",
+    "ckb": "بازدان بۆ ناوەڕۆک"
+  },
+  "primaryNavigation": {
+    "en": "Main sections",
+    "fa": "بخش‌های اصلی",
+    "ckb": "بەشە سەرەکییەکان"
+  },
+  "badgeNew": {
+    "en": "New",
+    "fa": "جدید",
+    "ckb": "نوێ"
+  },
+  "viewAll": {
+    "en": "View all",
+    "fa": "مشاهده همه",
+    "ckb": "بینینی هەموو"
+  },
+  "notFoundTitle": {
+    "en": "This page no longer exists",
+    "fa": "این صفحه دیگر وجود ندارد",
+    "ckb": "ئەم لاپەڕەیە چیتر بوونی نییە"
+  },
+  "notFoundBody": {
+    "en": "It may have been removed, or the address may be wrong.",
+    "fa": "ممکن است حذف شده باشد یا نشانی اشتباه باشد.",
+    "ckb": "لەوانەیە سڕابێتەوە، یان ناونیشانەکە هەڵە بێت."
+  },
+  "backHome": {
+    "en": "Back to home",
+    "fa": "بازگشت به خانه",
+    "ckb": "گەڕانەوە بۆ سەرەتا"
+  },
+  "siteTagline": {
+    "en": "IELTS vocabulary, grammar and speaking — in English, Persian and Kurdish.",
+    "fa": "واژگان، گرامر و اسپیکینگ آیلتس — به انگلیسی، فارسی و کردی.",
+    "ckb": "وشە، ڕێزمان و سپێکینگی ئایلتس — بە ئینگلیزی، فارسی و کوردی."
+  },
+  "downloadTitle": {
+    "en": "Get the app",
+    "fa": "دریافت اپلیکیشن",
+    "ckb": "وەرگرتنی ئەپەکە"
+  },
+  "downloadSubtitle": {
+    "en": "The same lessons, offline, on your phone or computer.",
+    "fa": "همان درس‌ها، آفلاین، روی گوشی یا کامپیوتر.",
+    "ckb": "هەمان وانەکان، بێ ئینتەرنێت، لەسەر مۆبایل یان کۆمپیوتەر."
+  },
+  "downloadAndroid": {
+    "en": "Download for Android",
+    "fa": "دانلود برای اندروید",
+    "ckb": "داگرتن بۆ ئەندرۆید"
+  },
+  "downloadWindows": {
+    "en": "Download for Windows",
+    "fa": "دانلود برای ویندوز",
+    "ckb": "داگرتن بۆ ویندۆز"
+  },
+  "releaseNotesTitle": {
+    "en": "What's new",
+    "fa": "تازه‌ها",
+    "ckb": "نوێکانی"
+  },
+  "filterByUnit": {
+    "en": "Unit",
+    "fa": "یونیت",
+    "ckb": "یەکە"
+  },
+  "allUnits": {
+    "en": "All units",
+    "fa": "همهٔ یونیت‌ها",
+    "ckb": "هەموو یەکەکان"
+  },
+  "allTypes": {
+    "en": "All types",
+    "fa": "همهٔ انواع",
+    "ckb": "هەموو جۆرەکان"
+  },
+  "resultsCount": {
+    "en": "{count, plural, =0{No results} =1{1 result} other{{count} results}}",
+    "fa": "{count, plural, =0{نتیجه‌ای نیست} =1{۱ نتیجه} other{{count} نتیجه}}",
+    "ckb": "{count, plural, =0{ئەنجام نییە} =1{١ ئەنجام} other{{count} ئەنجام}}"
+  },
+  "showOtherLanguages": {
+    "en": "Other languages",
+    "fa": "زبان‌های دیگر",
+    "ckb": "زمانەکانی تر"
+  },
+  "pdfKurdish": {
+    "en": "PDF (Kurdish)",
+    "fa": "PDF (کردی)",
+    "ckb": "PDF (کوردی)"
+  },
+  "notAvailableInKurdish": {
+    "en": "Not available in Kurdish yet. Showing the Persian version.",
+    "fa": "هنوز به کردی موجود نیست. نسخهٔ فارسی نمایش داده می‌شود.",
+    "ckb": "هێشتا بە کوردی بەردەست نییە. وەشانی فارسی پیشان دەدرێت."
+  },
+  "progressNotSynced": {
+    "en": "Progress on the website is saved in this browser only. It does not sync with the app.",
+    "fa": "پیشرفت در وب‌سایت فقط در همین مرورگر ذخیره می‌شود و با اپ همگام نمی‌شود.",
+    "ckb": "پێشکەوتن لە ماڵپەڕەکەدا تەنها لەم وێبگەڕەدا پاشەکەوت دەکرێت و لەگەڵ ئەپەکە هاوکات نابێت."
+  },
+  "quizLength": {
+    "en": "Number of questions",
+    "fa": "تعداد سؤال‌ها",
+    "ckb": "ژمارەی پرسیارەکان"
+  },
+  "answerWrong": {
+    "en": "Not correct",
+    "fa": "نادرست",
+    "ckb": "هەڵە"
+  },
+  "searchSiteHint": {
+    "en": "Search words, topics and categories…",
+    "fa": "جستجوی لغت، موضوع و دسته…",
+    "ckb": "گەڕان بۆ وشە، بابەت و پۆل…"
+  },
+  "searchPrompt": {
+    "en": "Type at least two letters to search.",
+    "fa": "برای جستجو حداقل دو حرف بنویسید.",
+    "ckb": "بۆ گەڕان لانیکەم دوو پیت بنووسە."
+  },
+  "sectionLabel": {
+    "en": "Section {section}",
+    "fa": "بخش {section}",
+    "ckb": "بەشی {section}"
+  },
+  "wordCount": {
+    "en": "{count, plural, =1{1 word} other{{count} words}}",
+    "fa": "{count, plural, =1{۱ لغت} other{{count} لغت}}",
+    "ckb": "{count, plural, =1{١ وشە} other{{count} وشە}}"
+  },
+  "unitCount": {
+    "en": "{count, plural, =1{1 unit} other{{count} units}}",
+    "fa": "{count, plural, =1{۱ یونیت} other{{count} یونیت}}",
+    "ckb": "{count, plural, =1{١ یەکە} other{{count} یەکە}}"
+  },
+  "topicCount": {
+    "en": "{count, plural, =1{1 topic} other{{count} topics}}",
+    "fa": "{count, plural, =1{۱ موضوع} other{{count} موضوع}}",
+    "ckb": "{count, plural, =1{١ بابەت} other{{count} بابەت}}"
+  },
+  "bookCount": {
+    "en": "{count, plural, =1{1 book} other{{count} books}}",
+    "fa": "{count, plural, =1{۱ کتاب} other{{count} کتاب}}",
+    "ckb": "{count, plural, =1{١ کتێب} other{{count} کتێب}}"
+  },
+  "lessonText": {
+    "en": "Lesson",
+    "fa": "درس",
+    "ckb": "وانە"
+  },
+  "loadFailedTitle": {
+    "en": "Could not load this page",
+    "fa": "بارگذاری این صفحه انجام نشد",
+    "ckb": "بارکردنی ئەم لاپەڕەیە سەرکەوتوو نەبوو"
+  },
+  "grammarNoLessonText": {
+    "en": "No lesson text for this unit yet.",
+    "fa": "هنوز متن درسی برای این یونیت ثبت نشده است.",
+    "ckb": "هێشتا دەقی وانە بۆ ئەم یەکەیە تۆمار نەکراوە."
+  }
+}

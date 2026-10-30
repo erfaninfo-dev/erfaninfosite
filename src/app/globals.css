@@ -1,0 +1,388 @@
+@import 'tailwindcss';
+
+/*
+ * Erfan Academy Web — design tokens.
+ *
+ * Every colour below is generated from the app's two seed colours with the
+ * same Material 3 algorithm Flutter uses (`ColorScheme.fromSeed`), so the site
+ * is the same product, not an approximation. The full app-value → web-token
+ * mapping, and the contrast measurements, are in docs/design-tokens.md.
+ *
+ * Components must never hard-code a colour, radius, shadow or duration.
+ */
+
+/* ── dark mode variant ───────────────────────────────────────────────────── */
+/* Driven by a `data-theme` attribute so the user's choice can override the
+   system preference, with the system preference as the default. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ── fonts ───────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Vazirmatn';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/vazirmatn-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+08A0-08FF, U+FB50-FDFF,
+    U+FE70-FEFF, U+200C-200F;
+}
+
+@font-face {
+  font-family: 'Vazirmatn';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/vazirmatn-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2070-209F;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 800;
+  src: url('/fonts/open-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2070-209F;
+}
+
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/lexend-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2070-209F;
+}
+
+/*
+ * Metric-matched fallbacks so swapping to the real font causes no layout shift
+ * (CLS budget is 0.1 and font swap is the usual culprit).
+ */
+@font-face {
+  font-family: 'Vazirmatn Fallback';
+  src: local('Tahoma'), local('Arial');
+  size-adjust: 102%;
+  ascent-override: 92%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Open Sans Fallback';
+  src: local('Arial'), local('Helvetica');
+  size-adjust: 104%;
+  ascent-override: 103%;
+  descent-override: 28%;
+  line-gap-override: 0%;
+}
+
+/* ── tokens ──────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Light theme. Generated from seed #5B6CFF. */
+  --color-primary: #545a92;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #dfe0ff;
+  --color-on-primary-container: #3c4279;
+  --color-secondary: #5b5d72;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e0e0f9;
+  --color-on-secondary-container: #444559;
+  --color-tertiary: #77536c;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #ffd7ef;
+  --color-on-tertiary-container: #5e3c53;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* The app authors these two directly, overriding what fromSeed would give. */
+  --color-surface: #f6f8ff;
+  --color-on-surface: #1b1b21;
+  --color-surface-variant: #e3e1ec;
+  --color-on-surface-variant: #46464f;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #f5f2fa;
+  --color-surface-3: #efedf4;
+  --color-surface-4: #eae7ef;
+  --color-surface-5: #e4e1e9;
+
+  --color-outline: #777680;
+  --color-outline-variant: #c7c5d0;
+  --color-inverse-surface: #303036;
+  --color-on-inverse-surface: #f2eff7;
+  --color-inverse-primary: #bdc2ff;
+  --color-scrim: #000000;
+
+  /* Quiz feedback. Tonal green at the same steps M3 uses; wrong reuses error. */
+  --color-correct: #2e6b4f;
+  --color-on-correct: #ffffff;
+  --color-correct-container: #c7f0d9;
+  --color-on-correct-container: #174a32;
+
+  /* Type families. Arabic script leads under :lang(fa)/:lang(ckb) below. */
+  --font-sans: 'Open Sans', 'Open Sans Fallback', 'Vazirmatn', 'Vazirmatn Fallback',
+    system-ui, sans-serif;
+  --font-arabic: 'Vazirmatn', 'Vazirmatn Fallback', 'Open Sans', system-ui, sans-serif;
+  --font-display: 'Lexend', 'Open Sans', 'Vazirmatn', system-ui, sans-serif;
+
+  /* Fluid headings (ui-ux-spec.md §2.6); body stays fixed and never below 16px. */
+  --text-display: clamp(2rem, 1.4rem + 2.6vw, 3rem);
+  --text-h1: clamp(1.75rem, 1.3rem + 1.9vw, 2.5rem);
+  --text-h2: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --text-h3: 1.375rem;
+  --text-h4: 1.125rem;
+  --text-body-lg: 1.0625rem;
+  --text-body: 1rem;
+  --text-label: 0.875rem;
+  --text-caption: 0.75rem;
+
+  /* Shape, from the app's cardTheme / inputDecorationTheme. */
+  --radius-card: 1.5rem;
+  --radius-input: 1.125rem;
+  --radius-logo: 1.125rem;
+  --radius-button: 9999px;
+  --radius-sm: 0.5rem;
+
+  /* Sizes from the app's button themes and nav bar. */
+  --size-button-lg: 3.25rem;
+  --size-button-md: 3rem;
+  --size-bottom-nav: 5rem;
+  --size-logo: 3.5rem;
+
+  /*
+   * The app is strictly elevation: 0 — depth comes from surface tone, not
+   * shadow. Only floating overlays get one. See docs/design-tokens.md §4.
+   */
+  --shadow-overlay: 0 8px 32px -8px rgb(0 0 0 / 0.18);
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-enter: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  --container-prose: 42rem;
+  --container-quiz: 40rem;
+  --container-content: 72rem;
+  --container-wide: 90rem;
+}
+
+/* Dark theme. Generated from seed #8A93FF. */
+:root[data-theme='dark'] {
+  --color-primary: #bec2ff;
+  --color-on-primary: #262b60;
+  --color-primary-container: #3d4279;
+  --color-on-primary-container: #e0e0ff;
+  --color-secondary: #c5c4dd;
+  --color-on-secondary: #2e2f42;
+  --color-secondary-container: #444559;
+  --color-on-secondary-container: #e1e0f9;
+  --color-tertiary: #e7b9d5;
+  --color-on-tertiary: #45263c;
+  --color-tertiary-container: #5e3c53;
+  --color-on-tertiary-container: #ffd8ee;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-surface: #0d1020;
+  --color-on-surface: #e4e1e9;
+  --color-surface-variant: #46464f;
+  --color-on-surface-variant: #c7c5d0;
+  --color-surface-1: #0e0e13;
+  --color-surface-2: #1b1b21;
+  --color-surface-3: #1f1f25;
+  --color-surface-4: #2a292f;
+  --color-surface-5: #34343a;
+
+  --color-outline: #91909a;
+  --color-outline-variant: #46464f;
+  --color-inverse-surface: #e4e1e9;
+  --color-on-inverse-surface: #303036;
+  --color-inverse-primary: #555a92;
+
+  --color-correct: #8fd6ae;
+  --color-on-correct: #10331f;
+  --color-correct-container: #174a32;
+  --color-on-correct-container: #c7f0d9;
+
+  --shadow-overlay: 0 8px 32px -8px rgb(0 0 0 / 0.5);
+}
+
+/* ── base ────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /*
+     * Tracking is a token so a component cannot apply it to Arabic script by
+     * accident: under :lang(fa) and :lang(ckb) both resolve to 0. Letter
+     * spacing breaks cursive joining — ui-ux-spec.md §3.
+     */
+    --tracking-heading: -0.0125em;
+    --tracking-title: -0.00625em;
+    --leading-body: 1.55;
+    --font-scale: 1;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+  }
+
+  /*
+   * Arabic script: no tracking, more line height, and a small size bump so
+   * Vazirmatn reads at the same optical weight as the Latin faces.
+   */
+  :root:lang(fa),
+  :root:lang(ckb) {
+    --tracking-heading: 0;
+    --tracking-title: 0;
+    --leading-body: 1.9;
+    --font-scale: 1.06;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    font-family: var(--font-sans);
+    font-size: calc(var(--text-body) * var(--font-scale));
+    line-height: var(--leading-body);
+    /* Never justify Arabic script: no kashida support means ugly gaps. */
+    text-align: start;
+    min-height: 100dvh;
+  }
+
+  :lang(fa) body,
+  :lang(ckb) body,
+  [lang='fa'],
+  [lang='ckb'] {
+    font-family: var(--font-arabic);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: var(--tracking-heading);
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  :lang(fa) h1,
+  :lang(fa) h2,
+  :lang(fa) h3,
+  :lang(fa) h4,
+  :lang(ckb) h1,
+  :lang(ckb) h2,
+  :lang(ckb) h3,
+  :lang(ckb) h4 {
+    font-family: var(--font-arabic);
+    line-height: 1.5;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Visible focus everywhere, never removed. */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Media never overflows its box, and reserves its space while loading. */
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Honour reduced motion as a correctness requirement, not a nicety. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /*
+   * Page gutters, with safe-area insets for notched phones.
+   * 16px phone / 24px tablet / 32px desktop, per ui-ux-spec.md §2.3.
+   */
+  .page-gutter {
+    padding-inline: max(1rem, env(safe-area-inset-left), env(safe-area-inset-right));
+  }
+
+  @media (min-width: 768px) {
+    .page-gutter {
+      padding-inline: max(1.5rem, env(safe-area-inset-left), env(safe-area-inset-right));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-gutter {
+      padding-inline: max(2rem, env(safe-area-inset-left), env(safe-area-inset-right));
+    }
+  }
+
+  /* Reserves the bottom bar's height so it never covers the last element. */
+  .pb-nav {
+    padding-block-end: calc(var(--size-bottom-nav) + env(safe-area-inset-bottom) + 1rem);
+  }
+
+  @media (min-width: 768px) {
+    .pb-nav {
+      padding-block-end: 3rem;
+    }
+  }
+
+  /* Mirrors directional icons in RTL. Never applied to logos. */
+  .rtl-flip:where(:dir(rtl)) {
+    transform: scaleX(-1);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Bilingual study blobs arrive as plain text with \r\n line breaks. */
+  .study-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: var(--leading-body);
+  }
+}
