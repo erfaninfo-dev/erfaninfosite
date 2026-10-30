@@ -296,7 +296,10 @@ export async function getSpeakingModel(modelId: number): Promise<N.SpeakingModel
 export const getSpeakingTopicQuestions = cache(
   async (
     topicId: number
-  ): Promise<{ topic: { id: number; title: string }; questions: N.SpeakingQuestion[] }> => {
+  ): Promise<{
+    topic: { id: number; title: string };
+    questions: N.SpeakingQuestion[];
+  }> => {
     const raw = await apiGet(
       ENDPOINTS.speakingQuestions,
       S.speakingTopicQuestionsSchema,

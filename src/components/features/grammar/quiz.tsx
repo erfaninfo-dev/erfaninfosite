@@ -134,13 +134,14 @@ export function Quiz({
     total,
   });
   const correctText =
-    question.options.find((o) => o.key.toLowerCase() === question.correctAnswer.toLowerCase())
-      ?.text ?? '';
+    question.options.find(
+      (o) => o.key.toLowerCase() === question.correctAnswer.toLowerCase()
+    )?.text ?? '';
 
   return (
     <div className="mx-auto w-full max-w-[var(--container-quiz)]">
       <div className="mb-5">
-        <p className="mb-2 text-[length:var(--text-label)] font-semibold text-on-surface-variant">
+        <p className="text-on-surface-variant mb-2 text-[length:var(--text-label)] font-semibold">
           {progressLabel}
         </p>
         <div
@@ -149,16 +150,16 @@ export function Quiz({
           aria-valuemin={1}
           aria-valuemax={total}
           aria-label={progressLabel}
-          className="h-1.5 overflow-hidden rounded-full bg-surface-4"
+          className="bg-surface-4 h-1.5 overflow-hidden rounded-full"
         >
           <div
-            className="h-full rounded-full bg-primary transition-[width] duration-[var(--duration-base)] ease-[var(--ease-enter)]"
+            className="bg-primary h-full rounded-full transition-[width] duration-[var(--duration-base)] ease-[var(--ease-enter)]"
             style={{ width: `${((index + 1) / total) * 100}%` }}
           />
         </div>
       </div>
 
-      <div className="rounded-[var(--radius-card)] border border-outline-variant/60 bg-surface-1 p-6 dark:bg-surface-2">
+      <div className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 rounded-[var(--radius-card)] border p-6">
         {/* Questions and options are always English. */}
         <h2 lang="en" dir="ltr" className="text-[length:var(--text-h3)] leading-relaxed">
           {question.questionText}
@@ -189,12 +190,13 @@ export function Quiz({
                   'transition-colors duration-[var(--duration-fast)] ease-[var(--ease-enter)]',
                   !answered &&
                     'border-outline-variant bg-surface-2 hover:border-primary/60 hover:bg-surface-3 dark:bg-surface-3',
-                  showCorrect && 'border-correct bg-correct-container text-on-correct-container',
+                  showCorrect &&
+                    'border-correct bg-correct-container text-on-correct-container',
                   showWrong && 'border-error bg-error-container text-on-error-container',
                   answered &&
                     !showCorrect &&
                     !showWrong &&
-                    'border-outline-variant/50 bg-surface-2 opacity-60 dark:bg-surface-3',
+                    'border-outline-variant/50 bg-surface-2 dark:bg-surface-3 opacity-60',
                   answered && 'cursor-default'
                 )}
               >
@@ -283,11 +285,19 @@ function ScoreSummary({
 
   return (
     <div className="mx-auto w-full max-w-[var(--container-quiz)]">
-      <div className="rounded-[var(--radius-card)] border border-outline-variant/60 bg-surface-1 p-8 text-center dark:bg-surface-2">
-        <p className="text-[length:var(--text-display)] font-bold text-primary">
-          {score} / {total}
+      <div className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 rounded-[var(--radius-card)] border p-8 text-center">
+        {/*
+          Isolated and forced LTR: a bare "17 / 20" inside an RTL page is
+          reordered by the bidi algorithm into "20 / 17". Digits are localised
+          because this is display text.
+        */}
+        <p className="text-primary text-[length:var(--text-display)] font-bold">
+          <bdi dir="ltr">
+            {new Intl.NumberFormat(locale).format(score)} /{' '}
+            {new Intl.NumberFormat(locale).format(total)}
+          </bdi>
         </p>
-        <p className="mt-2 text-on-surface-variant">
+        <p className="text-on-surface-variant mt-2">
           {formatClient(labels.scoreTemplate, locale, { score, total })}
         </p>
 
@@ -296,10 +306,10 @@ function ScoreSummary({
           aria-valuenow={score}
           aria-valuemin={0}
           aria-valuemax={total}
-          className="mx-auto mt-6 h-2 max-w-sm overflow-hidden rounded-full bg-surface-4"
+          className="bg-surface-4 mx-auto mt-6 h-2 max-w-sm overflow-hidden rounded-full"
         >
           <div
-            className="h-full rounded-full bg-correct transition-[width] duration-[var(--duration-slow)] ease-[var(--ease-enter)]"
+            className="bg-correct h-full rounded-full transition-[width] duration-[var(--duration-slow)] ease-[var(--ease-enter)]"
             style={{ width: `${ratio * 100}%` }}
           />
         </div>

@@ -12,7 +12,7 @@ export function Skeleton({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={cn('animate-pulse rounded-[var(--radius-sm)] bg-surface-4', className)}
+      className={cn('bg-surface-4 animate-pulse rounded-[var(--radius-sm)]', className)}
     />
   );
 }
@@ -27,7 +27,7 @@ export function CardGridSkeleton({ count = 6 }: { count?: number }) {
       {Array.from({ length: count }, (_, i) => (
         <div
           key={i}
-          className="rounded-[var(--radius-card)] border border-outline-variant/60 bg-surface-1 p-5 dark:bg-surface-2"
+          className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 rounded-[var(--radius-card)] border p-5"
         >
           <Skeleton className="h-5 w-3/4" />
           <Skeleton className="mt-3 h-4 w-full" />
@@ -41,7 +41,7 @@ export function CardGridSkeleton({ count = 6 }: { count?: number }) {
 /** A skeleton shaped like a word list row. */
 export function ListSkeleton({ rows = 8 }: { rows?: number }) {
   return (
-    <div className="divide-y divide-outline-variant/50 rounded-[var(--radius-card)] border border-outline-variant/60 bg-surface-1 dark:bg-surface-2">
+    <div className="divide-outline-variant/50 border-outline-variant/60 bg-surface-1 dark:bg-surface-2 divide-y rounded-[var(--radius-card)] border">
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="flex items-center gap-4 p-4">
           <Skeleton className="h-5 w-32 shrink-0" />
@@ -62,10 +62,12 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-[var(--radius-card)] border border-dashed border-outline-variant bg-surface-2/50 px-6 py-12 text-center">
-      <p className="text-[length:var(--text-h4)] font-semibold text-on-surface">{title}</p>
+    <div className="border-outline-variant bg-surface-2/50 rounded-[var(--radius-card)] border border-dashed px-6 py-12 text-center">
+      <p className="text-on-surface text-[length:var(--text-h4)] font-semibold">
+        {title}
+      </p>
       {body ? (
-        <p className="mx-auto mt-2 max-w-[42ch] text-on-surface-variant">{body}</p>
+        <p className="text-on-surface-variant mx-auto mt-2 max-w-[42ch]">{body}</p>
       ) : null}
       {action ? <div className="mt-6 flex justify-center">{action}</div> : null}
     </div>
@@ -89,13 +91,13 @@ export function ErrorState({
   return (
     <div
       role="alert"
-      className="rounded-[var(--radius-card)] border border-error/40 bg-error-container/40 px-6 py-10 text-center"
+      className="border-error/40 bg-error-container/40 rounded-[var(--radius-card)] border px-6 py-10 text-center"
     >
-      <p className="text-[length:var(--text-h4)] font-semibold text-on-error-container">
+      <p className="text-on-error-container text-[length:var(--text-h4)] font-semibold">
         {title}
       </p>
       {body ? (
-        <p className="mx-auto mt-2 max-w-[42ch] text-on-error-container/90">{body}</p>
+        <p className="text-on-error-container/90 mx-auto mt-2 max-w-[42ch]">{body}</p>
       ) : null}
       {action ? <div className="mt-6 flex justify-center">{action}</div> : null}
     </div>

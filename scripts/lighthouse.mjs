@@ -38,11 +38,26 @@ async function run() {
         `${BASE}${page.path}`,
         { port: chrome.port, output: 'json', logLevel: 'error' },
         // Mobile is the budget that matters: it is where most readers are.
-        { extends: 'lighthouse:default', settings: { formFactor: 'mobile', screenEmulation: { mobile: true, width: 412, height: 823, deviceScaleFactor: 1.75, disabled: false } } }
+        {
+          extends: 'lighthouse:default',
+          settings: {
+            formFactor: 'mobile',
+            screenEmulation: {
+              mobile: true,
+              width: 412,
+              height: 823,
+              deviceScaleFactor: 1.75,
+              disabled: false,
+            },
+          },
+        }
       );
 
       const scores = Object.fromEntries(
-        CATEGORIES.map((c) => [c, Math.round((result.lhr.categories[c]?.score ?? 0) * 100)])
+        CATEGORIES.map((c) => [
+          c,
+          Math.round((result.lhr.categories[c]?.score ?? 0) * 100),
+        ])
       );
 
       const vitals = {

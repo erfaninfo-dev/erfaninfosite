@@ -7,6 +7,10 @@ import { getTranslator } from '@/lib/i18n/messages';
 /**
  * One speaking question with its model answer.
  *
+ * Answers are long study text, so each paragraph is capped at the prose
+ * measure rather than filling the card — ui-ux-spec.md §2.3 asks for 60–75
+ * characters a line, and a 1,152 px card would otherwise give about 100.
+ *
  * The English answer is the one a learner practises; the Persian and Kurdish
  * versions are the gloss. All three are rendered server-side — there is no
  * interaction here, so this stays a Server Component and ships no JavaScript.
@@ -35,10 +39,14 @@ export function SpeakingAnswerCard({
 
       {question.answer.en ? (
         <div className="mt-4">
-          <p className="mb-1 text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+          <p className="text-on-surface-variant mb-1 text-[length:var(--text-caption)] font-semibold">
             {t('speakingSampleAnswer')}
           </p>
-          <p lang="en" dir="ltr" className="text-on-surface">
+          <p
+            lang="en"
+            dir="ltr"
+            className="text-on-surface max-w-[var(--container-prose)]"
+          >
             {question.answer.en}
           </p>
         </div>
@@ -46,10 +54,13 @@ export function SpeakingAnswerCard({
 
       {glossAnswer && glossAnswer !== question.answer.en ? (
         <div className="mt-4">
-          <p className="mb-1 text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+          <p className="text-on-surface-variant mb-1 text-[length:var(--text-caption)] font-semibold">
             {t('speakingModelAnswer')}
           </p>
-          <p lang={gloss} className="text-on-surface-variant">
+          <p
+            lang={gloss}
+            className="text-on-surface-variant max-w-[var(--container-prose)]"
+          >
             {glossAnswer}
           </p>
         </div>
@@ -57,12 +68,16 @@ export function SpeakingAnswerCard({
 
       {others.length > 0 ? (
         <details className="mt-4">
-          <summary className="inline-flex min-h-11 cursor-pointer items-center text-[length:var(--text-label)] font-semibold text-primary">
+          <summary className="text-primary inline-flex min-h-11 cursor-pointer items-center text-[length:var(--text-label)] font-semibold">
             {t('showOtherLanguages')}
           </summary>
           <div className="mt-2 space-y-2">
             {others.map((other) => (
-              <p key={other.lang} lang={other.lang} className="text-on-surface-variant">
+              <p
+                key={other.lang}
+                lang={other.lang}
+                className="text-on-surface-variant max-w-[var(--container-prose)]"
+              >
                 {other.text}
               </p>
             ))}
@@ -71,13 +86,19 @@ export function SpeakingAnswerCard({
       ) : null}
 
       {question.bandAnswers.length > 0 ? (
-        <div className="mt-5 space-y-3 border-t border-outline-variant/60 pt-4">
+        <div className="border-outline-variant/60 mt-5 space-y-3 border-t pt-4">
           {question.bandAnswers.map((band, i) => (
             <div key={`${band.band}-${i}`}>
               {band.band ? (
-                <Badge tone="primary">{t('speakingBandAnswer', { band: band.band })}</Badge>
+                <Badge tone="primary">
+                  {t('speakingBandAnswer', { band: band.band })}
+                </Badge>
               ) : null}
-              <p lang="en" dir="ltr" className="mt-1.5 text-on-surface">
+              <p
+                lang="en"
+                dir="ltr"
+                className="text-on-surface mt-1.5 max-w-[var(--container-prose)]"
+              >
                 {band.answer}
               </p>
             </div>
@@ -86,11 +107,11 @@ export function SpeakingAnswerCard({
       ) : null}
 
       {question.modelFormula ? (
-        <div className="mt-5 rounded-[var(--radius-input)] bg-surface-3 p-4 dark:bg-surface-3">
-          <p className="text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+        <div className="bg-surface-3 dark:bg-surface-3 mt-5 rounded-[var(--radius-input)] p-4">
+          <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
             {t('speakingFormula')}
           </p>
-          <p lang="en" dir="ltr" className="mt-1 text-on-surface">
+          <p lang="en" dir="ltr" className="text-on-surface mt-1">
             {question.modelFormula}
           </p>
         </div>

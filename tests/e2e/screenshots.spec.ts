@@ -14,9 +14,14 @@ import { LOCALES, MAIN_PAGES, SCREENSHOT_WIDTHS, THEMES } from './pages';
  * with `pnpm e2e -- screenshots`.
  *
  * It is tagged @matrix so the normal suite does not pay for ~570 screenshots.
+ * Output lands in `screenshots/matrix/<page>/<width>-<locale>-<theme>.png`.
  */
 
-const OUT = join(process.cwd(), 'test-results', 'matrix');
+/*
+ * Not under `test-results/`: Playwright clears that directory at the start of
+ * every run, so the next `pnpm e2e` would delete the matrix you just generated.
+ */
+const OUT = join(process.cwd(), 'screenshots', 'matrix');
 
 test.describe('@matrix screenshot matrix', () => {
   test.skip(

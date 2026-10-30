@@ -68,13 +68,15 @@ export default async function GrammarUnitPage({
         title={unit.title}
         description={unit.subtitle || undefined}
         meta={
-          <span className="text-[length:var(--text-label)] text-on-surface-variant">
+          <span className="text-on-surface-variant text-[length:var(--text-label)]">
             {t('unitLabel', { unit: unit.unitNumber })}
           </span>
         }
       />
 
-      <Suspense fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}>
+      <Suspense
+        fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}
+      >
         <LessonTexts unitId={uId} locale={locale} />
       </Suspense>
     </Container>
@@ -89,7 +91,10 @@ export default async function GrammarUnitPage({
  * document is shown with a note, rather than a blank panel.
  */
 async function LessonTexts({ unitId, locale }: { unitId: number; locale: Locale }) {
-  const [texts, gloss] = await Promise.all([getGrammarUnitTexts(unitId), getGloss(locale)]);
+  const [texts, gloss] = await Promise.all([
+    getGrammarUnitTexts(unitId),
+    getGloss(locale),
+  ]);
   const t = getTranslator(locale);
 
   const usable = texts
@@ -113,7 +118,7 @@ async function LessonTexts({ unitId, locale }: { unitId: number; locale: Locale 
             {text.title || t('lessonText')}
           </h2>
           {text.fallback ? (
-            <p className="mb-3 text-[length:var(--text-caption)] text-on-surface-variant">
+            <p className="text-on-surface-variant mb-3 text-[length:var(--text-caption)]">
               {t('notAvailableInKurdish')}
             </p>
           ) : null}

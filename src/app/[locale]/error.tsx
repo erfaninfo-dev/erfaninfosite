@@ -25,7 +25,9 @@ export default function RouteError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(JSON.stringify({ level: 'error', source: 'route', digest: error.digest }));
+    console.error(
+      JSON.stringify({ level: 'error', source: 'route', digest: error.digest })
+    );
   }, [error]);
 
   return (

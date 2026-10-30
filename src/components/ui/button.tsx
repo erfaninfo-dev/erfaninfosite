@@ -56,7 +56,13 @@ export function Button({
       // just going flat and unexplained.
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={cn(BASE, VARIANTS[variant], SIZES[size], fullWidth && 'w-full', className)}
+      className={cn(
+        BASE,
+        VARIANTS[variant],
+        SIZES[size],
+        fullWidth && 'w-full',
+        className
+      )}
     >
       {loading ? <Spinner /> : null}
       {children}
@@ -77,7 +83,13 @@ export function ButtonLink({
     <Link
       {...rest}
       href={href}
-      className={cn(BASE, VARIANTS[variant], SIZES[size], fullWidth && 'w-full', className)}
+      className={cn(
+        BASE,
+        VARIANTS[variant],
+        SIZES[size],
+        fullWidth && 'w-full',
+        className
+      )}
     >
       {children}
     </Link>

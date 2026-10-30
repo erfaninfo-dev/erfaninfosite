@@ -68,7 +68,7 @@ async function TopicGrid({ locale }: { locale: Locale }) {
 
   if (topics.length === 0) {
     return (
-      <p className="rounded-[var(--radius-card)] border border-dashed border-outline-variant px-6 py-10 text-center text-on-surface-variant">
+      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
         {t('speakingNoTopics')}
       </p>
     );
@@ -77,15 +77,20 @@ async function TopicGrid({ locale }: { locale: Locale }) {
   return (
     <CardGrid min="14rem">
       {topics.map((topic) => (
-        <CardLink key={topic.id} href={localeHref(locale, `/speaking/topics/${topic.id}`)}>
+        <CardLink
+          key={topic.id}
+          href={localeHref(locale, `/speaking/topics/${topic.id}`)}
+        >
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[length:var(--text-h4)] text-on-surface">
+            <h3 className="text-on-surface text-[length:var(--text-h4)]">
               <bdi lang="en">{topic.title}</bdi>
             </h3>
-            <IconChevron className="size-5 shrink-0 text-on-surface-variant" />
+            <IconChevron className="text-on-surface-variant size-5 shrink-0" />
           </div>
           <div className="mt-auto pt-4">
-            <Badge>{t('speakingModelQuestionsSubtitle', { count: topic.questionCount })}</Badge>
+            <Badge>
+              {t('speakingModelQuestionsSubtitle', { count: topic.questionCount })}
+            </Badge>
           </div>
         </CardLink>
       ))}
@@ -99,7 +104,7 @@ async function ModelGrid({ locale }: { locale: Locale }) {
 
   if (models.length === 0) {
     return (
-      <p className="rounded-[var(--radius-card)] border border-dashed border-outline-variant px-6 py-10 text-center text-on-surface-variant">
+      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
         {t('speakingNoModels')}
       </p>
     );
@@ -108,20 +113,25 @@ async function ModelGrid({ locale }: { locale: Locale }) {
   return (
     <CardGrid min="18rem">
       {models.map((model) => (
-        <CardLink key={model.id} href={localeHref(locale, `/speaking/models/${model.id}`)}>
-          <p className="text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+        <CardLink
+          key={model.id}
+          href={localeHref(locale, `/speaking/models/${model.id}`)}
+        >
+          <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
             {t('speakingModelNumber', { number: model.modelNumber })}
           </p>
-          <h3 className="mt-0.5 text-[length:var(--text-h4)] text-on-surface">
+          <h3 className="text-on-surface mt-0.5 text-[length:var(--text-h4)]">
             <bdi lang="en">{model.title}</bdi>
           </h3>
           {model.formula ? (
-            <p className="mt-2 text-[length:var(--text-label)] text-on-surface-variant">
+            <p className="text-on-surface-variant mt-2 text-[length:var(--text-label)]">
               <bdi lang="en">{model.formula}</bdi>
             </p>
           ) : null}
           <div className="mt-auto pt-4">
-            <Badge>{t('speakingModelQuestionsSubtitle', { count: model.questionCount })}</Badge>
+            <Badge>
+              {t('speakingModelQuestionsSubtitle', { count: model.questionCount })}
+            </Badge>
           </div>
         </CardLink>
       ))}

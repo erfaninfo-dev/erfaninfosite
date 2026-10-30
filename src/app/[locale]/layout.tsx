@@ -94,7 +94,10 @@ document.documentElement.dataset.theme=t;
 }catch(e){}})();
 `.trim();
 
-export default async function LocaleLayout({ children, params }: LayoutProps<'/[locale]'>) {
+export default async function LocaleLayout({
+  children,
+  params,
+}: LayoutProps<'/[locale]'>) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
@@ -112,7 +115,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
         <link
           rel="preload"
           href={
-            locale === 'en' ? '/fonts/open-sans-latin.woff2' : '/fonts/vazirmatn-arabic.woff2'
+            locale === 'en'
+              ? '/fonts/open-sans-latin.woff2'
+              : '/fonts/vazirmatn-arabic.woff2'
           }
           as="font"
           type="font/woff2"
@@ -123,7 +128,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
       <body>
         <a
           href="#main"
-          className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:z-50 focus-visible:m-3 focus-visible:rounded-[var(--radius-sm)] focus-visible:bg-primary focus-visible:px-4 focus-visible:py-2 focus-visible:text-on-primary"
+          className="focus-visible:bg-primary focus-visible:text-on-primary sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:z-50 focus-visible:m-3 focus-visible:rounded-[var(--radius-sm)] focus-visible:px-4 focus-visible:py-2"
         >
           {t('skipToContent')}
         </a>

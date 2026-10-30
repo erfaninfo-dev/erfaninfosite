@@ -65,7 +65,9 @@ export default async function GrammarTopicPage({
         title={topic.topic}
         meta={
           <>
-            <Badge>{t('grammarTopicsQuestionsCount', { count: topic.questionCount })}</Badge>
+            <Badge>
+              {t('grammarTopicsQuestionsCount', { count: topic.questionCount })}
+            </Badge>
             {topic.isNew ? <Badge tone="new">{t('badgeNew')}</Badge> : null}
           </>
         }
@@ -73,7 +75,7 @@ export default async function GrammarTopicPage({
 
       <Card className="mb-8">
         <SectionHeading>{t('quizLength')}</SectionHeading>
-        <p className="mb-5 text-on-surface-variant">{t('grammarTopicsPick')}</p>
+        <p className="text-on-surface-variant mb-5">{t('grammarTopicsPick')}</p>
         <div className="flex flex-wrap gap-3">
           {SESSION_LENGTHS.filter((n) => n <= topic.questionCount).map((n) => (
             <ButtonLink
@@ -86,10 +88,7 @@ export default async function GrammarTopicPage({
             </ButtonLink>
           ))}
           {topic.questionCount < SESSION_LENGTHS[0] ? (
-            <ButtonLink
-              href={localeHref(locale, `/grammar/topics/${id}/quiz`)}
-              size="md"
-            >
+            <ButtonLink href={localeHref(locale, `/grammar/topics/${id}/quiz`)} size="md">
               {t('startQuiz')}
             </ButtonLink>
           ) : null}
@@ -118,7 +117,7 @@ async function TopicPdfs({ topic, locale }: { topic: string; locale: Locale }) {
           <div key={pdf.id} className="flex flex-wrap items-center gap-2">
             <ExternalLink
               href={pdf.url}
-              className="inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-button)] px-3 text-primary hover:bg-surface-3"
+              className="text-primary hover:bg-surface-3 inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-button)] px-3"
             >
               <IconPdf className="size-5" />
               <bdi lang="en">{pdf.title || topic}</bdi>
@@ -127,7 +126,7 @@ async function TopicPdfs({ topic, locale }: { topic: string; locale: Locale }) {
             {/* A separate Kurdish PDF exists for most topics. */}
             <ExternalLink
               href={pdf.urlKurdish}
-              className="inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-button)] px-3 text-primary hover:bg-surface-3"
+              className="text-primary hover:bg-surface-3 inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-button)] px-3"
             >
               <IconPdf className="size-5" />
               {t('pdfKurdish')}

@@ -47,7 +47,9 @@ export async function generateMetadata({
  * This way the header, navigation and page frame are static, and only the data
  * streams.
  */
-export default async function BookPage({ params }: PageProps<'/[locale]/books/[bookId]'>) {
+export default async function BookPage({
+  params,
+}: PageProps<'/[locale]/books/[bookId]'>) {
   const { locale, bookId } = await params;
   if (!isLocale(locale)) notFound();
   const id = parseId(bookId);
@@ -107,7 +109,7 @@ async function UnitGrid({ bookId, locale }: { bookId: number; locale: Locale }) 
   if (units.length === 0) {
     // A book with no units yet is legitimate — an empty state, not a 404.
     return (
-      <p className="rounded-[var(--radius-card)] border border-dashed border-outline-variant px-6 py-10 text-center text-on-surface-variant">
+      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
         {t('noMatchingUnits')}
       </p>
     );
@@ -121,13 +123,13 @@ async function UnitGrid({ bookId, locale }: { bookId: number; locale: Locale }) 
           href={localeHref(locale, `/books/${bookId}/units/${unit.unit}`)}
         >
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-[length:var(--text-h4)] text-on-surface">
+            <h3 className="text-on-surface text-[length:var(--text-h4)]">
               {t('unitLabel', { unit: unit.unit })}
             </h3>
-            <IconChevron className="size-5 shrink-0 text-on-surface-variant" />
+            <IconChevron className="text-on-surface-variant size-5 shrink-0" />
           </div>
           {unit.details ? (
-            <p className="mt-1.5 text-[length:var(--text-label)] text-on-surface-variant">
+            <p className="text-on-surface-variant mt-1.5 text-[length:var(--text-label)]">
               <bdi lang="en">{unit.details}</bdi>
             </p>
           ) : null}
@@ -147,18 +149,18 @@ async function BookPdfs({ bookId, locale }: { bookId: number; locale: Locale }) 
   return (
     <section>
       <SectionHeading>{t('bookStudyPdfTooltip')}</SectionHeading>
-      <Card className="divide-y divide-outline-variant/50 p-0">
+      <Card className="divide-outline-variant/50 divide-y p-0">
         {pdfs.map((pdf) => (
           <ExternalLink
             key={pdf.id}
             href={pdf.url}
-            className="flex min-h-14 items-center gap-3 px-5 py-4 hover:bg-surface-2 dark:hover:bg-surface-3"
+            className="hover:bg-surface-2 dark:hover:bg-surface-3 flex min-h-14 items-center gap-3 px-5 py-4"
           >
-            <IconPdf className="size-5 shrink-0 text-primary" />
-            <span className="min-w-0 flex-1 text-on-surface">
+            <IconPdf className="text-primary size-5 shrink-0" />
+            <span className="text-on-surface min-w-0 flex-1">
               <bdi lang="en">{pdf.title}</bdi>
             </span>
-            <span className="text-[length:var(--text-caption)] text-on-surface-variant">
+            <span className="text-on-surface-variant text-[length:var(--text-caption)]">
               {t('bookStudyPdfView')}
             </span>
           </ExternalLink>

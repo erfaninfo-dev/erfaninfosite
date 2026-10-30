@@ -57,7 +57,7 @@ async function CategoryGrid({ locale }: { locale: Locale }) {
 
   if (categories.length === 0) {
     return (
-      <p className="rounded-[var(--radius-card)] border border-dashed border-outline-variant px-6 py-10 text-center text-on-surface-variant">
+      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
         {t('wordBuilderCategoryNoWordsYet')}
       </p>
     );
@@ -71,11 +71,11 @@ async function CategoryGrid({ locale }: { locale: Locale }) {
 
         return (
           <CardLink key={category.id} href={localeHref(locale, `/play/${category.slug}`)}>
-            <div className="mb-3 flex size-12 items-center justify-center rounded-[var(--radius-logo)] bg-secondary-container text-on-secondary-container">
+            <div className="bg-secondary-container text-on-secondary-container mb-3 flex size-12 items-center justify-center rounded-[var(--radius-logo)]">
               {/* Flutter icon names mapped to web glyphs, with a fallback. */}
               <CategoryIcon name={category.icon} className="size-6" />
             </div>
-            <h3 className="text-[length:var(--text-h4)] text-on-surface">
+            <h3 className="text-on-surface text-[length:var(--text-h4)]">
               {name || category.name.en}
             </h3>
             <div className="mt-auto pt-3">

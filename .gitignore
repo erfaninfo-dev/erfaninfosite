@@ -12,3 +12,4 @@ coverage
 
 # Local dev server config for the Claude Code browser pane
 .claude/launch.json
+screenshots

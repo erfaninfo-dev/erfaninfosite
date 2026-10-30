@@ -33,7 +33,7 @@ export function BottomNav({
       aria-label={labels.navPrimary ?? 'Main'}
       className={cn(
         'fixed inset-x-0 bottom-0 z-40 md:hidden',
-        'border-t border-outline-variant/70 bg-surface-1/95 backdrop-blur',
+        'border-outline-variant/70 bg-surface-1/95 border-t backdrop-blur',
         'dark:bg-surface-2/95'
       )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}

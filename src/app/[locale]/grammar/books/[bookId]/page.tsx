@@ -79,7 +79,7 @@ async function UnitGrid({ bookId, locale }: { bookId: number; locale: Locale }) 
 
   if (units.length === 0) {
     return (
-      <p className="rounded-[var(--radius-card)] border border-dashed border-outline-variant px-6 py-10 text-center text-on-surface-variant">
+      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
         {t('noMatchingUnits')}
       </p>
     );
@@ -94,17 +94,17 @@ async function UnitGrid({ bookId, locale }: { bookId: number; locale: Locale }) 
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+              <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
                 {t('unitLabel', { unit: unit.unitNumber })}
               </p>
-              <h3 className="mt-0.5 text-[length:var(--text-h4)] text-on-surface">
+              <h3 className="text-on-surface mt-0.5 text-[length:var(--text-h4)]">
                 <bdi lang="en">{unit.title}</bdi>
               </h3>
             </div>
-            <IconChevron className="size-5 shrink-0 text-on-surface-variant" />
+            <IconChevron className="text-on-surface-variant size-5 shrink-0" />
           </div>
           {unit.subtitle ? (
-            <p className="mt-1.5 text-[length:var(--text-label)] text-on-surface-variant">
+            <p className="text-on-surface-variant mt-1.5 text-[length:var(--text-label)]">
               <bdi lang="en">{unit.subtitle}</bdi>
             </p>
           ) : null}

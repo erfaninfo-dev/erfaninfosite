@@ -13,7 +13,12 @@ import { cn } from '@/lib/cn';
 
 type IconProps = SVGProps<SVGSVGElement> & { title?: string };
 
-function Svg({ children, className, title, ...rest }: IconProps & { children: React.ReactNode }) {
+function Svg({
+  children,
+  className,
+  title,
+  ...rest
+}: IconProps & { children: React.ReactNode }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -206,7 +211,6 @@ export const IconRefresh = (p: IconProps) => (
   </Svg>
 );
 
-
 /* ── the 51 game category icons ──────────────────────────────────────────── */
 
 /**
@@ -221,57 +225,92 @@ export const IconRefresh = (p: IconProps) => (
  * rendering nothing.
  */
 const CATEGORY_GLYPHS: Record<string, string> = {
-  ac_unit_rounded: 'M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9M12 7l-2.5-2M12 7l2.5-2M12 17l-2.5 2M12 17l2.5 2',
-  accessibility_new_rounded: 'M12 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM5 9l7 1 7-1M12 10v5m-3 6 3-6 3 6',
+  ac_unit_rounded:
+    'M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9M12 7l-2.5-2M12 7l2.5-2M12 17l-2.5 2M12 17l2.5 2',
+  accessibility_new_rounded:
+    'M12 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM5 9l7 1 7-1M12 10v5m-3 6 3-6 3 6',
   account_balance_rounded: 'm3 9 9-5 9 5M5 9v9m5-9v9m4-9v9m5-9v9M3 21h18',
-  apartment_rounded: 'M5 21V5h8v16M13 21V10h6v11M3 21h18M8 8h.01M8 12h.01M8 16h.01M16 13h.01M16 17h.01',
-  auto_fix_high_rounded: 'm5 19 9-9M13 5l1 2.5L16.5 8.5 14 9.5 13 12l-1-2.5L9.5 8.5 12 7.5ZM19 13l.7 1.7 1.8.8-1.8.8-.7 1.7-.7-1.7-1.8-.8 1.8-.8ZM6 3l.6 1.4L8 5l-1.4.6L6 7l-.6-1.4L4 5l1.4-.6Z',
-  badge_rounded: 'M3 7h18v13H3Zm6 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M8 12h3M8 16h3M14 12h3M14 16h3',
+  apartment_rounded:
+    'M5 21V5h8v16M13 21V10h6v11M3 21h18M8 8h.01M8 12h.01M8 16h.01M16 13h.01M16 17h.01',
+  auto_fix_high_rounded:
+    'm5 19 9-9M13 5l1 2.5L16.5 8.5 14 9.5 13 12l-1-2.5L9.5 8.5 12 7.5ZM19 13l.7 1.7 1.8.8-1.8.8-.7 1.7-.7-1.7-1.8-.8 1.8-.8ZM6 3l.6 1.4L8 5l-1.4.6L6 7l-.6-1.4L4 5l1.4-.6Z',
+  badge_rounded:
+    'M3 7h18v13H3Zm6 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M8 12h3M8 16h3M14 12h3M14 16h3',
   bolt_rounded: 'M13 3 5 13.5h5.5L10 21l8-10.5h-5.5Z',
-  bug_report_rounded: 'M8 8a4 4 0 0 1 8 0v5a4 4 0 0 1-8 0ZM9 5.5 7.5 4M15 5.5 16.5 4M8 10H4m16 0h-4M8 14H4.5m15.5 0H16M7 17.5l-2 1.5m12-1.5 2 1.5',
-  build_rounded: 'm14.5 6.5 3-3a5 5 0 0 1-6.4 6.4l-6 6a2.1 2.1 0 1 0 3 3l6-6a5 5 0 0 1 6.4-6.4l-3 3Z',
+  bug_report_rounded:
+    'M8 8a4 4 0 0 1 8 0v5a4 4 0 0 1-8 0ZM9 5.5 7.5 4M15 5.5 16.5 4M8 10H4m16 0h-4M8 14H4.5m15.5 0H16M7 17.5l-2 1.5m12-1.5 2 1.5',
+  build_rounded:
+    'm14.5 6.5 3-3a5 5 0 0 1-6.4 6.4l-6 6a2.1 2.1 0 1 0 3 3l6-6a5 5 0 0 1 6.4-6.4l-3 3Z',
   category_rounded: 'M12 3 4 9l8 6 8-6Zm0 10-8 6 8 2 8-2Z',
   celebration_rounded: 'm3 21 5-13 8 8Zm11-11 2-2m-4-2 1-2m5 5 2-1m-3 6 2 1',
-  chair_rounded: 'M6 10V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5M5 10h14l-1 5H6Zm1.5 5L6 21m11.5-6 .5 6',
-  checkroom_rounded: 'M12 4a2 2 0 0 0-2 2c0 1 .8 1.8 1.8 2L4 13v4h16v-4l-7.8-5A2 2 0 0 0 14 6',
-  directions_bus_rounded: 'M5 5h14v11H5Zm0 11v3h3v-3m8 0v3h3v-3M5 9h14M8 13h.01M16 13h.01M3 8v4m18-4v4',
-  directions_car_rounded: 'm5 11 1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M5 11h14v6H5Zm2 6v2m10-2v2M7.5 14h.01M16.5 14h.01',
+  chair_rounded:
+    'M6 10V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5M5 10h14l-1 5H6Zm1.5 5L6 21m11.5-6 .5 6',
+  checkroom_rounded:
+    'M12 4a2 2 0 0 0-2 2c0 1 .8 1.8 1.8 2L4 13v4h16v-4l-7.8-5A2 2 0 0 0 14 6',
+  directions_bus_rounded:
+    'M5 5h14v11H5Zm0 11v3h3v-3m8 0v3h3v-3M5 9h14M8 13h.01M16 13h.01M3 8v4m18-4v4',
+  directions_car_rounded:
+    'm5 11 1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M5 11h14v6H5Zm2 6v2m10-2v2M7.5 14h.01M16.5 14h.01',
   eco_rounded: 'M5 19C3 13 7 5 19 5c0 10-6 13-11 12.5M5 19c1.5-4 4-6.5 8-8',
-  emoji_emotions_rounded: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM8.5 10h.01M15.5 10h.01M8 14.5a5 5 0 0 0 8 0',
-  family_restroom_rounded: 'M6 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm12 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM4 21v-7H3v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4H8v7Zm12 0v-5h-2l1.5-6a2 2 0 0 1 2-1.5h1a2 2 0 0 1 2 1.5L20 16h-2v5Z',
+  emoji_emotions_rounded:
+    'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM8.5 10h.01M15.5 10h.01M8 14.5a5 5 0 0 0 8 0',
+  family_restroom_rounded:
+    'M6 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm12 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM4 21v-7H3v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4H8v7Zm12 0v-5h-2l1.5-6a2 2 0 0 1 2-1.5h1a2 2 0 0 1 2 1.5L20 16h-2v5Z',
   flight_rounded: 'M10 21h4l-1-6 7-3v-2l-7 1-2-8H9l1 8-5 1v2l5-1Z',
-  flutter_dash: 'M7 13a5 5 0 0 1 5-5h7l-4 5 4 5h-7a5 5 0 0 1-5-5Zm0 0H4m10-5.5V5m2.5 8h.01',
-  grass_rounded: 'M3 20h18M7 20c0-4 1-7 2-9m3 9c0-5-1-8-2-11m4 11c0-4 1-7 2-9m-11 9c0-3 .5-5 1-6.5',
-  history_edu_rounded: 'M4 5h10v14a2 2 0 0 0 2 2H5a1 1 0 0 1-1-1Zm3 3h6M7 11h6M7 14h4m3 4 5.5-5.5 1.5 1.5L15.5 20H14Z',
+  flutter_dash:
+    'M7 13a5 5 0 0 1 5-5h7l-4 5 4 5h-7a5 5 0 0 1-5-5Zm0 0H4m10-5.5V5m2.5 8h.01',
+  grass_rounded:
+    'M3 20h18M7 20c0-4 1-7 2-9m3 9c0-5-1-8-2-11m4 11c0-4 1-7 2-9m-11 9c0-3 .5-5 1-6.5',
+  history_edu_rounded:
+    'M4 5h10v14a2 2 0 0 0 2 2H5a1 1 0 0 1-1-1Zm3 3h6M7 11h6M7 14h4m3 4 5.5-5.5 1.5 1.5L15.5 20H14Z',
   house_rounded: 'M3 10.5 12 3l9 7.5M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5',
   icecream_rounded: 'M8 10a4 4 0 1 1 8 0ZM8 10h8l-4 11Z',
-  interests_rounded: 'M7 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm10.5-7L21 10h-7ZM4 14h6v6H4Zm13.5 6a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
-  local_cafe_rounded: 'M4 5h13v7a5 5 0 0 1-10 0h-3Zm13 1h2.5a2.5 2.5 0 0 1 0 5H17M4 20h14',
-  location_city_rounded: 'M3 21V11h6V3h6v8h6v10ZM6 14h.01M6 17.5h.01M12 7h.01M12 14h.01M12 17.5h.01M18 14h.01M18 17.5h.01',
+  interests_rounded:
+    'M7 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm10.5-7L21 10h-7ZM4 14h6v6H4Zm13.5 6a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
+  local_cafe_rounded:
+    'M4 5h13v7a5 5 0 0 1-10 0h-3Zm13 1h2.5a2.5 2.5 0 0 1 0 5H17M4 20h14',
+  location_city_rounded:
+    'M3 21V11h6V3h6v8h6v10ZM6 14h.01M6 17.5h.01M12 7h.01M12 14h.01M12 17.5h.01M18 14h.01M18 17.5h.01',
   map_rounded: 'm3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Zm6-3v15m6-12v15',
-  memory_rounded: 'M7 7h10v10H7Zm3 3h4v4h-4ZM10 3v4m4-4v4m-4 10v4m4-4v4M3 10h4m-4 4h4m10-4h4m-4 4h4',
-  mood_bad_rounded: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM8.5 10h.01M15.5 10h.01M8 16a5 5 0 0 1 8 0',
+  memory_rounded:
+    'M7 7h10v10H7Zm3 3h4v4h-4ZM10 3v4m4-4v4m-4 10v4m4-4v4M3 10h4m-4 4h4m10-4h4m-4 4h4',
+  mood_bad_rounded:
+    'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM8.5 10h.01M15.5 10h.01M8 16a5 5 0 0 1 8 0',
   movie_rounded: 'M3 7h18v13H3Zm0 0 3-4h12l3 4M8 3 6 7m6-4-2 4m6-4-2 4',
-  music_note_rounded: 'M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm10-2a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z',
+  music_note_rounded:
+    'M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm10-2a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z',
   nightlight_rounded: 'M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z',
-  palette_rounded: 'M12 3a9 9 0 0 0 0 18 2 2 0 0 0 1.6-3.2 2 2 0 0 1 1.6-3.2H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3ZM7 11h.01M9.5 7.5h.01M14.5 7.5h.01',
+  palette_rounded:
+    'M12 3a9 9 0 0 0 0 18 2 2 0 0 0 1.6-3.2 2 2 0 0 1 1.6-3.2H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3ZM7 11h.01M9.5 7.5h.01M14.5 7.5h.01',
   park_rounded: 'm12 3 5 8h-3l3 5H7l3-5H7Zm0 13v5',
-  pets_rounded: 'M4.5 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm5-3a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm5 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm5 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-7.5 2c-2.5 0-5 2.5-5 5a2.5 2.5 0 0 0 3.4 2.3 5 5 0 0 1 3.2 0A2.5 2.5 0 0 0 17 18c0-2.5-2.5-5-5-5Z',
+  pets_rounded:
+    'M4.5 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm5-3a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm5 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm5 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-7.5 2c-2.5 0-5 2.5-5 5a2.5 2.5 0 0 0 3.4 2.3 5 5 0 0 1 3.2 0A2.5 2.5 0 0 0 17 18c0-2.5-2.5-5-5-5Z',
   piano_rounded: 'M4 4h16v16H4Zm4 0v10m4-10v10m4-10v10M4 14h16M6.5 4v7m5-7v7m5-7v7',
-  place_rounded: 'M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11Zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
-  public_rounded: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3.5 9h17M3.5 15h17M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18',
-  restaurant_rounded: 'M6 3v8a2 2 0 0 0 2 2v8M4 3v5m4-5v5m8-5c-1.5 2-2 4-2 6a2 2 0 0 0 2 2v10',
-  rocket_launch_rounded: 'M12 3c3.5 2.5 5 6 5 9l-2.5 3h-5L7 12c0-3 1.5-6.5 5-9Zm0 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM9.5 15 7 16.5 6 21l3.5-2m5-4 2.5 1.5 1 4.5-3.5-2',
-  sailing_rounded: 'M12 3 5 16h7Zm0 0 7 13h-7M3 19c1.5 1.5 3 1.5 4.5 0 1.5 1.5 3 1.5 4.5 0 1.5 1.5 3 1.5 4.5 0 1.5 1.5 3 1.5 4.5 0',
+  place_rounded:
+    'M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11Zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
+  public_rounded:
+    'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3.5 9h17M3.5 15h17M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18',
+  restaurant_rounded:
+    'M6 3v8a2 2 0 0 0 2 2v8M4 3v5m4-5v5m8-5c-1.5 2-2 4-2 6a2 2 0 0 0 2 2v10',
+  rocket_launch_rounded:
+    'M12 3c3.5 2.5 5 6 5 9l-2.5 3h-5L7 12c0-3 1.5-6.5 5-9Zm0 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM9.5 15 7 16.5 6 21l3.5-2m5-4 2.5 1.5 1 4.5-3.5-2',
+  sailing_rounded:
+    'M12 3 5 16h7Zm0 0 7 13h-7M3 19c1.5 1.5 3 1.5 4.5 0 1.5 1.5 3 1.5 4.5 0 1.5 1.5 3 1.5 4.5 0 1.5 1.5 3 1.5 4.5 0',
   school_rounded: 'm12 4 10 5-10 5L2 9Zm-6 7.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5',
-  science_rounded: 'M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3M8 3h8M7 15h10',
+  science_rounded:
+    'M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3M8 3h8M7 15h10',
   shield_rounded: 'M12 3 4 6v6c0 4.5 3.3 8 8 9 4.7-1 8-4.5 8-9V6Z',
-  sports_esports_rounded: 'M6.5 7h11a4 4 0 0 1 3.9 4.9l-.8 3.6A3 3 0 0 1 17.7 18c-1 0-1.9-.5-2.4-1.3L14.5 16h-5l-.8.7c-.5.8-1.4 1.3-2.4 1.3a3 3 0 0 1-2.9-2.5l-.8-3.6A4 4 0 0 1 6.5 7Zm1.5 4v2M7 12h2m7-.5h.01M18 13.5h.01',
-  sports_soccer_rounded: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4 3.5 2.5-1.3 4h-4.4l-1.3-4Zm0 14-1.5-3.5m3 0L12 21M3.5 10l3 1m11-1-3 1',
+  sports_esports_rounded:
+    'M6.5 7h11a4 4 0 0 1 3.9 4.9l-.8 3.6A3 3 0 0 1 17.7 18c-1 0-1.9-.5-2.4-1.3L14.5 16h-5l-.8.7c-.5.8-1.4 1.3-2.4 1.3a3 3 0 0 1-2.9-2.5l-.8-3.6A4 4 0 0 1 6.5 7Zm1.5 4v2M7 12h2m7-.5h.01M18 13.5h.01',
+  sports_soccer_rounded:
+    'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4 3.5 2.5-1.3 4h-4.4l-1.3-4Zm0 14-1.5-3.5m3 0L12 21M3.5 10l3 1m11-1-3 1',
   terrain_rounded: 'm3 19 6-10 3.5 5.5M9 9l3-5 9 15Zm0 0-6 10h18',
-  waves_rounded: 'M3 8c1.5-1.5 3-1.5 4.5 0S10.5 9.5 12 8s3-1.5 4.5 0 3 1.5 4.5 0M3 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0M3 18c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0',
-  wb_cloudy_rounded: 'M7 18h10.5a3.5 3.5 0 0 0 .3-7A5.5 5.5 0 0 0 7.2 9.4 4.3 4.3 0 0 0 7 18Z',
-  work_rounded: 'M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Zm6 0V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18',
+  waves_rounded:
+    'M3 8c1.5-1.5 3-1.5 4.5 0S10.5 9.5 12 8s3-1.5 4.5 0 3 1.5 4.5 0M3 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0M3 18c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0',
+  wb_cloudy_rounded:
+    'M7 18h10.5a3.5 3.5 0 0 0 .3-7A5.5 5.5 0 0 0 7.2 9.4 4.3 4.3 0 0 0 7 18Z',
+  work_rounded:
+    'M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Zm6 0V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18',
 };
 
 /** Fallback for a category whose icon name is not mapped yet. */

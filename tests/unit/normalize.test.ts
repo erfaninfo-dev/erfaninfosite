@@ -145,7 +145,9 @@ describe('normalizeWord — the _kur convention', () => {
       example_kur: '',
     };
 
-    expect(normalizeWord(wordSchema.parse({ ...wire, important: 1 })).important).toBe(true);
+    expect(normalizeWord(wordSchema.parse({ ...wire, important: 1 })).important).toBe(
+      true
+    );
     expect(normalizeWord(wordSchema.parse({ ...wire, important: 0 })).important).toBe(
       false
     );
@@ -183,17 +185,21 @@ describe('normalizeGrammarTopic — the MySQL zero date', () => {
 
   it('treats "0000-00-00 00:00:00" as unknown, not a date', () => {
     expect(
-      normalizeGrammarTopic({ ...base, topic_created_at: '0000-00-00 00:00:00' }).createdAt
+      normalizeGrammarTopic({ ...base, topic_created_at: '0000-00-00 00:00:00' })
+        .createdAt
     ).toBeNull();
   });
 
   it('treats null as unknown', () => {
-    expect(normalizeGrammarTopic({ ...base, topic_created_at: null }).createdAt).toBeNull();
+    expect(
+      normalizeGrammarTopic({ ...base, topic_created_at: null }).createdAt
+    ).toBeNull();
   });
 
   it('keeps a real timestamp as a string', () => {
     expect(
-      normalizeGrammarTopic({ ...base, topic_created_at: '2026-06-03 02:46:43' }).createdAt
+      normalizeGrammarTopic({ ...base, topic_created_at: '2026-06-03 02:46:43' })
+        .createdAt
     ).toBe('2026-06-03 02:46:43');
   });
 });
@@ -280,7 +286,9 @@ describe('secureUrl — the mixed-content fix', () => {
   });
 
   it('does not corrupt a URL that merely contains "http://" later on', () => {
-    expect(secureUrl('https://x.com/?u=http://y.com')).toBe('https://x.com/?u=http://y.com');
+    expect(secureUrl('https://x.com/?u=http://y.com')).toBe(
+      'https://x.com/?u=http://y.com'
+    );
   });
 });
 

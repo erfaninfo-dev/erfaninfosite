@@ -22,14 +22,14 @@ copy: **one typed API layer, server-side only, cache keyed per audience.**
 The app keeps **two independent language settings**, and the web must do the same or it will feel
 like a different product.
 
-| | Where | Values | Stored as |
-|---|---|---|---|
-| **UI locale** | `lib/core/locale/ui_locale_provider.dart` | `en`, `fa`, `ckb` | `ui_locale_v1` |
+|                                  | Where                                      | Values               | Stored as             |
+| -------------------------------- | ------------------------------------------ | -------------------- | --------------------- |
+| **UI locale**                    | `lib/core/locale/ui_locale_provider.dart`  | `en`, `fa`, `ckb`    | `ui_locale_v1`        |
 | **Content translation language** | `lib/core/language/language_provider.dart` | `fa`, `kur` **only** | `translation_lang_v1` |
 
 `enum TranslationLang { fa, kur }` — there is **no English content language**. English is the
-*source* language: the word itself, `example_en`, `question_text` and the quiz options are always
-English. Persian or Kurdish is the *gloss*.
+_source_ language: the word itself, `example_en`, `question_text` and the quiz options are always
+English. Persian or Kurdish is the _gloss_.
 
 So `/en` on the website is not "everything in English". It is "the interface in English, the
 glosses still in fa or ckb". The web needs a content-language control separate from the locale
@@ -58,19 +58,19 @@ web port must keep it — otherwise a word that renders fine in the app shows `?
 
 ### Public / no-login (web Phase 1 candidates)
 
-| Feature folder | What it shows | Endpoints it needs |
-|---|---|---|
-| `home` | entry hub, "what's new", update banner | `grammar_topics` (`is_new`), `app_update` |
-| `words` | word list for a book/unit, gloss toggle | `words?book_id` |
-| `units` | units of a book | `units?book_id` |
-| `sections` | sections inside a unit | `sections?book_id&unit` |
-| `unit_samples` | bilingual reading samples per unit | `unit_samples?book_id&unit` |
-| `flashcards` | flip cards over a word set | `words?book_id`, set built client-side |
-| `grammar` | books, units, lesson text; topics, quiz; PDFs | `grammar_books`, `grammar_units?book_id`, `grammar_unit_texts?unit_id`, `grammar_topics`, `grammar_questions`, `grammar_topic_pdfs` |
-| `speaking` | topics, model answers, Q&A, idea bank | `speaking_topics`, `speaking_model_questions`, `speaking_questions`, `speaking_topic_ideas`, `speaking_topic_ideas_search` |
-| `word_builder` | word games over category sets | `game_word_categories` |
-| `update` | version check, APK / Windows download | `app_update` |
-| `onboarding`, `splash`, `shell`, `settings` | chrome, no data | — |
+| Feature folder                              | What it shows                                 | Endpoints it needs                                                                                                                  |
+| ------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `home`                                      | entry hub, "what's new", update banner        | `grammar_topics` (`is_new`), `app_update`                                                                                           |
+| `words`                                     | word list for a book/unit, gloss toggle       | `words?book_id`                                                                                                                     |
+| `units`                                     | units of a book                               | `units?book_id`                                                                                                                     |
+| `sections`                                  | sections inside a unit                        | `sections?book_id&unit`                                                                                                             |
+| `unit_samples`                              | bilingual reading samples per unit            | `unit_samples?book_id&unit`                                                                                                         |
+| `flashcards`                                | flip cards over a word set                    | `words?book_id`, set built client-side                                                                                              |
+| `grammar`                                   | books, units, lesson text; topics, quiz; PDFs | `grammar_books`, `grammar_units?book_id`, `grammar_unit_texts?unit_id`, `grammar_topics`, `grammar_questions`, `grammar_topic_pdfs` |
+| `speaking`                                  | topics, model answers, Q&A, idea bank         | `speaking_topics`, `speaking_model_questions`, `speaking_questions`, `speaking_topic_ideas`, `speaking_topic_ideas_search`          |
+| `word_builder`                              | word games over category sets                 | `game_word_categories`                                                                                                              |
+| `update`                                    | version check, APK / Windows download         | `app_update`                                                                                                                        |
+| `onboarding`, `splash`, `shell`, `settings` | chrome, no data                               | —                                                                                                                                   |
 
 ### Needs a token (web Phase 2 / 3)
 
@@ -139,24 +139,24 @@ That is a product limitation to state plainly, not something to paper over.
 
 Material 3, `ColorScheme.fromSeed`. Only two colors are authored; everything else is M3-derived.
 
-| Token | Light | Dark |
-|---|---|---|
-| seed | `#5B6CFF` | `#8A93FF` |
-| surface / scaffold | `#F6F8FF` | `#0D1020` |
-| input fill | white at 75 % | white at 6 % |
+| Token              | Light         | Dark         |
+| ------------------ | ------------- | ------------ |
+| seed               | `#5B6CFF`     | `#8A93FF`    |
+| surface / scaffold | `#F6F8FF`     | `#0D1020`    |
+| input fill         | white at 75 % | white at 6 % |
 
-| Shape / type | Value |
-|---|---|
-| card radius | 24 px, elevation 0, zero margin |
-| input radius | 18 px, filled, **no border** |
-| filled button min height | 52 px |
-| outlined button min height | 48 px |
-| button padding | 16 px inline / 14 px block |
-| `headlineSmall` | w700, letter-spacing −0.2 |
-| `titleLarge` | w700, letter-spacing −0.1 |
-| `titleMedium` | w600 |
-| `bodyMedium` | line-height 1.35 |
-| app bar | transparent, elevation 0, **not** centered |
+| Shape / type               | Value                                      |
+| -------------------------- | ------------------------------------------ |
+| card radius                | 24 px, elevation 0, zero margin            |
+| input radius               | 18 px, filled, **no border**               |
+| filled button min height   | 52 px                                      |
+| outlined button min height | 48 px                                      |
+| button padding             | 16 px inline / 14 px block                 |
+| `headlineSmall`            | w700, letter-spacing −0.2                  |
+| `titleLarge`               | w700, letter-spacing −0.1                  |
+| `titleMedium`              | w600                                       |
+| `bodyMedium`               | line-height 1.35                           |
+| app bar                    | transparent, elevation 0, **not** centered |
 
 Flat, soft, rounded, one indigo-violet accent. To match on the web I will generate the full M3
 tonal palette from the same two seeds (the official `material-color-utilities` algorithm) and emit
@@ -164,13 +164,13 @@ it as CSS variables, rather than hand-picking approximations.
 
 ### Fonts actually bundled (`pubspec.yaml` + `assets/fonts/`)
 
-| Family | Files | Role |
-|---|---|---|
-| **Vazirmatn** | Regular 400 / Medium 500 / Bold 700 | Persian + Sorani. OFL licence file is present. |
-| **OpenSans** | Light 300 / Regular 400 / SemiBold 600 / Bold 700 | Latin |
-| **Lexend** | single weight | display |
-| Calibri | `calibri.ttf`, 811 KB | legacy — **do not ship to the web**, proprietary |
-| Rudaw | `rudawbold.ttf` | Kurdish display weight |
+| Family        | Files                                             | Role                                             |
+| ------------- | ------------------------------------------------- | ------------------------------------------------ |
+| **Vazirmatn** | Regular 400 / Medium 500 / Bold 700               | Persian + Sorani. OFL licence file is present.   |
+| **OpenSans**  | Light 300 / Regular 400 / SemiBold 600 / Bold 700 | Latin                                            |
+| **Lexend**    | single weight                                     | display                                          |
+| Calibri       | `calibri.ttf`, 811 KB                             | legacy — **do not ship to the web**, proprietary |
+| Rudaw         | `rudawbold.ttf`                                   | Kurdish display weight                           |
 
 Vazirmatn is already the brief's suggestion and is already the app's choice — confirmed, not
 guessed. For the web I would self-host the **variable** Vazirmatn (one subsetted woff2 instead of
@@ -183,22 +183,22 @@ Reusable as-is; see the open question about restyling.
 
 From the constants at the top of `api_service.dart`:
 
-| Constant | TTL | Applies to |
-|---|---|---|
-| `_ttlBooks` | 25 min | `books`, `book_pdfs` |
-| `_ttlUnitsSections` | 8 h | `units`, `sections` |
-| `_ttlGrammarCatalog` | **3 days** | grammar + speaking + game catalog |
-| `_ttlGrammarResultsPublic` | 1 h | public results |
-| `_ttlGrammarResultsMy` | 6 min | own results |
-| `_ttlGrammarResultDetail` | 12 min | one result |
-| `_ttlVocabQuizResultsList` | 4 min | vocab quiz results |
-| `_ttlUserVocabMarks` | 6 min | vocab marks |
+| Constant                   | TTL        | Applies to                        |
+| -------------------------- | ---------- | --------------------------------- |
+| `_ttlBooks`                | 25 min     | `books`, `book_pdfs`              |
+| `_ttlUnitsSections`        | 8 h        | `units`, `sections`               |
+| `_ttlGrammarCatalog`       | **3 days** | grammar + speaking + game catalog |
+| `_ttlGrammarResultsPublic` | 1 h        | public results                    |
+| `_ttlGrammarResultsMy`     | 6 min      | own results                       |
+| `_ttlGrammarResultDetail`  | 12 min     | one result                        |
+| `_ttlVocabQuizResultsList` | 4 min      | vocab quiz results                |
+| `_ttlUserVocabMarks`       | 6 min      | vocab marks                       |
 
 **`words.php` is deliberately never disk-cached** — the comment on `_httpCacheKey` says so.
 
 The brief's instruction "do not cache longer than the app does" is satisfied with room to spare:
 the plan's 30–60 s catalog TTL is **far shorter** than the app's 25 min to 3 days. The website will
-therefore be *fresher* than the app, not staler. Worth saying out loud, because it means the
+therefore be _fresher_ than the app, not staler. Worth saying out loud, because it means the
 60-second propagation test in the definition of done is a test of the website only — the app will
 still show the old grammar topic for up to 3 days. That is existing app behaviour, not a web
 regression.
@@ -210,11 +210,11 @@ story create 20 s. The brief's 8 s web timeout is stricter; fine for read-only c
 
 Measured, not estimated:
 
-| File | Size | Total entries | Message keys |
-|---|---|---|---|
-| `app_en.arb` | 69 KB | 1,143 | **1,031** |
-| `app_fa.arb` | 80 KB | 1,092 | **1,031** |
-| `app_ckb.arb` | 85 KB | 1,092 | **1,031** |
+| File          | Size  | Total entries | Message keys |
+| ------------- | ----- | ------------- | ------------ |
+| `app_en.arb`  | 69 KB | 1,143         | **1,031**    |
+| `app_fa.arb`  | 80 KB | 1,092         | **1,031**    |
+| `app_ckb.arb` | 85 KB | 1,092         | **1,031**    |
 
 - **Coverage is complete**: zero keys present in `en` are missing from `fa` or `ckb`. Only 2 values
   are empty in each of `fa` and `ckb`.

@@ -53,7 +53,7 @@ export function PageHeader({
         <div className="min-w-0 flex-1">
           <h1 className="text-[length:var(--text-h1)]">{title}</h1>
           {description ? (
-            <p className="mt-2 max-w-[var(--container-prose)] text-on-surface-variant">
+            <p className="text-on-surface-variant mt-2 max-w-[var(--container-prose)]">
               {description}
             </p>
           ) : null}
@@ -111,21 +111,23 @@ export function StudyText({
   );
 }
 
-export function Prose({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('max-w-[var(--container-prose)]', className)}>{children}</div>;
+export function Prose({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('max-w-[var(--container-prose)]', className)}>{children}</div>
+  );
 }
 
 /** A labelled field shown as a card row below `md` and a table cell above it. */
-export function DataRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+export function DataRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-wrap items-baseline gap-2 py-1">
-      <span className="text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+      <span className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
         {label}
       </span>
       <span className="min-w-0 flex-1">{children}</span>
@@ -134,7 +136,7 @@ export function DataRow({
 }
 
 export function Divider({ className }: { className?: string }) {
-  return <hr className={cn('border-0 border-t border-outline-variant/60', className)} />;
+  return <hr className={cn('border-outline-variant/60 border-0 border-t', className)} />;
 }
 
 export function Container({

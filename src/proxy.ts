@@ -21,7 +21,10 @@ function negotiate(header: string | null): string {
       const [tag = '', ...params] = part.trim().split(';');
       const q = params.find((p) => p.trim().startsWith('q='));
       const quality = q ? Number.parseFloat(q.split('=')[1] ?? '1') : 1;
-      return { tag: tag.trim().toLowerCase(), quality: Number.isNaN(quality) ? 0 : quality };
+      return {
+        tag: tag.trim().toLowerCase(),
+        quality: Number.isNaN(quality) ? 0 : quality,
+      };
     })
     .filter((entry) => entry.tag.length > 0)
     .sort((a, b) => b.quality - a.quality);

@@ -33,6 +33,29 @@ export type MatchLabels = {
   finished: string;
 };
 
+/**
+ * A score is a left-to-right run. Written as bare text inside an RTL page the
+ * bidi algorithm reorders it, so "0 / 6" appears as "6 / 0" — which is simply
+ * wrong, not merely ugly. Isolating it keeps the order, and the digits are
+ * localised because this is display text.
+ */
+function Score({
+  value,
+  total,
+  locale,
+}: {
+  value: number;
+  total: number;
+  locale: string;
+}) {
+  const format = (n: number) => new Intl.NumberFormat(locale).format(n);
+  return (
+    <bdi dir="ltr">
+      {format(value)} / {format(total)}
+    </bdi>
+  );
+}
+
 const ROUND_SIZE = 6;
 
 function shuffle<T>(items: T[]): T[] {
@@ -69,10 +92,12 @@ export function MatchingGame({
   pairs,
   labels,
   glossLang,
+  locale,
 }: {
   pairs: MatchPair[];
   labels: MatchLabels;
   glossLang: 'fa' | 'ckb';
+  locale: string;
 }) {
   // Lazy initialiser, not an effect: the first round is a pure function of the
   // props, so it is identical on the server and on the client.
@@ -113,13 +138,15 @@ export function MatchingGame({
 
   return (
     <div className="mx-auto w-full max-w-[var(--container-quiz)]">
-      <div className="rounded-[var(--radius-card)] border border-outline-variant/60 bg-surface-1 p-6 dark:bg-surface-2">
+      <div className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 rounded-[var(--radius-card)] border p-6">
         {done ? (
           <div className="py-8 text-center">
-            <IconCheck className="mx-auto size-10 text-correct" />
-            <p className="mt-3 text-[length:var(--text-h3)] font-bold">{labels.finished}</p>
-            <p className="mt-1 text-on-surface-variant">
-              {state.round.length} / {attempts}
+            <IconCheck className="text-correct mx-auto size-10" />
+            <p className="mt-3 text-[length:var(--text-h3)] font-bold">
+              {labels.finished}
+            </p>
+            <p className="text-on-surface-variant mt-1">
+              <Score value={state.round.length} total={attempts} locale={locale} />
             </p>
             <Button onClick={newRound} className="mt-6">
               <IconRefresh className="size-5" />
@@ -128,7 +155,7 @@ export function MatchingGame({
           </div>
         ) : (
           <>
-            <p className="text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+            <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
               {labels.prompt}
             </p>
             <p
@@ -159,7 +186,8 @@ export function MatchingGame({
                       'transition-colors duration-[var(--duration-fast)] ease-[var(--ease-enter)]',
                       isMatched &&
                         'border-correct bg-correct-container text-on-correct-container opacity-60',
-                      isWrong && 'border-error bg-error-container text-on-error-container',
+                      isWrong &&
+                        'border-error bg-error-container text-on-error-container',
                       !isMatched &&
                         !isWrong &&
                         'border-outline-variant bg-surface-2 hover:border-primary/60 hover:bg-surface-3 dark:bg-surface-3'
@@ -171,8 +199,8 @@ export function MatchingGame({
               })}
             </div>
 
-            <p className="mt-6 text-center text-[length:var(--text-caption)] text-on-surface-variant">
-              {matched.size} / {state.round.length}
+            <p className="text-on-surface-variant mt-6 text-center text-[length:var(--text-caption)]">
+              <Score value={matched.size} total={state.round.length} locale={locale} />
             </p>
           </>
         )}

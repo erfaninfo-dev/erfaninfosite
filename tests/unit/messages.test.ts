@@ -22,9 +22,9 @@ describe('digit localisation', () => {
   });
 
   it('keeps Latin digits for English', () => {
-    expect(formatClient('Question {current} / {total}', 'en', { current: 2, total: 10 })).toBe(
-      'Question 2 / 10'
-    );
+    expect(
+      formatClient('Question {current} / {total}', 'en', { current: 2, total: 10 })
+    ).toBe('Question 2 / 10');
   });
 
   it('leaves string values alone, so version numbers stay Latin', () => {

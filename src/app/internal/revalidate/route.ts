@@ -18,7 +18,6 @@ import { ALL_TAGS, isKnownTag } from '@/lib/api/endpoints';
  * Nothing about the PHP API or the database needs to change for this to exist.
  */
 
-
 /** Constant-time compare, so a wrong secret leaks nothing through timing. */
 function secretMatches(provided: string, expected: string): boolean {
   const a = Buffer.from(provided);

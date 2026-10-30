@@ -90,9 +90,10 @@ test.describe('direction and script', () => {
         return out.slice(0, 5);
       });
 
-      expect(tracked, `letter-spacing applied to Arabic script: ${tracked.join(', ')}`).toEqual(
-        []
-      );
+      expect(
+        tracked,
+        `letter-spacing applied to Arabic script: ${tracked.join(', ')}`
+      ).toEqual([]);
     });
 
     test(`${locale} uses a larger line height for Arabic script`, async ({ page }) => {
@@ -158,7 +159,8 @@ test.describe('touch targets', () => {
       )) {
         const r = el.getBoundingClientRect();
         if (r.width === 0 && r.height === 0) continue; // not rendered
-        if (r.height < 44) out.push(`${el.tagName.toLowerCase()} ${Math.round(r.height)}px`);
+        if (r.height < 44)
+          out.push(`${el.tagName.toLowerCase()} ${Math.round(r.height)}px`);
       }
       return out.slice(0, 8);
     });

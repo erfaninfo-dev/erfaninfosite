@@ -112,7 +112,7 @@ export default async function PlayCategoryPage({
         meta={
           <>
             <Badge>{t('wordCount', { count: usable.length })}</Badge>
-            <span className="inline-flex size-8 items-center justify-center rounded-[var(--radius-sm)] bg-secondary-container text-on-secondary-container">
+            <span className="bg-secondary-container text-on-secondary-container inline-flex size-8 items-center justify-center rounded-[var(--radius-sm)]">
               <CategoryIcon name={category.icon} className="size-5" />
             </span>
           </>
@@ -130,7 +130,7 @@ export default async function PlayCategoryPage({
               glossLang={gloss}
               labels={{
                 progress: t('wordCount', { count: cards.length }),
-                reveal: t('speakingExpand'),
+                reveal: t('tapCardToReveal'),
                 next: t('next'),
                 previous: t('previous'),
                 restart: t('practiseAgain'),
@@ -146,6 +146,7 @@ export default async function PlayCategoryPage({
               <MatchingGame
                 pairs={shuffledPairs}
                 glossLang={gloss}
+                locale={locale}
                 labels={{
                   prompt: t('wordBuilderTranslation'),
                   correct: t('answerCorrect'),

@@ -284,7 +284,13 @@ async function runCheck(check: Check): Promise<Result> {
       }
     }
 
-    return { name: check.name, ok: problems.length === 0, bytes: body.length, ms, problems };
+    return {
+      name: check.name,
+      ok: problems.length === 0,
+      bytes: body.length,
+      ms,
+      problems,
+    };
   } catch (error) {
     return {
       name: check.name,

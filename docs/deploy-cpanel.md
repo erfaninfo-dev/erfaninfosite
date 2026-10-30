@@ -52,7 +52,7 @@ this host holds real downloads.
 
 ## 2. What you need on the server
 
-- Node **24** (cPanel → *Setup Node.js App* offers it)
+- Node **24** (cPanel → _Setup Node.js App_ offers it)
 - `pnpm` (install once: `npm i -g pnpm`)
 - About 600 MB free for `node_modules` and `.next`
 - The app's own domain root, i.e. `public_html`
@@ -119,17 +119,17 @@ curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/en
 
 ### 3.5 Create the Passenger app
 
-In cPanel → **Setup Node.js App** → *Create Application*:
+In cPanel → **Setup Node.js App** → _Create Application_:
 
-| Field | Value |
-|---|---|
-| Node.js version | 24.x |
-| Application mode | Production |
-| Application root | `erfan-academy-web` |
-| Application URL | `erfaninfo.com` (the root) |
-| Application startup file | `server.js` |
+| Field                    | Value                      |
+| ------------------------ | -------------------------- |
+| Node.js version          | 24.x                       |
+| Application mode         | Production                 |
+| Application root         | `erfan-academy-web`        |
+| Application URL          | `erfaninfo.com` (the root) |
+| Application startup file | `server.js`                |
 
-Then **Add** each variable from `.env` in the app's *Environment variables*
+Then **Add** each variable from `.env` in the app's _Environment variables_
 panel too — Passenger does not read `.env` by itself.
 
 Click **Restart**.
@@ -140,7 +140,7 @@ The root currently serves the Harman Academy Node app. **This step is yours to
 make, not something a script should do**, and it takes the old site offline.
 
 1. Confirm the backup exists: `ls -la ~/backup-public_html-20261030.tgz`
-2. In *Setup Node.js App*, **Stop** the `harman-academy-run` application.
+2. In _Setup Node.js App_, **Stop** the `harman-academy-run` application.
 3. Create this app as in §3.5, pointing at `erfaninfo.com`.
 4. **Run the §1 check.** All seven paths must be as described.
 5. Open `https://erfaninfo.com/` and confirm it redirects to a locale.
@@ -163,13 +163,13 @@ It reads `PORT` from the environment, which Passenger sets.
 
 ## 5. Checking a live deploy
 
-| What | How |
-|---|---|
-| The site | `https://erfaninfo.com/en` |
-| The API still works | the §1 loop |
-| Endpoint health | `https://erfaninfo.com/status?key=<STATUS_SECRET>` |
-| Contract drift | `pnpm contract:check` (run locally or on the server) |
-| Sitemap | `https://erfaninfo.com/sitemap.xml` |
+| What                | How                                                  |
+| ------------------- | ---------------------------------------------------- |
+| The site            | `https://erfaninfo.com/en`                           |
+| The API still works | the §1 loop                                          |
+| Endpoint health     | `https://erfaninfo.com/status?key=<STATUS_SECRET>`   |
+| Contract drift      | `pnpm contract:check` (run locally or on the server) |
+| Sitemap             | `https://erfaninfo.com/sitemap.xml`                  |
 
 ## 6. Memory and load
 
@@ -191,10 +191,10 @@ pnpm install --frozen-lockfile
 pnpm build
 ```
 
-Then **Restart** in *Setup Node.js App*, and run the §1 check again.
+Then **Restart** in _Setup Node.js App_, and run the §1 check again.
 
 To restore the previous site entirely: stop this app, and start
-`harman-academy-run` again in *Setup Node.js App*.
+`harman-academy-run` again in _Setup Node.js App_.
 
 ## 8. What this deploy never touches
 

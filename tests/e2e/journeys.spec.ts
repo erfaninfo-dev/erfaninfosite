@@ -54,7 +54,9 @@ test.describe('vocabulary', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);
 
-    const rendered = await page.locator('main button[aria-expanded], main button').count();
+    const rendered = await page
+      .locator('main button[aria-expanded], main button')
+      .count();
     expect(
       rendered,
       'the whole word list appears to be in the DOM; virtualisation is not working'
@@ -82,7 +84,9 @@ test.describe('grammar quiz — must agree with the app', () => {
     // or the web and the app would present different sessions.
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('main button[aria-pressed]').first()).toHaveText(firstLabel);
+    await expect(page.locator('main button[aria-pressed]').first()).toHaveText(
+      firstLabel
+    );
   });
 
   test('finishing a quiz shows a score out of the session length', async ({ page }) => {
@@ -105,12 +109,55 @@ test.describe('grammar quiz — must agree with the app', () => {
   });
 });
 
+test.describe('right-to-left correctness', () => {
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`${locale}: a score reads left-to-right, not reversed`, async ({ page }) => {
+      /*
+       * A bare "0 / 6" inside an RTL page is reordered by the bidi algorithm
+       * into "6 / 0" — the score then reads backwards, which is wrong rather
+       * than merely ugly. Every score run is isolated and forced LTR.
+       */
+      await page.goto(`/${locale}/grammar/topics/1/quiz?n=10`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await page.waitForLoadState('networkidle');
+
+      // Answer every question so the summary appears.
+      for (let i = 0; i < 10; i += 1) {
+        const options = page.locator('main button[aria-pressed]');
+        await expect(options.first()).toBeVisible();
+        await options.first().click();
+        await page.locator('main button', { hasText: /.+/ }).last().click();
+        await page.waitForTimeout(120);
+      }
+
+      const summary = page.locator('main bdi[dir="ltr"]').first();
+      await expect(summary).toBeVisible();
+
+      // The number before the slash is the score, and it cannot exceed the total.
+      const text = await summary.innerText();
+      const [left, right] = text.split('/').map((p) => p.trim());
+      const toLatin = (s: string) =>
+        s.replace(/[۰-۹٠-٩]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩'.indexOf(d) % 10));
+
+      expect(Number(toLatin(left ?? ''))).toBeLessThanOrEqual(
+        Number(toLatin(right ?? ''))
+      );
+      expect(Number(toLatin(right ?? ''))).toBe(10);
+    });
+  }
+});
+
 test.describe('deletion propagates to a 404', () => {
-  test('an id that is not in the catalog returns 404, not a blank page', async ({ page }) => {
+  test('an id that is not in the catalog returns 404, not a blank page', async ({
+    page,
+  }) => {
     // This is the behaviour the definition of done asks for: the API answers a
     // missing book's children with `200 []`, so the site resolves existence
     // from the list endpoint and calls notFound().
-    const response = await page.goto('/en/books/99999', { waitUntil: 'domcontentloaded' });
+    const response = await page.goto('/en/books/99999', {
+      waitUntil: 'domcontentloaded',
+    });
     expect(response?.status()).toBe(404);
   });
 
@@ -158,7 +205,9 @@ test.describe('the site owns no data', () => {
     await page.waitForLoadState('networkidle');
 
     // Rule 2 of the brief: all data goes through the Next.js server.
-    expect(apiCalls, `browser called the API directly: ${apiCalls.join(', ')}`).toEqual([]);
+    expect(apiCalls, `browser called the API directly: ${apiCalls.join(', ')}`).toEqual(
+      []
+    );
   });
 
   test('the 400 KB game payload is never shipped to the browser', async ({ page }) => {

@@ -15,7 +15,13 @@ import {
 } from '@/components/ui/primitives';
 import { ListSkeleton } from '@/components/ui/states';
 import { bilingualFor, bilingualIsFallback } from '@/lib/api/normalize';
-import { getBook, getSections, getUnitSamples, getUnitWords, getUnits } from '@/lib/api/queries';
+import {
+  getBook,
+  getSections,
+  getUnitSamples,
+  getUnitWords,
+  getUnits,
+} from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
@@ -116,12 +122,15 @@ async function UnitWords({
   unit: number;
   locale: Locale;
 }) {
-  const [words, gloss] = await Promise.all([getUnitWords(bookId, unit), getGloss(locale)]);
+  const [words, gloss] = await Promise.all([
+    getUnitWords(bookId, unit),
+    getGloss(locale),
+  ]);
   const t = getTranslator(locale);
 
   if (words.length === 0) {
     return (
-      <p className="rounded-[var(--radius-card)] border border-dashed border-outline-variant px-6 py-10 text-center text-on-surface-variant">
+      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
         {t('noMatchingWords')}
       </p>
     );
@@ -199,7 +208,7 @@ async function UnitSamples({
                 </h3>
               ) : null}
               {fallback ? (
-                <p className="mb-3 text-[length:var(--text-caption)] text-on-surface-variant">
+                <p className="text-on-surface-variant mb-3 text-[length:var(--text-caption)]">
                   {t('notAvailableInKurdish')}
                 </p>
               ) : null}

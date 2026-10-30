@@ -3,12 +3,12 @@
 Answers given by Erfan on 2026-10-30, at the end of Phase 0. These override the brief where they
 differ from it.
 
-| # | Question | Decision |
-|---|---|---|
-| D1 | Final domain | **`erfaninfo.com` — the root.** Harman Academy is no longer needed. |
-| D2 | Which phases | **Phase 1 only.** Public study site, no login. Phases 2 and 3 are not in scope. |
-| D3 | Logo and fonts | **Reuse exactly as they are** — the app's `logo.png`, Vazirmatn / Open Sans / Lexend, and the same two seed colors. |
-| D4 | The slow `words.php` call | **Solve it on the web side only.** No change to the PHP API or the database. |
+| #   | Question                  | Decision                                                                                                            |
+| --- | ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| D1  | Final domain              | **`erfaninfo.com` — the root.** Harman Academy is no longer needed.                                                 |
+| D2  | Which phases              | **Phase 1 only.** Public study site, no login. Phases 2 and 3 are not in scope.                                     |
+| D3  | Logo and fonts            | **Reuse exactly as they are** — the app's `logo.png`, Vazirmatn / Open Sans / Lexend, and the same two seed colors. |
+| D4  | The slow `words.php` call | **Solve it on the web side only.** No change to the PHP API or the database.                                        |
 
 ---
 
@@ -21,7 +21,7 @@ has now said plainly that Harman Academy is no longer needed and the website sho
 Two consequences I will handle, and one thing I will not do:
 
 **The API must keep working** — and, measured live, it already does under exactly this setup. A
-Next.js app is *currently* running on the root of `erfaninfo.com` under Passenger, and with it live
+Next.js app is _currently_ running on the root of `erfaninfo.com` under Passenger, and with it live
 I verified from outside:
 
 ```

@@ -90,7 +90,7 @@ export function Flashcards({
     <div className="mx-auto w-full max-w-[var(--container-quiz)]">
       <div className="mb-4">
         <div className="mb-2 flex items-baseline justify-between gap-3">
-          <p className="text-[length:var(--text-label)] font-semibold text-on-surface-variant">
+          <p className="text-on-surface-variant text-[length:var(--text-label)] font-semibold">
             {labels.progress}
           </p>
         </div>
@@ -100,10 +100,10 @@ export function Flashcards({
           aria-valuemin={1}
           aria-valuemax={total}
           aria-label={labels.progress}
-          className="h-1.5 overflow-hidden rounded-full bg-surface-4"
+          className="bg-surface-4 h-1.5 overflow-hidden rounded-full"
         >
           <div
-            className="h-full rounded-full bg-primary transition-[width] duration-[var(--duration-base)] ease-[var(--ease-enter)]"
+            className="bg-primary h-full rounded-full transition-[width] duration-[var(--duration-base)] ease-[var(--ease-enter)]"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -115,8 +115,8 @@ export function Flashcards({
         aria-expanded={revealed}
         className={cn(
           'flex min-h-64 w-full flex-col items-center justify-center gap-4 p-8 text-center',
-          'rounded-[var(--radius-card)] border border-outline-variant/60 bg-surface-1 dark:bg-surface-2',
-          'transition-colors duration-[var(--duration-fast)] hover:bg-surface-2 dark:hover:bg-surface-3'
+          'border-outline-variant/60 bg-surface-1 dark:bg-surface-2 rounded-[var(--radius-card)] border',
+          'hover:bg-surface-2 dark:hover:bg-surface-3 transition-colors duration-[var(--duration-fast)]'
         )}
       >
         <bdi lang="en" dir="ltr" className="text-[length:var(--text-h1)] font-bold">
@@ -127,7 +127,7 @@ export function Flashcards({
           <div className="space-y-3">
             <bdi
               lang={glossLang}
-              className="block text-[length:var(--text-h3)] text-primary"
+              className="text-primary block text-[length:var(--text-h3)]"
             >
               {card.back}
             </bdi>
@@ -143,7 +143,7 @@ export function Flashcards({
             ) : null}
           </div>
         ) : (
-          <span className="text-[length:var(--text-label)] text-on-surface-variant">
+          <span className="text-on-surface-variant text-[length:var(--text-label)]">
             {labels.reveal}
           </span>
         )}
@@ -187,7 +187,7 @@ export function Flashcards({
         )}
       </div>
 
-      <p className="mt-6 text-center text-[length:var(--text-caption)] text-on-surface-variant">
+      <p className="text-on-surface-variant mt-6 text-center text-[length:var(--text-caption)]">
         {labels.notSynced}
       </p>
     </div>

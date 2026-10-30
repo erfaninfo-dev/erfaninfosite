@@ -31,7 +31,9 @@ export async function generateMetadata({
   const t = getTranslator(locale);
 
   return {
-    title: topic ? `${topic.topic} — ${t('grammarTopicsCardQuizTitle')}` : t('grammarTopicsCardQuizTitle'),
+    title: topic
+      ? `${topic.topic} — ${t('grammarTopicsCardQuizTitle')}`
+      : t('grammarTopicsCardQuizTitle'),
     alternates: { canonical: `/${locale}/grammar/topics/${id}/quiz` },
   };
 }
@@ -66,7 +68,9 @@ export default async function QuizPage({
 
       <PageHeader title={t('grammarTopicsCardQuizTitle')} description={topic.topic} />
 
-      <Suspense fallback={<Skeleton className="h-96 w-full rounded-[var(--radius-card)]" />}>
+      <Suspense
+        fallback={<Skeleton className="h-96 w-full rounded-[var(--radius-card)]" />}
+      >
         <QuizBody topicId={id} locale={locale} length={length} />
       </Suspense>
     </Container>
@@ -111,7 +115,8 @@ async function QuizBody({
     questionText: q.questionText,
     options: q.options,
     correctAnswer: q.correctAnswer,
-    explanation: glossOf(q.explanation, locale === 'ckb' ? 'ckb' : 'fa') || q.explanation.en,
+    explanation:
+      glossOf(q.explanation, locale === 'ckb' ? 'ckb' : 'fa') || q.explanation.en,
   }));
 
   return (

@@ -3,3 +3,9 @@ node_modules
 pnpm-lock.yaml
 src/lib/i18n/messages
 public/fonts
+
+# Reference documents supplied by the user — not ours to reformat.
+erfan-academy-web-prompt.md
+ui-ux-spec.md
+wordsapi-map.md
+screenshots

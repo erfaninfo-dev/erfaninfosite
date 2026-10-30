@@ -83,9 +83,7 @@ describe('option handling', () => {
   });
 
   it('drops options that are empty after trimming', () => {
-    const q = normalizeGrammarQuestion(
-      makeQuestion({ option3: '', option4: '   ' })
-    );
+    const q = normalizeGrammarQuestion(makeQuestion({ option3: '', option4: '   ' }));
     expect(q.options.map((o) => o.key)).toEqual(['option1', 'option2']);
   });
 

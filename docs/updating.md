@@ -9,10 +9,10 @@ speaking topic or game category happens in the existing admin and database. The
 website reads the same `wordsapi` the Flutter app reads and stores no copy of
 anything, so the change appears on its own:
 
-| Change | Visible on the site within |
-|---|---|
-| Books, units, words, grammar, speaking | **60 seconds** |
-| Game categories, PDFs, app version | **5 minutes** |
+| Change                                 | Visible on the site within |
+| -------------------------------------- | -------------------------- |
+| Books, units, words, grammar, speaking | **60 seconds**             |
+| Game categories, PDFs, app version     | **5 minutes**              |
 
 A deleted item stops appearing in its list within the same window, its page
 starts returning a real **404**, and it drops out of `sitemap.xml`.
@@ -53,7 +53,7 @@ pnpm install --frozen-lockfile
 pnpm build
 ```
 
-Then press **Restart** in cPanel → *Setup Node.js App*, and run the
+Then press **Restart** in cPanel → _Setup Node.js App_, and run the
 `/wordsapi/` check from [`deploy-cpanel.md`](deploy-cpanel.md) §1.
 
 ### Before you push
@@ -102,10 +102,10 @@ extras key with the same name.
 
 ## Routine checks
 
-| How often | What |
-|---|---|
-| Before every deploy | `pnpm verify` |
-| After every deploy | the `/wordsapi/` check, `deploy-cpanel.md` §1 |
-| Occasionally | `/status?key=…` — endpoint reachability and counts |
-| When the UI changes | `pnpm e2e` — layout, a11y and journey tests |
-| Before a visual release | `SCREENSHOT_MATRIX=1 pnpm e2e` and look at `test-results/matrix/` |
+| How often               | What                                                             |
+| ----------------------- | ---------------------------------------------------------------- |
+| Before every deploy     | `pnpm verify`                                                    |
+| After every deploy      | the `/wordsapi/` check, `deploy-cpanel.md` §1                    |
+| Occasionally            | `/status?key=…` — endpoint reachability and counts               |
+| When the UI changes     | `pnpm e2e` — layout, a11y and journey tests                      |
+| Before a visual release | `SCREENSHOT_MATRIX=1 pnpm e2e` and look at `screenshots/matrix/` |

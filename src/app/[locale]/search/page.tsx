@@ -39,7 +39,10 @@ export async function generateMetadata({
  * payload is already cached and virtualised; a global word search would mean
  * pulling all 33 books (5.6 MB) on every query.
  */
-export default function SearchPage({ params, searchParams }: PageProps<'/[locale]/search'>) {
+export default function SearchPage({
+  params,
+  searchParams,
+}: PageProps<'/[locale]/search'>) {
   return (
     <Container>
       <Suspense fallback={<ListSkeleton rows={6} />}>
@@ -75,7 +78,7 @@ async function SearchContent({
       />
 
       {term.length < 2 ? (
-        <p className="mt-8 text-on-surface-variant">{t('searchPrompt')}</p>
+        <p className="text-on-surface-variant mt-8">{t('searchPrompt')}</p>
       ) : (
         <Suspense fallback={<ListSkeleton rows={6} />}>
           <Results term={term} locale={locale} />
@@ -104,9 +107,13 @@ async function Results({ term, locale }: { term: string; locale: Locale }) {
       (b.seriesTitle ?? '').toLowerCase().includes(needle)
   );
   const grammarHits = grammarTopics.filter((x) => x.topic.toLowerCase().includes(needle));
-  const speakingHits = speakingTopics.filter((x) => x.title.toLowerCase().includes(needle));
+  const speakingHits = speakingTopics.filter((x) =>
+    x.title.toLowerCase().includes(needle)
+  );
   const categoryHits = categories.filter((c) =>
-    [c.name.en, c.name.fa, c.name.ckb, c.slug].some((n) => n.toLowerCase().includes(needle))
+    [c.name.en, c.name.fa, c.name.ckb, c.slug].some((n) =>
+      n.toLowerCase().includes(needle)
+    )
   );
 
   const total =
@@ -137,7 +144,7 @@ async function Results({ term, locale }: { term: string; locale: Locale }) {
                   <bdi lang="en">{b.title}</bdi>
                 </h3>
                 {b.seriesTitle ? (
-                  <p className="mt-1 text-[length:var(--text-label)] text-on-surface-variant">
+                  <p className="text-on-surface-variant mt-1 text-[length:var(--text-label)]">
                     <bdi lang="en">{b.seriesTitle}</bdi>
                   </p>
                 ) : null}
@@ -156,7 +163,7 @@ async function Results({ term, locale }: { term: string; locale: Locale }) {
                 <h3 className="text-[length:var(--text-h4)]">
                   <bdi lang="en">{x.topic}</bdi>
                 </h3>
-                <p className="mt-1 text-[length:var(--text-label)] text-on-surface-variant">
+                <p className="text-on-surface-variant mt-1 text-[length:var(--text-label)]">
                   {t('grammarTopicsQuestionsCount', { count: x.questionCount })}
                 </p>
               </CardLink>
@@ -189,7 +196,7 @@ async function Results({ term, locale }: { term: string; locale: Locale }) {
                 <h3 className="text-[length:var(--text-h4)]">
                   {(locale === 'en' ? c.name.en : glossOf(c.name, gloss)) || c.name.en}
                 </h3>
-                <p className="mt-1 text-[length:var(--text-label)] text-on-surface-variant">
+                <p className="text-on-surface-variant mt-1 text-[length:var(--text-label)]">
                   {t('wordCount', { count: c.wordCount })}
                 </p>
               </CardLink>

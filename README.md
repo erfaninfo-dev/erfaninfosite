@@ -49,12 +49,12 @@ pnpm dev
 
 ## The commands that matter
 
-| Command | What it does |
-|---|---|
-| `pnpm verify` | lint, typecheck, unit tests and the live contract check |
-| `pnpm contract:check` | calls every endpoint and validates it against the schemas |
-| `pnpm e2e` | layout, accessibility and journey tests against a production build |
-| `pnpm i18n:import` | re-imports the app's translations from its `.arb` files |
+| Command               | What it does                                                       |
+| --------------------- | ------------------------------------------------------------------ |
+| `pnpm verify`         | lint, typecheck, unit tests and the live contract check            |
+| `pnpm contract:check` | calls every endpoint and validates it against the schemas          |
+| `pnpm e2e`            | layout, accessibility and journey tests against a production build |
+| `pnpm i18n:import`    | re-imports the app's translations from its `.arb` files            |
 
 `pnpm verify` must pass before any deploy. `contract:check` is how a backend
 field rename is caught early instead of silently blanking a page.
@@ -96,15 +96,15 @@ tests/              unit tests and the Playwright suite
 
 ## Documentation
 
-| Document | What it covers |
-|---|---|
+| Document                                         | What it covers                                                  |
+| ------------------------------------------------ | --------------------------------------------------------------- |
 | [`docs/app-inventory.md`](docs/app-inventory.md) | what the Flutter app does, and the behaviour the web must match |
-| [`docs/api-contract.md`](docs/api-contract.md) | every endpoint's real shape, and where the spec was wrong |
-| [`docs/design-tokens.md`](docs/design-tokens.md) | app value → web token, with contrast measurements |
-| [`docs/phase-0-plan.md`](docs/phase-0-plan.md) | route map, folder structure, caching table, risks |
-| [`docs/decisions.md`](docs/decisions.md) | the four decisions that shaped the build |
-| [`docs/deploy-cpanel.md`](docs/deploy-cpanel.md) | deploying, and the check that protects the mobile app |
-| [`docs/updating.md`](docs/updating.md) | content changes need no deploy; code changes do |
+| [`docs/api-contract.md`](docs/api-contract.md)   | every endpoint's real shape, and where the spec was wrong       |
+| [`docs/design-tokens.md`](docs/design-tokens.md) | app value → web token, with contrast measurements               |
+| [`docs/phase-0-plan.md`](docs/phase-0-plan.md)   | route map, folder structure, caching table, risks               |
+| [`docs/decisions.md`](docs/decisions.md)         | the four decisions that shaped the build                        |
+| [`docs/deploy-cpanel.md`](docs/deploy-cpanel.md) | deploying, and the check that protects the mobile app           |
+| [`docs/updating.md`](docs/updating.md)           | content changes need no deploy; code changes do                 |
 
 ## Scope
 

@@ -20,7 +20,7 @@ export function SearchField({
 }) {
   return (
     <form action={action} method="get" role="search" className="relative">
-      <IconSearch className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-on-surface-variant" />
+      <IconSearch className="text-on-surface-variant pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2" />
       <input
         type="search"
         name="q"
@@ -28,7 +28,7 @@ export function SearchField({
         placeholder={placeholder}
         aria-label={label}
         autoComplete="off"
-        className="h-12 w-full rounded-[var(--radius-input)] border-0 bg-surface-3 ps-11 pe-4 text-[length:var(--text-body)] text-on-surface placeholder:text-on-surface-variant"
+        className="bg-surface-3 text-on-surface placeholder:text-on-surface-variant h-12 w-full rounded-[var(--radius-input)] border-0 ps-11 pe-4 text-[length:var(--text-body)]"
       />
     </form>
   );

@@ -78,9 +78,9 @@ export function WordList({
 
   return (
     <div>
-      <div className="sticky top-16 z-20 -mx-1 bg-surface/95 px-1 py-3 backdrop-blur">
+      <div className="bg-surface/95 sticky top-16 z-20 -mx-1 px-1 py-3 backdrop-blur">
         <div className="relative">
-          <IconSearch className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-on-surface-variant" />
+          <IconSearch className="text-on-surface-variant pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2" />
           <input
             id={searchId}
             type="search"
@@ -89,9 +89,9 @@ export function WordList({
             placeholder={labels.searchHint}
             aria-label={labels.searchHint}
             className={cn(
-              'h-12 w-full rounded-[var(--radius-input)] border-0 bg-surface-3 ps-11 pe-4',
+              'bg-surface-3 h-12 w-full rounded-[var(--radius-input)] border-0 ps-11 pe-4',
               // 16px minimum, which also stops iOS zooming on focus.
-              'text-[length:var(--text-body)] text-on-surface placeholder:text-on-surface-variant',
+              'text-on-surface placeholder:text-on-surface-variant text-[length:var(--text-body)]',
               'dark:bg-surface-3'
             )}
           />
@@ -104,7 +104,7 @@ export function WordList({
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 aria-label={labels.allTypes}
-                className="h-11 rounded-[var(--radius-button)] border border-outline-variant bg-surface-1 px-3 text-[length:var(--text-label)] text-on-surface dark:bg-surface-2"
+                className="border-outline-variant bg-surface-1 text-on-surface dark:bg-surface-2 h-11 rounded-[var(--radius-button)] border px-3 text-[length:var(--text-label)]"
               >
                 <option value="">{labels.allTypes}</option>
                 {types.map((t) => (
@@ -124,7 +124,7 @@ export function WordList({
                   'inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-button)] border px-3',
                   'text-[length:var(--text-label)] font-semibold transition-colors duration-[var(--duration-fast)]',
                   importantOnly
-                    ? 'border-transparent bg-secondary-container text-on-secondary-container'
+                    ? 'bg-secondary-container text-on-secondary-container border-transparent'
                     : 'border-outline-variant text-on-surface-variant hover:bg-surface-3'
                 )}
               >
@@ -143,19 +143,22 @@ export function WordList({
       </p>
 
       {filtered.length === 0 ? (
-        <p className="rounded-[var(--radius-card)] border border-dashed border-outline-variant px-6 py-10 text-center text-on-surface-variant">
+        <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
           {labels.noResults}
         </p>
       ) : filtered.length > VIRTUALIZE_ABOVE ? (
         <VirtualRows rows={filtered} labels={labels} glossLang={glossLang} />
       ) : (
-        <div className="overflow-hidden rounded-[var(--radius-card)] border border-outline-variant/60 bg-surface-1 dark:bg-surface-2">
+        <div className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 overflow-hidden rounded-[var(--radius-card)] border">
           {filtered.map((w) => (
             <WordRow
               key={w.id}
               data={w}
               glossLang={glossLang}
-              labels={{ important: labels.important, otherLanguages: labels.otherLanguages }}
+              labels={{
+                important: labels.important,
+                otherLanguages: labels.otherLanguages,
+              }}
             />
           ))}
         </div>
@@ -203,7 +206,7 @@ function VirtualRows({
       ref={scrollRef}
       // A bounded scroller rather than window scrolling, so the sticky search
       // field stays put and the list never pushes the page height to 100k px.
-      className="max-h-[70dvh] overflow-y-auto overscroll-contain rounded-[var(--radius-card)] border border-outline-variant/60 bg-surface-1 dark:bg-surface-2"
+      className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 max-h-[70dvh] overflow-y-auto overscroll-contain rounded-[var(--radius-card)] border"
     >
       {ready ? (
         <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
@@ -242,7 +245,10 @@ function VirtualRows({
             key={row.id}
             data={row}
             glossLang={glossLang}
-            labels={{ important: labels.important, otherLanguages: labels.otherLanguages }}
+            labels={{
+              important: labels.important,
+              otherLanguages: labels.otherLanguages,
+            }}
           />
         ))
       )}

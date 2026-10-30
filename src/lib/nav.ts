@@ -27,7 +27,12 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // The app has no standalone "Speaking" string — speaking is not a tab there —
   // so this uses its approved full title rather than inventing a short Persian
   // or Kurdish word for it. The bottom bar lets it wrap to two lines.
-  { key: 'speaking', path: '/speaking', labelKey: 'speakingPart1Title', icon: 'speaking' },
+  {
+    key: 'speaking',
+    path: '/speaking',
+    labelKey: 'speakingPart1Title',
+    icon: 'speaking',
+  },
   { key: 'play', path: '/play', labelKey: 'tabPlay', icon: 'play' },
 ] as const;
 
@@ -47,8 +52,14 @@ export function localeHref(locale: Locale, path = ''): Route {
  * Whether a nav item is the active section for a pathname.
  * Home matches only exactly; the others match their subtree.
  */
-export function isActiveSection(pathname: string, locale: Locale, item: NavItem): boolean {
+export function isActiveSection(
+  pathname: string,
+  locale: Locale,
+  item: NavItem
+): boolean {
   const base = `/${locale}`;
   if (item.path === '') return pathname === base || pathname === `${base}/`;
-  return pathname === `${base}${item.path}` || pathname.startsWith(`${base}${item.path}/`);
+  return (
+    pathname === `${base}${item.path}` || pathname.startsWith(`${base}${item.path}/`)
+  );
 }

@@ -12,10 +12,9 @@ import { ApiError, logApiError } from './errors';
  * User-Agent, reused connections, no parallel bursts, concurrency capped at 3.
  */
 
-const BASE_URL = (process.env.WORDSAPI_BASE_URL ?? 'https://erfaninfo.com/wordsapi').replace(
-  /\/+$/,
-  ''
-);
+const BASE_URL = (
+  process.env.WORDSAPI_BASE_URL ?? 'https://erfaninfo.com/wordsapi'
+).replace(/\/+$/, '');
 
 const USER_AGENT =
   'ErfanAcademyWeb/1.0 (+https://erfaninfo.com; Next.js server; contact: erfaninfo.com)';
@@ -254,7 +253,9 @@ export async function apiGet<T>(
   }
 
   // Unreachable: the loop either returns or throws.
-  throw lastError ?? new ApiError({ kind: 'network', endpoint, message: 'unknown failure' });
+  throw (
+    lastError ?? new ApiError({ kind: 'network', endpoint, message: 'unknown failure' })
+  );
 }
 
 /** Exposed for the contract check and the status page. */

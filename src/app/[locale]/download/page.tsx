@@ -34,7 +34,9 @@ export default async function DownloadPage({ params }: PageProps<'/[locale]/down
   return (
     <Container size="content">
       <PageHeader title={t('downloadTitle')} description={t('downloadSubtitle')} />
-      <Suspense fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}>
+      <Suspense
+        fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}
+      >
         <Downloads locale={locale} />
       </Suspense>
     </Container>
@@ -52,7 +54,7 @@ async function Downloads({ locale }: { locale: Locale }) {
       {update.android.force || update.windows.force ? (
         <p
           role="status"
-          className="rounded-[var(--radius-card)] border border-tertiary/40 bg-tertiary-container/40 px-5 py-4 text-on-tertiary-container"
+          className="border-tertiary/40 bg-tertiary-container/40 text-on-tertiary-container rounded-[var(--radius-card)] border px-5 py-4"
         >
           {t('aboutForcedUpdateNote')}
         </p>
@@ -122,14 +124,14 @@ function PlatformCard({
 }) {
   return (
     <Card className="flex flex-col">
-      <div className="mb-3 flex size-12 items-center justify-center rounded-[var(--radius-logo)] bg-secondary-container text-on-secondary-container">
+      <div className="bg-secondary-container text-on-secondary-container mb-3 flex size-12 items-center justify-center rounded-[var(--radius-logo)]">
         {icon}
       </div>
       <h2 className="text-[length:var(--text-h4)]" lang="en">
         {platform}
       </h2>
       {version ? (
-        <p className="mt-1 text-[length:var(--text-label)] text-on-surface-variant">
+        <p className="text-on-surface-variant mt-1 text-[length:var(--text-label)]">
           {versionLabel}
         </p>
       ) : null}
@@ -142,7 +144,7 @@ function PlatformCard({
       <div className="mt-auto pt-5">
         <ExternalLink
           href={url}
-          className="inline-flex min-h-[var(--size-button-md)] items-center justify-center gap-2 rounded-[var(--radius-button)] bg-primary px-4 py-3 font-bold text-on-primary hover:brightness-110"
+          className="bg-primary text-on-primary inline-flex min-h-[var(--size-button-md)] items-center justify-center gap-2 rounded-[var(--radius-button)] px-4 py-3 font-bold hover:brightness-110"
         >
           <IconDownload className="size-5" />
           {label}

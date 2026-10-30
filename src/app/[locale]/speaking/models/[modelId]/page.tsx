@@ -73,7 +73,7 @@ export default async function SpeakingModelPage({
       <PageHeader
         title={model.title}
         meta={
-          <span className="text-[length:var(--text-label)] text-on-surface-variant">
+          <span className="text-on-surface-variant text-[length:var(--text-label)]">
             {t('speakingModelNumber', { number: model.modelNumber })}
           </span>
         }
@@ -83,7 +83,7 @@ export default async function SpeakingModelPage({
         <Card className="mb-8 space-y-4">
           {model.formula ? (
             <div>
-              <p className="text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+              <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
                 {t('speakingFormula')}
               </p>
               <p lang="en" dir="ltr" className="mt-1">
@@ -93,11 +93,11 @@ export default async function SpeakingModelPage({
           ) : null}
           {model.template ? (
             <div>
-              <p className="text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+              <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
                 {t('speakingTemplate')}
               </p>
               {/* The [brackets] in a template are literal content, not markup. */}
-              <p lang="en" dir="ltr" className="mt-1">
+              <p lang="en" dir="ltr" className="mt-1 max-w-[var(--container-prose)]">
                 {model.template}
               </p>
             </div>
@@ -105,7 +105,9 @@ export default async function SpeakingModelPage({
         </Card>
       ) : null}
 
-      <Suspense fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}>
+      <Suspense
+        fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}
+      >
         <ModelQuestions modelId={id} locale={locale} />
       </Suspense>
     </Container>

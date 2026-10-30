@@ -66,7 +66,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     for (const book of books) out.push(entry(`${base}/books/${book.id}`, 0.7));
-    for (const book of grammarBooks) out.push(entry(`${base}/grammar/books/${book.id}`, 0.7));
+    for (const book of grammarBooks)
+      out.push(entry(`${base}/grammar/books/${book.id}`, 0.7));
     for (const topic of grammarTopics) {
       out.push(entry(`${base}/grammar/topics/${topic.id}`, 0.7));
     }
@@ -76,7 +77,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const model of speakingModels) {
       out.push(entry(`${base}/speaking/models/${model.id}`, 0.5));
     }
-    for (const category of categories) out.push(entry(`${base}/play/${category.slug}`, 0.6));
+    for (const category of categories)
+      out.push(entry(`${base}/play/${category.slug}`, 0.6));
   }
 
   // Unit pages for the first few books, as deeper discovery points.

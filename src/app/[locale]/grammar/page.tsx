@@ -71,13 +71,13 @@ async function GrammarBookGrid({ locale }: { locale: Locale }) {
       {books.map((book) => (
         <CardLink key={book.id} href={localeHref(locale, `/grammar/books/${book.id}`)}>
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[length:var(--text-h4)] text-on-surface">
+            <h3 className="text-on-surface text-[length:var(--text-h4)]">
               <bdi lang="en">{book.title}</bdi>
             </h3>
-            <IconChevron className="size-5 shrink-0 text-on-surface-variant" />
+            <IconChevron className="text-on-surface-variant size-5 shrink-0" />
           </div>
           {book.description ? (
-            <p className="mt-1.5 line-clamp-2 text-[length:var(--text-label)] text-on-surface-variant">
+            <p className="text-on-surface-variant mt-1.5 line-clamp-2 text-[length:var(--text-label)]">
               <bdi lang="en">{book.description}</bdi>
             </p>
           ) : null}
@@ -96,7 +96,7 @@ async function TopicGrid({ locale }: { locale: Locale }) {
 
   if (topics.length === 0) {
     return (
-      <p className="rounded-[var(--radius-card)] border border-dashed border-outline-variant px-6 py-10 text-center text-on-surface-variant">
+      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
         {t('grammarNoTopicsEmpty')}
       </p>
     );
@@ -107,13 +107,15 @@ async function TopicGrid({ locale }: { locale: Locale }) {
       {topics.map((topic) => (
         <CardLink key={topic.id} href={localeHref(locale, `/grammar/topics/${topic.id}`)}>
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[length:var(--text-h4)] text-on-surface">
+            <h3 className="text-on-surface text-[length:var(--text-h4)]">
               <bdi lang="en">{topic.topic}</bdi>
             </h3>
             {topic.isNew ? <Badge tone="new">{t('badgeNew')}</Badge> : null}
           </div>
           <div className="mt-auto pt-4">
-            <Badge>{t('grammarTopicsQuestionsCount', { count: topic.questionCount })}</Badge>
+            <Badge>
+              {t('grammarTopicsQuestionsCount', { count: topic.questionCount })}
+            </Badge>
           </div>
         </CardLink>
       ))}

@@ -40,7 +40,7 @@ export function WordRow({
     data.example.length > 0 || data.exampleEn.length > 0 || data.others.length > 0;
 
   return (
-    <div className="border-b border-outline-variant/50 last:border-b-0">
+    <div className="border-outline-variant/50 border-b last:border-b-0">
       <button
         type="button"
         onClick={() => hasDetail && setOpen((v) => !v)}
@@ -49,33 +49,33 @@ export function WordRow({
         className={cn(
           'flex min-h-14 w-full items-center gap-3 px-4 py-3 text-start',
           hasDetail
-            ? 'cursor-pointer hover:bg-surface-2 dark:hover:bg-surface-3'
+            ? 'hover:bg-surface-2 dark:hover:bg-surface-3 cursor-pointer'
             : 'cursor-default',
           'transition-colors duration-[var(--duration-fast)]'
         )}
       >
         <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
           {/* The headword is always English: isolate it inside RTL text. */}
-          <bdi className="font-semibold text-on-surface" lang="en">
+          <bdi className="text-on-surface font-semibold" lang="en">
             {data.word}
           </bdi>
           {data.type ? (
-            <span className="text-[length:var(--text-caption)] text-on-surface-variant" lang="en">
+            <span
+              className="text-on-surface-variant text-[length:var(--text-caption)]"
+              lang="en"
+            >
               {data.type}
             </span>
           ) : null}
         </span>
 
-        <bdi
-          lang={glossLang}
-          className="min-w-0 flex-1 text-end text-on-surface-variant"
-        >
+        <bdi lang={glossLang} className="text-on-surface-variant min-w-0 flex-1 text-end">
           {data.meaning}
         </bdi>
 
         {data.important ? (
           <IconStar
-            className="size-4 shrink-0 fill-current text-tertiary"
+            className="text-tertiary size-4 shrink-0 fill-current"
             title={labels.important}
           />
         ) : null}
@@ -83,7 +83,7 @@ export function WordRow({
         {hasDetail ? (
           <IconChevron
             className={cn(
-              'size-4 shrink-0 text-on-surface-variant transition-transform duration-[var(--duration-fast)]',
+              'text-on-surface-variant size-4 shrink-0 transition-transform duration-[var(--duration-fast)]',
               open && 'rotate-90'
             )}
           />
@@ -91,7 +91,7 @@ export function WordRow({
       </button>
 
       {open ? (
-        <div className="space-y-3 bg-surface-2/60 px-4 pb-4 dark:bg-surface-3/50">
+        <div className="bg-surface-2/60 dark:bg-surface-3/50 space-y-3 px-4 pb-4">
           {data.exampleEn ? (
             <p lang="en" dir="ltr" className="text-on-surface">
               {data.exampleEn}
@@ -105,12 +105,12 @@ export function WordRow({
 
           {data.others.length > 0 ? (
             <dl className="space-y-1">
-              <dt className="text-[length:var(--text-caption)] font-semibold text-on-surface-variant">
+              <dt className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
                 {labels.otherLanguages}
               </dt>
               {data.others.map((other) => (
                 <dd key={other.lang} className="flex gap-2">
-                  <span className="text-[length:var(--text-caption)] text-on-surface-variant uppercase">
+                  <span className="text-on-surface-variant text-[length:var(--text-caption)] uppercase">
                     {other.lang}
                   </span>
                   <bdi lang={other.lang} dir={other.lang === 'en' ? 'ltr' : 'rtl'}>

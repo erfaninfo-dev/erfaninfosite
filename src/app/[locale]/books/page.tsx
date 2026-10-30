@@ -101,11 +101,11 @@ function BookCard({ book, locale }: { book: Book; locale: Locale }) {
           {book.track === 'ielts' ? t('homeTrackIelts') : t('homeTrackGeneral')}
         </Badge>
       </div>
-      <h3 className="text-[length:var(--text-h4)] text-on-surface">
+      <h3 className="text-on-surface text-[length:var(--text-h4)]">
         <bdi lang="en">{book.title}</bdi>
       </h3>
       {book.description ? (
-        <p className="mt-1.5 line-clamp-2 text-[length:var(--text-label)] text-on-surface-variant">
+        <p className="text-on-surface-variant mt-1.5 line-clamp-2 text-[length:var(--text-label)]">
           <bdi lang="en">{book.description}</bdi>
         </p>
       ) : null}
@@ -134,7 +134,13 @@ function BookCover({ title }: { title: string }) {
         filter: `hue-rotate(${shift}deg)`,
       }}
     >
-      <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.75">
+      <svg
+        viewBox="0 0 24 24"
+        className="size-6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      >
         <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H18a1 1 0 0 1 1 1v13" strokeLinecap="round" />
         <path d="M4 5.5v13A2 2 0 0 1 6 17h13v4H6a2 2 0 0 1-2-2" strokeLinecap="round" />
       </svg>

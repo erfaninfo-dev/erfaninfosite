@@ -24,7 +24,7 @@ export default function NotFound() {
         action={
           <Link
             href="/en"
-            className="inline-flex min-h-[var(--size-button-md)] items-center rounded-[var(--radius-button)] bg-primary px-5 font-bold text-on-primary no-underline"
+            className="bg-primary text-on-primary inline-flex min-h-[var(--size-button-md)] items-center rounded-[var(--radius-button)] px-5 font-bold no-underline"
           >
             Erfan Academy
           </Link>

@@ -81,11 +81,11 @@ export default async function SpeakingIdeasPage({
               <SectionHeading>
                 <bdi lang="en">{category.titleEn || category.category}</bdi>
               </SectionHeading>
-              <Card className="divide-y divide-outline-variant/50 p-0">
+              <Card className="divide-outline-variant/50 divide-y p-0">
                 {category.ideas.map((idea) => (
                   <div key={idea.id} className="p-4">
                     <div className="flex flex-wrap items-baseline gap-2">
-                      <bdi lang="en" dir="ltr" className="font-semibold text-on-surface">
+                      <bdi lang="en" dir="ltr" className="text-on-surface font-semibold">
                         {idea.phrase}
                       </bdi>
                       {/*
@@ -99,7 +99,11 @@ export default async function SpeakingIdeasPage({
                       ) : null}
                     </div>
                     {idea.example ? (
-                      <p lang="en" dir="ltr" className="mt-1.5 text-on-surface-variant">
+                      <p
+                        lang="en"
+                        dir="ltr"
+                        className="text-on-surface-variant mt-1.5 max-w-[var(--container-prose)]"
+                      >
                         {idea.example}
                       </p>
                     ) : null}

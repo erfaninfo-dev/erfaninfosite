@@ -36,7 +36,10 @@ export function ExternalLink({
   href: string;
   className?: string;
   children: ReactNode;
-} & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'className' | 'children'>) {
+} & Omit<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  'href' | 'className' | 'children'
+>) {
   const safe = safeExternalUrl(href);
   if (!safe) return null;
 

@@ -23,24 +23,24 @@ Access-Control-Allow-Methods: GET, POST, OPTIONS
 Access-Control-Allow-Headers: Content-Type, Authorization
 ```
 
-| Fact | Consequence for the website |
-|---|---|
-| **No `Cache-Control`, no `ETag`, no `Last-Modified`** on any response | Next.js owns caching entirely. No conditional requests are possible; no 304s. Every revalidation is a full transfer. |
-| `charset=utf-8` is correct everywhere | No transcoding needed. The app's mojibake guard is for bad *stored* data, not bad encoding. |
-| `Access-Control-Allow-Origin: *` | The browser *could* call the API directly. We still will not — rule 2. It does mean a leaked URL is not a secret. |
-| PHP **7.4.33**, end-of-life | Not ours to fix, but relevant to the security note at the end. |
-| `GET` and `POST` behave identically on `books.php` (POST returned the same 200 array) | Do not rely on method to signal intent. |
-| Response times: 1.3–1.6 s typical, **up to 10.4 s for `words.php`** | The brief's 8 s timeout **would have failed that call**. See risk R1 and the per-book table below. |
+| Fact                                                                                  | Consequence for the website                                                                                          |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **No `Cache-Control`, no `ETag`, no `Last-Modified`** on any response                 | Next.js owns caching entirely. No conditional requests are possible; no 304s. Every revalidation is a full transfer. |
+| `charset=utf-8` is correct everywhere                                                 | No transcoding needed. The app's mojibake guard is for bad _stored_ data, not bad encoding.                          |
+| `Access-Control-Allow-Origin: *`                                                      | The browser _could_ call the API directly. We still will not — rule 2. It does mean a leaked URL is not a secret.    |
+| PHP **7.4.33**, end-of-life                                                           | Not ours to fix, but relevant to the security note at the end.                                                       |
+| `GET` and `POST` behave identically on `books.php` (POST returned the same 200 array) | Do not rely on method to signal intent.                                                                              |
+| Response times: 1.3–1.6 s typical, **up to 10.4 s for `words.php`**                   | The brief's 8 s timeout **would have failed that call**. See risk R1 and the per-book table below.                   |
 
 ### Error shapes — three different ones
 
-| Situation | Status | Body |
-|---|---|---|
-| Missing required param | **400** | `{"error":"book_id is required and must be a positive integer."}` |
-| Missing token | **401** | `{"error":"Missing token"}` |
-| Valid param, no such row (`units`, `grammar_questions`) | **200** | `[]` — **not** a 404 |
-| Valid param, no such row (`speaking_questions`) | **404** | `{"error":"Topic not found"}` |
-| Unknown `.php` file | **404** | **HTML**, a full page with `<html lang="ckb" dir="rtl">` — not JSON |
+| Situation                                               | Status  | Body                                                                |
+| ------------------------------------------------------- | ------- | ------------------------------------------------------------------- |
+| Missing required param                                  | **400** | `{"error":"book_id is required and must be a positive integer."}`   |
+| Missing token                                           | **401** | `{"error":"Missing token"}`                                         |
+| Valid param, no such row (`units`, `grammar_questions`) | **200** | `[]` — **not** a 404                                                |
+| Valid param, no such row (`speaking_questions`)         | **404** | `{"error":"Topic not found"}`                                       |
+| Unknown `.php` file                                     | **404** | **HTML**, a full page with `<html lang="ckb" dir="rtl">` — not JSON |
 
 Three consequences:
 
@@ -48,8 +48,8 @@ Three consequences:
    HTML page; `JSON.parse` on it throws a useless error. Parse failures get their own error type.
 2. **`notFound()` cannot be driven by the HTTP status** for most endpoints. An empty array is how
    "deleted" arrives. The 404 propagation requirement in the definition of done has to be
-   implemented as: *resolve the parent from its list endpoint; if the id is absent from the list,
-   call `notFound()`.* An empty child list alone is ambiguous — a real book with no units looks
+   implemented as: _resolve the parent from its list endpoint; if the id is absent from the list,
+   call `notFound()`._ An empty child list alone is ambiguous — a real book with no units looks
    identical to a deleted book.
 3. Error handling is per-endpoint, not generic: `speaking_questions` is the only public endpoint
    observed to return a real 404.
@@ -97,16 +97,15 @@ subtitle.
 
 **Size and latency vary several-fold across the 33 books.** Measured:
 
-| book_id | bytes | first probe | second probe |
-|---|---|---|---|
-| 1 | 283,791 | — | 2.3 s |
-| 2 | 863,548 | **10.4 s** | 3.8 s |
-| 7 | 175,623 | — | 2.2 s |
-| 36 | 795,851 | — | 4.3 s |
+| book_id | bytes   | first probe | second probe |
+| ------- | ------- | ----------- | ------------ |
+| 1       | 283,791 | —           | 2.3 s        |
+| 2       | 863,548 | **10.4 s**  | 3.8 s        |
+| 7       | 175,623 | —           | 2.2 s        |
+| 36      | 795,851 | —           | 4.3 s        |
 
 So 176 KB to 864 KB, and 2.2 s to **10.4 s**. The 10.4 s was a real observation on a shared host,
 not a fluke to design away — the strategy is sized for the worst book, not the median.
-
 
 ```
 id:int  book_id:int  unit:int  section:int  section_details:string|null
@@ -116,7 +115,7 @@ example_en:string  example_fa:string  example_kur:string
 ```
 
 - **`important` is `int` 0/1, not bool.** All 1,888 were 0 in this book.
-- `section` was 0 for every word in book 2 — this book is not sectioned. Book 1 *does* have
+- `section` was 0 for every word in book 2 — this book is not sectioned. Book 1 _does_ have
   sections (1, 2, 3). Both shapes must render.
 - `section_details` null for 1,724 of 1,888.
 - The six language fields are **never null**, but they can be **empty strings**: `example_fa` empty
@@ -129,7 +128,7 @@ example_en:string  example_fa:string  example_kur:string
 
 ### `sections.php` and `unit_samples.php` — **the brief's table is wrong about these**
 
-Both require **`book_id` *and* `unit`**. With `book_id` alone both return:
+Both require **`book_id` _and_ `unit`**. With `book_id` alone both return:
 
 ```
 400 {"error":"unit is required and must be a positive integer."}
@@ -182,7 +181,7 @@ is_active:bool  created_at:string  unit_count:int  question_count:int
 ```
 
 - `is_active:bool` — real boolean.
-- **`question_count` is 0 for all three books.** Grammar questions are reachable by *topic*, not by
+- **`question_count` is 0 for all three books.** Grammar questions are reachable by _topic_, not by
   book/unit, in the current data. See the next two entries.
 - `created_at` is `"YYYY-MM-DD HH:MM:SS"`, no timezone, no `T`. **Not ISO 8601** — `new Date(...)`
   parses it inconsistently across engines. Treat these as opaque strings or parse explicitly as
@@ -281,9 +280,9 @@ brackets are literal content, not markup.
 
 This endpoint changes its top-level key based on which param you send:
 
-| Call | Top level |
-|---|---|
-| `?topic_id=5` | `{ topic: {id, title}, questions: [...] }` |
+| Call           | Top level                                                                   |
+| -------------- | --------------------------------------------------------------------------- |
+| `?topic_id=5`  | `{ topic: {id, title}, questions: [...] }`                                  |
 | `?model_id=37` | `{ model: {id, model_number, title, formula, template}, questions: [...] }` |
 
 Question objects also differ:
@@ -358,15 +357,15 @@ force_update:int  release_notes:{en:string, fa:string, ku:string}
 
 The inconsistency the brief warned about, measured:
 
-| Convention | Where it appears |
-|---|---|
-| `_en` / `_fa` / `_kur` | `words.*`, `game_word_categories.words[].*` |
-| `_en` / `_fa` / `_ckb` | `game_word_categories` category names only |
-| `fa_` / `kur_` / `eng_` **prefix** | `grammar_questions.*_explanation` |
-| `answer` / `fa_answer` / `kur_answer` | `speaking_questions` — English has **no prefix at all** |
-| `text_en_fa` / `text_en_kur` | `grammar_unit_texts`, `unit_samples` — *pairs*, not single languages |
-| `pdf_url` / `pdf_url_kur` | `grammar_topic_pdfs` — no Persian variant |
-| `en` / `fa` / `ku` | `app_update.release_notes` |
+| Convention                            | Where it appears                                                     |
+| ------------------------------------- | -------------------------------------------------------------------- |
+| `_en` / `_fa` / `_kur`                | `words.*`, `game_word_categories.words[].*`                          |
+| `_en` / `_fa` / `_ckb`                | `game_word_categories` category names only                           |
+| `fa_` / `kur_` / `eng_` **prefix**    | `grammar_questions.*_explanation`                                    |
+| `answer` / `fa_answer` / `kur_answer` | `speaking_questions` — English has **no prefix at all**              |
+| `text_en_fa` / `text_en_kur`          | `grammar_unit_texts`, `unit_samples` — _pairs_, not single languages |
+| `pdf_url` / `pdf_url_kur`             | `grammar_topic_pdfs` — no Persian variant                            |
+| `en` / `fa` / `ku`                    | `app_update.release_notes`                                           |
 
 Seven conventions, four spellings of Kurdish (`kur`, `ckb`, `ku`, and `_en_kur`). `src/lib/api/normalize.ts`
 maps every one of them to `{ en, fa, ckb }` and nothing downstream sees the raw names.
@@ -378,16 +377,16 @@ documents. They normalize to `{ fa: <en+fa blob>, ckb: <en+ckb blob> }`, with no
 
 ## 3. Disagreements found (live response wins)
 
-| # | Disagreement | Resolution |
-|---|---|---|
-| 1 | Brief and `wordsapi-map.md`: `sections.php` / `unit_samples.php` take `book_id`. | **Both require `book_id` AND `unit`.** The map's "need a book that has them" note was a misdiagnosis of a 400. |
-| 2 | Brief: `grammar_questions` has `grammar_book_id, grammar_unit_id`. | Present but **null on all rows**; `?unit_id=` returns `[]`. Grammar quizzes are topic-driven only. |
-| 3 | Brief: `books.php` is public. Map lists it under role `A`. | Public without a token. `scope` is silently ignored. |
-| 4 | Map: `grammar_topics` returns `topic, question_count, topic_created_at, is_new`. | Also returns **`topic_id`**, which is the better routing key. |
-| 5 | Brief: `speaking_questions` returns `{topic, questions}`. | True for `topic_id`; `model_id` returns **`{model, questions}`**. Two shapes, one endpoint. |
-| 6 | Brief: `speaking_topics` / `speaking_model_questions` take `part`. | They accept it, but **parts 2 and 3 are empty**. Part 1 is all the content there is. |
-| 7 | `unit_samples` numerics vs every other endpoint. | `unit_samples` returns **quoted strings**; needs `z.coerce.number()`. |
-| 8 | Hand-over note: 1,406 translated strings. | **1,031 message keys** per locale, fully covered. |
+| #   | Disagreement                                                                     | Resolution                                                                                                     |
+| --- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 1   | Brief and `wordsapi-map.md`: `sections.php` / `unit_samples.php` take `book_id`. | **Both require `book_id` AND `unit`.** The map's "need a book that has them" note was a misdiagnosis of a 400. |
+| 2   | Brief: `grammar_questions` has `grammar_book_id, grammar_unit_id`.               | Present but **null on all rows**; `?unit_id=` returns `[]`. Grammar quizzes are topic-driven only.             |
+| 3   | Brief: `books.php` is public. Map lists it under role `A`.                       | Public without a token. `scope` is silently ignored.                                                           |
+| 4   | Map: `grammar_topics` returns `topic, question_count, topic_created_at, is_new`. | Also returns **`topic_id`**, which is the better routing key.                                                  |
+| 5   | Brief: `speaking_questions` returns `{topic, questions}`.                        | True for `topic_id`; `model_id` returns **`{model, questions}`**. Two shapes, one endpoint.                    |
+| 6   | Brief: `speaking_topics` / `speaking_model_questions` take `part`.               | They accept it, but **parts 2 and 3 are empty**. Part 1 is all the content there is.                           |
+| 7   | `unit_samples` numerics vs every other endpoint.                                 | `unit_samples` returns **quoted strings**; needs `z.coerce.number()`.                                          |
+| 8   | Hand-over note: 1,406 translated strings.                                        | **1,031 message keys** per locale, fully covered.                                                              |
 
 None of these require changing the PHP or the database. All are handled in the client.
 
@@ -432,7 +431,7 @@ later, not now.
 Server-side caching plus per-view slicing is the only mitigation; it is in the caching table.
 
 **R5 — API load.** The app already makes ~50,000 calls a month on shared hosting. A 60 s TTL on a
-catalog endpoint is at most 1,440 origin calls per endpoint per day *regardless of traffic*, since
+catalog endpoint is at most 1,440 origin calls per endpoint per day _regardless of traffic_, since
 the cache is shared server-side. Across the ~12 Phase 1 endpoint shapes that is a bounded, modest
 addition. Concurrency is capped at 3 as instructed.
 

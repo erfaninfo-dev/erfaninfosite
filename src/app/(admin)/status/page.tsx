@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
 
 import { clientConfig } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/errors';
@@ -23,7 +22,6 @@ import {
  * fetch that would hide a stale cache.
  */
 
-
 type Check = { group: string; ok: boolean; detail: string };
 
 async function check(group: string, run: () => Promise<string>): Promise<Check> {
@@ -38,19 +36,7 @@ async function check(group: string, run: () => Promise<string>): Promise<Check> 
   }
 }
 
-export default function StatusPage({ searchParams }: PageProps<'/status'>) {
-  return (
-    <Suspense fallback={null}>
-      <Status searchParams={searchParams} />
-    </Suspense>
-  );
-}
-
-async function Status({
-  searchParams,
-}: {
-  searchParams: PageProps<'/status'>['searchParams'];
-}) {
+export default async function StatusPage({ searchParams }: PageProps<'/status'>) {
   const query = await searchParams;
   const secret = process.env.STATUS_SECRET;
   const provided = Array.isArray(query.key) ? query.key[0] : query.key;
@@ -60,16 +46,21 @@ async function Status({
   if (!secret || provided !== secret) notFound();
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'ui-monospace, monospace', maxWidth: 860 }}>
+    <main
+      style={{ padding: '2rem', fontFamily: 'ui-monospace, monospace', maxWidth: 860 }}
+    >
       <h1>Erfan Academy Web — status</h1>
       <p>
         The website is a client of <code>{clientConfig.baseUrl}</code> and owns no data.
       </p>
 
       <h2>Endpoint groups</h2>
-      <Suspense fallback={<p>Checking…</p>}>
-        <Checks />
-      </Suspense>
+      {/*
+        No <Suspense> here. Next starts the response at the first Suspense
+        boundary and the status is fixed at 200 from then on, so the guard above
+        would answer a wrong key with the 404 page under a 200.
+      */}
+      <Checks />
 
       <h2>Client settings</h2>
       <ul>

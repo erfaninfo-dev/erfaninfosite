@@ -61,7 +61,9 @@ export default async function UnitFlashcardsPage({
 
       <PageHeader title={t('tabReview')} description={book.title} />
 
-      <Suspense fallback={<Skeleton className="h-72 w-full rounded-[var(--radius-card)]" />}>
+      <Suspense
+        fallback={<Skeleton className="h-72 w-full rounded-[var(--radius-card)]" />}
+      >
         <Cards bookId={id} unit={unitNo} locale={locale} />
       </Suspense>
     </Container>
@@ -77,7 +79,10 @@ async function Cards({
   unit: number;
   locale: Locale;
 }) {
-  const [words, gloss] = await Promise.all([getUnitWords(bookId, unit), getGloss(locale)]);
+  const [words, gloss] = await Promise.all([
+    getUnitWords(bookId, unit),
+    getGloss(locale),
+  ]);
   const t = getTranslator(locale);
 
   // The gloss is resolved on the server, so the browser receives plain strings.
@@ -114,7 +119,7 @@ async function Cards({
       glossLang={gloss}
       labels={{
         progress: t('wordCount', { count: cards.length }),
-        reveal: t('speakingExpand'),
+        reveal: t('tapCardToReveal'),
         next: t('next'),
         previous: t('previous'),
         restart: t('tryAgain'),

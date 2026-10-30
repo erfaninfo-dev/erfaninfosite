@@ -75,7 +75,9 @@ export default async function SpeakingTopicPage({
         }
       />
 
-      <Suspense fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}>
+      <Suspense
+        fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}
+      >
         <Questions topicId={id} locale={locale} />
       </Suspense>
     </Container>
