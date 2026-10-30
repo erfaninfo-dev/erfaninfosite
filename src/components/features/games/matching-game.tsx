@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { IconCheck, IconRefresh } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
+import { NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
 
 /**
  * A matching game: pair each English word with its meaning.
@@ -46,9 +47,10 @@ function Score({
 }: {
   value: number;
   total: number;
-  locale: string;
+  locale: Locale;
 }) {
-  const format = (n: number) => new Intl.NumberFormat(locale).format(n);
+  // NUMBER_LOCALE, never the bare locale: Chromium has no `ckb` data.
+  const format = (n: number) => new Intl.NumberFormat(NUMBER_LOCALE[locale]).format(n);
   return (
     <bdi dir="ltr">
       {format(value)} / {format(total)}
@@ -97,7 +99,7 @@ export function MatchingGame({
   pairs: MatchPair[];
   labels: MatchLabels;
   glossLang: 'fa' | 'ckb';
-  locale: string;
+  locale: Locale;
 }) {
   // Lazy initialiser, not an effect: the first round is a pure function of the
   // props, so it is identical on the server and on the client.

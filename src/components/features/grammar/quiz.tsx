@@ -7,6 +7,7 @@ import { Button, ButtonLink } from '@/components/ui/button';
 import { IconCheck, IconCross, IconRefresh } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { formatClient } from '@/lib/i18n/client-format';
+import { NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
 
 /**
  * The grammar quiz.
@@ -66,7 +67,7 @@ export function Quiz({
   questions: QuizQuestion[];
   labels: QuizLabels;
   explanationLang: 'en' | 'fa' | 'ckb';
-  locale: string;
+  locale: Locale;
   backHref: Route;
 }) {
   const [pool, setPool] = useState(questions);
@@ -276,7 +277,7 @@ function ScoreSummary({
   total: number;
   wrongCount: number;
   labels: QuizLabels;
-  locale: string;
+  locale: Locale;
   backHref: Route;
   onRetryWrong: () => void;
   onRestart: () => void;
@@ -293,8 +294,8 @@ function ScoreSummary({
         */}
         <p className="text-primary text-[length:var(--text-display)] font-bold">
           <bdi dir="ltr">
-            {new Intl.NumberFormat(locale).format(score)} /{' '}
-            {new Intl.NumberFormat(locale).format(total)}
+            {new Intl.NumberFormat(NUMBER_LOCALE[locale]).format(score)} /{' '}
+            {new Intl.NumberFormat(NUMBER_LOCALE[locale]).format(total)}
           </bdi>
         </p>
         <p className="text-on-surface-variant mt-2">

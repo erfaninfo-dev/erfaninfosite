@@ -2,6 +2,8 @@
 
 import IntlMessageFormat from 'intl-messageformat';
 
+import { NUMBER_LOCALE, type Locale } from './config';
+
 /**
  * ICU formatting in the browser.
  *
@@ -42,16 +44,18 @@ function withNumberFormatting(
 
 export function formatClient(
   message: string,
-  locale: string,
+  locale: Locale,
   values?: Record<string, string | number>
 ): string {
   if (!values) return message;
 
-  const key = `${locale}|${message}`;
+  // The formatting tag, not the bare locale: Chromium has no `ckb` data.
+  const tag = NUMBER_LOCALE[locale] ?? locale;
+  const key = `${tag}|${message}`;
   let formatter = cache.get(key);
   if (!formatter) {
     try {
-      formatter = new IntlMessageFormat(withNumberFormatting(message, values), locale);
+      formatter = new IntlMessageFormat(withNumberFormatting(message, values), tag);
       cache.set(key, formatter);
     } catch {
       return message;

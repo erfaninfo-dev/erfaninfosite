@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/primitives';
 import { IconSearch } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { formatClient } from '@/lib/i18n/client-format';
+import type { Locale } from '@/lib/i18n/config';
 
 /**
  * A searchable, filterable word list.
@@ -43,7 +44,7 @@ export function WordList({
   labels: WordListLabels;
   glossLang: 'fa' | 'ckb';
   types: string[];
-  locale: string;
+  locale: Locale;
 }) {
   const [query, setQuery] = useState('');
   const [type, setType] = useState('');

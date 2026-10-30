@@ -61,15 +61,25 @@ export const GLOSS_LABELS: Record<GlossLang, string> = {
 };
 
 /**
- * Locale used for number and date formatting.
+ * The locale tag used for number and date formatting.
  *
- * ui-ux-spec.md §3 requires Persian/Arabic-Indic digits for fa and ckb display
- * text. `fa` gives Persian digits (۱۲۳); `ckb-IQ` with the arab numbering system
- * gives the Arabic-Indic forms used in Sorani. Anything copied or compared —
- * ids, version numbers, scores — must use `formatPlain` instead.
+ * ui-ux-spec.md §3 requires Persian/Arabic-Indic digits in fa and ckb display
+ * text. Anything copied or compared — ids, version numbers, band scores — must
+ * use `formatPlain` instead and stay Latin.
+ *
+ * **Kurdish is `ar-IQ`, not `ckb`, on purpose.** Node ships `ckb` locale data
+ * but Chromium does not, and when the base locale is unknown the browser drops
+ * the entire tag — including a `-u-nu-arab` extension — and falls back to
+ * en-US with Latin digits. That split server and client: the first quiz
+ * question rendered `١` from Node and then `2` after hydration. `ar-IQ` is
+ * understood everywhere and gives the Arabic-Indic digits and Iraqi separators
+ * Sorani readers expect, so both sides now agree.
+ *
+ * Use this everywhere a number is formatted. Never pass a bare `Locale` to
+ * `Intl` or `IntlMessageFormat`.
  */
 export const NUMBER_LOCALE: Record<Locale, string> = {
   en: 'en-US',
   fa: 'fa-IR',
-  ckb: 'ckb-IQ-u-nu-arab',
+  ckb: 'ar-IQ',
 };

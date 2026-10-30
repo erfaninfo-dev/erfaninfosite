@@ -3,7 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import IntlMessageFormat from 'intl-messageformat';
 
-import { DEFAULT_LOCALE, type Locale } from './config';
+import { DEFAULT_LOCALE, NUMBER_LOCALE, type Locale } from './config';
 
 import en from './messages/en.json';
 import fa from './messages/fa.json';
@@ -97,7 +97,11 @@ function formatMessage(
   let formatter = formatterCache.get(cacheKey);
   if (!formatter) {
     try {
-      formatter = new IntlMessageFormat(withNumberFormatting(message, values), locale);
+      formatter = new IntlMessageFormat(
+        withNumberFormatting(message, values),
+        // The formatting tag, never the bare locale — see NUMBER_LOCALE.
+        NUMBER_LOCALE[locale]
+      );
       formatterCache.set(cacheKey, formatter);
     } catch {
       // A malformed ICU pattern should degrade to the raw string, never crash
