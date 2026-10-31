@@ -447,6 +447,17 @@
     color: #fff;
   }
 
+  /*
+   * The same hue, darkened, for a badge that carries *text* rather than a
+   * glyph. A white glyph needs 3:1 and every accent clears that; white text
+   * needs 4.5:1 and three of them did not. Mixing 20 % black puts the worst of
+   * the six at 4.90 while keeping each hue recognisable.
+   */
+  .accent-dot-text {
+    background-color: color-mix(in srgb, var(--accent) 80%, black);
+    color: #fff;
+  }
+
   /* The hero wash. */
   .hero-wash {
     background-image: var(--gradient-hero);

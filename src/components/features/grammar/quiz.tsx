@@ -63,12 +63,15 @@ export function Quiz({
   explanationLang,
   locale,
   backHref,
+  onAnswer,
 }: {
   questions: QuizQuestion[];
   labels: QuizLabels;
   explanationLang: 'en' | 'fa' | 'ckb';
   locale: Locale;
   backHref: Route;
+  /** Called once per question, the first time it is answered. */
+  onAnswer?: (index: number, key: string) => void;
 }) {
   const [pool, setPool] = useState(questions);
   const [index, setIndex] = useState(0);
@@ -94,6 +97,7 @@ export function Quiz({
     // An answer is final, exactly as in the app's `_onSelect`.
     if (answered) return;
     setAnswers((prev) => ({ ...prev, [index]: key }));
+    onAnswer?.(index, key);
   }
 
   function advance() {

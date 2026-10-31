@@ -8,7 +8,7 @@ import { ExternalLink } from '@/components/ui/external-link';
 import { IconArrowBack, IconPdf } from '@/components/ui/icons';
 import { Badge, Container, PageHeader, SectionHeading } from '@/components/ui/primitives';
 import { getGrammarTopic, getGrammarTopicPdfs } from '@/lib/api/queries';
-import { SESSION_LENGTHS } from '@/lib/quiz/scoring';
+import { SESSION_LENGTH_OPTIONS } from '@/lib/quiz/session';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
@@ -77,18 +77,24 @@ export default async function GrammarTopicPage({
         <SectionHeading>{t('quizLength')}</SectionHeading>
         <p className="text-on-surface-variant mb-5">{t('grammarTopicsPick')}</p>
         <div className="flex flex-wrap gap-3">
-          {SESSION_LENGTHS.filter((n) => n <= topic.questionCount).map((n) => (
+          {SESSION_LENGTH_OPTIONS.filter((n) => n <= topic.questionCount).map((n) => (
             <ButtonLink
               key={n}
-              href={localeHref(locale, `/grammar/topics/${id}/quiz?n=${n}`)}
+              href={localeHref(
+                locale,
+                `/grammar/quiz?topics=${id}&n=${n}&seed=${id * 7919}`
+              )}
               variant={n === 20 ? 'primary' : 'ghost'}
               size="md"
             >
               {t('grammarTopicsQuestionsCount', { count: n })}
             </ButtonLink>
           ))}
-          {topic.questionCount < SESSION_LENGTHS[0] ? (
-            <ButtonLink href={localeHref(locale, `/grammar/topics/${id}/quiz`)} size="md">
+          {topic.questionCount < SESSION_LENGTH_OPTIONS[0] ? (
+            <ButtonLink
+              href={localeHref(locale, `/grammar/quiz?topics=${id}&seed=${id * 7919}`)}
+              size="md"
+            >
               {t('startQuiz')}
             </ButtonLink>
           ) : null}

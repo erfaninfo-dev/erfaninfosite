@@ -18,7 +18,13 @@ const BASE = process.argv[2] ?? 'http://127.0.0.1:3210';
 const PAGES = [
   { name: 'home', path: '/en' },
   { name: 'book', path: '/en/books/2' },
-  { name: 'quiz', path: '/en/grammar/topics/1/quiz?n=10' },
+  /*
+   * A quiz session is per-reader and per-seed, so the page sets `noindex` on
+   * purpose. Lighthouse scores that as an SEO failure, which it is not — the
+   * category is skipped here rather than chasing a number that would only be
+   * reached by indexing something that should not be indexed.
+   */
+  { name: 'quiz', path: '/en/grammar/quiz?topics=1&n=10&seed=7', noindex: true },
 ];
 
 const CATEGORIES = ['performance', 'accessibility', 'best-practices', 'seo'];
@@ -65,8 +71,15 @@ async function run() {
         cls: result.lhr.audits['cumulative-layout-shift']?.numericValue ?? 0,
       };
 
-      rows.push({ page: page.name, ...scores, ...vitals });
-      if (CATEGORIES.some((c) => scores[c] < BUDGET)) failed = true;
+      rows.push({
+        page: page.name,
+        ...scores,
+        ...vitals,
+        noindex: page.noindex === true,
+      });
+
+      const judged = CATEGORIES.filter((c) => !(c === 'seo' && page.noindex));
+      if (judged.some((c) => scores[c] < BUDGET)) failed = true;
     }
   } finally {
     await chrome.kill();
@@ -79,7 +92,9 @@ async function run() {
     console.log(
       [
         row.page,
-        ...CATEGORIES.map((c) => row[c]),
+        ...CATEGORIES.map((c) =>
+          c === 'seo' && row.noindex ? `${row[c]} (noindex)` : row[c]
+        ),
         (row.lcp / 1000).toFixed(2),
         row.cls.toFixed(3),
       ]

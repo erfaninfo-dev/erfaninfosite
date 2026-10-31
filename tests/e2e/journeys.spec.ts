@@ -66,32 +66,61 @@ test.describe('vocabulary', () => {
 });
 
 test.describe('grammar quiz — must agree with the app', () => {
-  test('options are unshuffled, answers are final, and scoring is a plain count', async ({
-    page,
-  }) => {
-    await page.goto('/en/grammar/topics/1/quiz?n=10', { waitUntil: 'domcontentloaded' });
+  test('the seed reproduces the session, and an answer is final', async ({ page }) => {
+    const url = '/en/grammar/quiz?topics=1&n=10&seed=7';
+
+    // Start from a clean slate: the session prefers questions this browser has
+    // not attempted, so leftover progress would change what is picked.
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => localStorage.removeItem('grammar_topic_solved_v1'));
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
     const options = page.locator('main button[aria-pressed]');
     await expect(options.first()).toBeVisible();
-
     const firstLabel = await options.first().innerText();
 
-    // Answer, then try to change it: the app treats an answer as final.
-    await options.first().click();
-    await expect(options.nth(1)).toBeDisabled();
-
-    // Reloading gives the same questions in the same order — no shuffling,
-    // or the web and the app would present different sessions.
+    /*
+     * Reloading without answering gives the same session. The app shuffles
+     * with a seed, so the guarantee is not "unshuffled" but "reproducible from
+     * the seed" — which is why the seed is in the URL.
+     */
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
     await expect(page.locator('main button[aria-pressed]').first()).toHaveText(
       firstLabel
     );
+
+    // An answer is final: the app returns early if the question is answered.
+    await page.locator('main button[aria-pressed]').first().click();
+    await expect(page.locator('main button[aria-pressed]').nth(1)).toBeDisabled();
+  });
+
+  test('answering records progress, which then steers the next session', async ({
+    page,
+  }) => {
+    const url = '/en/grammar/quiz?topics=1&n=10&seed=7';
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => localStorage.removeItem('grammar_topic_solved_v1'));
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
+
+    await page.locator('main button[aria-pressed]').first().click();
+
+    // Stored under the app's own key and shape, so "solved" means the same
+    // thing in both clients: answered once, right or wrong.
+    const stored = await page.evaluate(() =>
+      localStorage.getItem('grammar_topic_solved_v1')
+    );
+    expect(stored).toBeTruthy();
+    expect(Object.values(JSON.parse(stored ?? '{}')).flat().length).toBe(1);
   });
 
   test('finishing a quiz shows a score out of the session length', async ({ page }) => {
-    await page.goto('/en/grammar/topics/1/quiz?n=10', { waitUntil: 'domcontentloaded' });
+    await page.goto('/en/grammar/quiz?topics=1&n=10&seed=7', {
+      waitUntil: 'domcontentloaded',
+    });
     await page.waitForLoadState('networkidle');
 
     for (let i = 0; i < 10; i += 1) {
@@ -118,7 +147,7 @@ test.describe('right-to-left correctness', () => {
        * into "6 / 0" — the score then reads backwards, which is wrong rather
        * than merely ugly. Every score run is isolated and forced LTR.
        */
-      await page.goto(`/${locale}/grammar/topics/1/quiz?n=10`, {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
         waitUntil: 'domcontentloaded',
       });
       await page.waitForLoadState('networkidle');

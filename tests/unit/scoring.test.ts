@@ -6,7 +6,6 @@ import {
   isCorrectKey,
   leaguePoints,
   scoreAnswers,
-  selectSession,
   wrongIndices,
 } from '@/lib/quiz/scoring';
 
@@ -157,26 +156,5 @@ describe('wrongIndices', () => {
 
   it('does not treat an unanswered question as wrong', () => {
     expect(wrongIndices(questions, { 0: 'option1' })).toEqual([]);
-  });
-});
-
-describe('selectSession', () => {
-  const questions = Array.from({ length: 300 }, (_, i) =>
-    normalizeGrammarQuestion(makeQuestion({ id: i + 1, order_num: i + 1 }))
-  );
-
-  it('takes the first N in server order, not a random sample', () => {
-    const session = selectSession(questions, 10);
-    expect(session).toHaveLength(10);
-    expect(session.map((q) => q.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-  });
-
-  it('caps at the number available', () => {
-    expect(selectSession(questions.slice(0, 5), 20)).toHaveLength(5);
-  });
-
-  it('returns nothing for a non-positive length', () => {
-    expect(selectSession(questions, 0)).toEqual([]);
-    expect(selectSession(questions, -5)).toEqual([]);
   });
 });

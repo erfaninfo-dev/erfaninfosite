@@ -35,7 +35,7 @@ export const MAIN_PAGES: PageDef[] = [
   { name: 'grammar-book', path: (l) => `/${l}/grammar/books/1` },
   { name: 'grammar-unit', path: (l) => `/${l}/grammar/books/1/units/1` },
   { name: 'grammar-topic', path: (l) => `/${l}/grammar/topics/1` },
-  { name: 'quiz', path: (l) => `/${l}/grammar/topics/1/quiz?n=10` },
+  { name: 'quiz', path: (l) => `/${l}/grammar/quiz?topics=1&n=10&seed=7` },
   { name: 'speaking', path: (l) => `/${l}/speaking` },
   { name: 'speaking-topic', path: (l) => `/${l}/speaking/topics/5` },
   { name: 'speaking-ideas', path: (l) => `/${l}/speaking/topics/5/ideas` },

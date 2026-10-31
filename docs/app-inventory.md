@@ -130,7 +130,8 @@ bool isCorrectKey(String? selectedKey) {
 ```
 
 - Options are offered in **`option1` to `option4` order, not shuffled**, and an option whose text
-  is empty after trimming is **dropped** (`nonEmptyOptionKeys()`).
+  is empty after trimming is **dropped** (`nonEmptyOptionKeys()`). The _options within a question_
+  keep their order; the _questions within a session_ do not — see §4.1a.
 - Score = count of correct answers. No partial credit, no penalty, no time factor.
 - An answer is **final**: `_onSelect` returns early if `_answers.containsKey(_index)`.
 - League points = `score * 2` (`_kQuizLeaguePointsPerCorrect = 2`).
@@ -138,6 +139,42 @@ bool isCorrectKey(String? selectedKey) {
   `question_id, topic, question_text, option1..option4, correct_answer, selected_answer,`
   `is_correct, fa_explanation, kur_explanation, eng_explanation`. If the web ever submits results
   (Phase 2), it must produce the same shape or the app's result screens will break.
+
+#### 4.1a How a session is assembled — corrected
+
+The first read of this got it wrong, and the correction matters.
+
+The quiz _screen_ does not shuffle, so reading only `grammar_quiz_screen.dart`
+suggests a session is the first N questions in server order. It is not. The
+session is built upstream, in `apiGrammarQuizSessionProvider`
+(`lib/domain/api_providers.dart`) via `pickGrammarQuizSessionQuestions`
+(`lib/core/grammar/grammar_question_progress.dart`), and it:
+
+1. **merges** the questions of every selected topic into one pool,
+2. **prefers questions not yet attempted**, topping up from attempted ones only
+   if there are too few fresh ones,
+3. **shuffles with a seed**, twice — each group, then the result.
+
+Sizing, from the same file:
+
+| Constant                           | Value                                |
+| ---------------------------------- | ------------------------------------ |
+| `kGrammarQuizSessionSize`          | 100 — the most any one session loads |
+| `kGrammarQuizDefaultQuestionCount` | 15                                   |
+| `kGrammarQuizMinBaseQuestions`     | 5                                    |
+| floor for a session                | `max(5, number of topics)`           |
+
+"Attempted" is recorded locally under `grammar_topic_solved_v1` in
+SharedPreferences, as `{ "Topic name": [ids] }`, and a question counts the
+moment it is answered — right or wrong.
+
+**What the website matches, and what it cannot.** The algorithm, the sizing
+rules, the storage key and the meaning of "attempted" are all ported
+(`src/lib/quiz/session.ts`, `src/lib/quiz/progress.ts`). What cannot match is
+the exact sequence: Dart's `Random(seed)` and JavaScript's generators produce
+different orders from the same seed. That is acceptable because the app already
+gives a different session per seed — what must agree is the **score for a given
+set of answers**, and that does.
 
 ### 4.2 Spaced repetition — `lib/core/srs/srs_model.dart`
 

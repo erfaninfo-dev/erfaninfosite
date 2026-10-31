@@ -69,21 +69,9 @@ export function wrongIndices(questions: GrammarQuestion[], answers: Answers): nu
   return out;
 }
 
-/**
- * Pick the questions for a session of a chosen length.
- *
- * The app offers a question-count sheet rather than serving all 300 at once.
- * Questions are taken in their server order (order_num, then id) — the app does
- * not shuffle the question list for a topic quiz, so neither do we, or the two
- * clients would present different questions for the same session.
+/*
+ * How a session is *assembled* — which questions, in what order — lives in
+ * session.ts, because it is a different concern and the app keeps it in a
+ * different place too (the provider, not the quiz screen). This file is only
+ * about scoring a session once it exists.
  */
-export function selectSession(
-  questions: GrammarQuestion[],
-  length: number
-): GrammarQuestion[] {
-  if (length <= 0) return [];
-  return questions.slice(0, Math.min(length, questions.length));
-}
-
-/** Session lengths offered on the quiz setup screen. */
-export const SESSION_LENGTHS = [10, 20, 30, 50] as const;

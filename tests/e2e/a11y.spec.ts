@@ -121,7 +121,9 @@ test.describe('Sorani typography', () => {
 test.describe('reduced motion', () => {
   test('the site is usable with animations disabled', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/en/grammar/topics/1/quiz?n=10', { waitUntil: 'domcontentloaded' });
+    await page.goto('/en/grammar/quiz?topics=1&n=10&seed=7', {
+      waitUntil: 'domcontentloaded',
+    });
     await page.waitForLoadState('networkidle');
 
     const options = page.locator('main button[aria-pressed]');
@@ -135,7 +137,9 @@ test.describe('reduced motion', () => {
 
 test.describe('keyboard', () => {
   test('the quiz is operable with the keyboard alone', async ({ page }) => {
-    await page.goto('/en/grammar/topics/1/quiz?n=10', { waitUntil: 'domcontentloaded' });
+    await page.goto('/en/grammar/quiz?topics=1&n=10&seed=7', {
+      waitUntil: 'domcontentloaded',
+    });
     await page.waitForLoadState('networkidle');
 
     const firstOption = page.locator('main button[aria-pressed]').first();

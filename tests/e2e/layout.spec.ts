@@ -155,7 +155,9 @@ test.describe('navigation adapts to width', () => {
 test.describe('touch targets', () => {
   test('interactive elements are at least 44px on a phone', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/en/grammar/topics/1/quiz?n=10', { waitUntil: 'domcontentloaded' });
+    await page.goto('/en/grammar/quiz?topics=1&n=10&seed=7', {
+      waitUntil: 'domcontentloaded',
+    });
     await settle(page);
 
     const tooSmall = await page.evaluate(() => {
