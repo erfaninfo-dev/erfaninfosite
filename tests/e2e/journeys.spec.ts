@@ -12,8 +12,9 @@ import { LOCALES } from './pages';
 
 test.describe('vocabulary', () => {
   for (const locale of LOCALES) {
-    test(`${locale}: catalog → book → unit → words`, async ({ page }) => {
-      await page.goto(`/${locale}/books`, { waitUntil: 'domcontentloaded' });
+    test(`${locale}: home → book → unit → words`, async ({ page }) => {
+      // Home is the book browser, as it is in the app.
+      await page.goto(`/${locale}`, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle');
 
       // Books come from the live API, grouped by series.

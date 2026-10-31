@@ -27,7 +27,6 @@ export type PageDef = {
 
 export const MAIN_PAGES: PageDef[] = [
   { name: 'home', path: (l) => `/${l}` },
-  { name: 'books', path: (l) => `/${l}/books` },
   { name: 'book', path: (l) => `/${l}/books/2` },
   { name: 'book-words', path: (l) => `/${l}/books/2/words` },
   { name: 'unit', path: (l) => `/${l}/books/2/units/1` },

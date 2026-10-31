@@ -9,7 +9,7 @@ import {
 } from '@/components/features/home/book-browser';
 import { CardGridSkeleton, Skeleton } from '@/components/ui/states';
 import { Container } from '@/components/ui/primitives';
-import { getBooks, getGrammarBooks, getSpeakingTopics } from '@/lib/api/queries';
+import { getBooks, getSpeakingTopics } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
@@ -76,20 +76,18 @@ function HomeSkeleton() {
 /**
  * The cards shown on the home page.
  *
- * Books lead, because choosing one is what the page is for. Grammar books and
- * speaking follow as entry points, so the grid is a map of the whole site
- * rather than a book list with the other sections hidden behind the nav.
+ * This mirrors the app's home screen, checked by running it: the hero asks you
+ * to choose a book, two track tabs filter IELTS from General, and the list is
+ * the books — series collapsed to one card — plus a "Speaking Part 1" card in
+ * the same list. Grammar is deliberately absent: it is its own tab there and
+ * its own section here.
  *
  * Every title, subtitle, badge and count comes from the API. The accent hue is
  * derived from the entry's id so a card keeps its colour between renders and
  * between server and client.
  */
 async function Browser({ locale }: { locale: Locale }) {
-  const [books, grammarBooks, speakingTopics] = await Promise.all([
-    getBooks(),
-    getGrammarBooks(),
-    getSpeakingTopics(),
-  ]);
+  const [books, speakingTopics] = await Promise.all([getBooks(), getSpeakingTopics()]);
 
   const t = getTranslator(locale);
   const raw = getRawMessage(locale);
@@ -135,19 +133,6 @@ async function Browser({ locale }: { locale: Locale }) {
     });
   }
 
-  const grammarCards: BrowserCard[] = grammarBooks.map((book) => ({
-    id: `grammar-${book.id}`,
-    href: localeHref(locale, `/grammar/books/${book.id}`),
-    title: book.title,
-    subtitle: book.description,
-    // A "0 units" badge is accurate but says nothing; two grammar books
-    // genuinely report none.
-    badge: book.unitCount > 0 ? t('unitCount', { count: book.unitCount }) : null,
-    accent: accentFor(book.id + 3),
-    icon: 'grammar',
-    track: 'ielts',
-  }));
-
   const speakingCard: BrowserCard[] =
     speakingTopics.length > 0
       ? [
@@ -164,19 +149,23 @@ async function Browser({ locale }: { locale: Locale }) {
         ]
       : [];
 
-  const cards = [...speakingCard, ...grammarCards, ...bookCards];
+  const cards = [...speakingCard, ...bookCards];
 
   /*
-   * The track segments come from the data: a segment that would always be
-   * empty is not shown. `is_student` books are the "Class" track and there are
-   * none today, so that segment simply does not appear until there are.
+   * Two tabs, IELTS first, exactly as the app shows them — no "All". A segment
+   * that would always be empty is not drawn: `is_student` books are the app's
+   * "Class" track and no book carries that flag today, so it does not appear
+   * until one does.
    */
-  const tracks = [{ id: 'all', label: t('trackAll') }];
+  const tracks: Array<{ id: string; label: string }> = [];
   if (cards.some((c) => c.track === 'ielts')) {
     tracks.push({ id: 'ielts', label: t('homeTrackIelts') });
   }
   if (cards.some((c) => c.track === 'general')) {
     tracks.push({ id: 'general', label: t('homeTrackGeneral') });
+  }
+  if (books.some((b) => b.isStudent)) {
+    tracks.push({ id: 'class', label: t('homeTrackClass') });
   }
 
   const labels: BrowserLabels = {
@@ -188,13 +177,26 @@ async function Browser({ locale }: { locale: Locale }) {
     noResults: t('noBooksMatch'),
     tracks,
     league: t('leagueLabel'),
-    students: t('studentsLabel'),
     accountsSoon: t('comingWithAccounts'),
     pageLabelTemplate: raw('pageOf'),
   };
 
   return (
-    <BookBrowser cards={cards} bookCount={books.length} labels={labels} locale={locale} />
+    <BookBrowser
+      cards={cards}
+      /*
+       * The books in each track, so the hero line matches the tab the reader
+       * is on — the app shows "24 books available" with IELTS selected, which
+       * is the IELTS count, not the whole 33.
+       */
+      bookCountByTrack={{
+        ielts: books.filter((b) => b.track === 'ielts').length,
+        general: books.filter((b) => b.track === 'general').length,
+        class: books.filter((b) => b.isStudent).length,
+      }}
+      labels={labels}
+      locale={locale}
+    />
   );
 }
 

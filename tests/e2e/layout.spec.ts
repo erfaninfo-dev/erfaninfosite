@@ -124,10 +124,16 @@ test.describe('navigation adapts to width', () => {
     await page.goto('/en', { waitUntil: 'domcontentloaded' });
     await settle(page);
 
-    // The five destinations are real links in the header at desktop width.
+    /*
+     * The app's three non-account destinations are real links in the header at
+     * desktop width — Home, Grammar, Play. Books and speaking are not among
+     * them: the home page is the book browser, as it is in the app.
+     */
     const header = page.locator('header');
-    await expect(header.getByRole('link', { name: 'Vocabulary' })).toBeVisible();
+    await expect(header.getByRole('link', { name: 'Home' })).toBeVisible();
     await expect(header.getByRole('link', { name: 'Grammar' })).toBeVisible();
+    await expect(header.getByRole('link', { name: 'Play' })).toBeVisible();
+    await expect(header.getByRole('link', { name: 'Vocabulary' })).toHaveCount(0);
 
     // The bottom bar is hidden from md up.
     const bottomBarVisible = await page

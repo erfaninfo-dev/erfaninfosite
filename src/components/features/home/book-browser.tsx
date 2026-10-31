@@ -50,7 +50,6 @@ export type BrowserLabels = {
   noResults: string;
   tracks: Array<{ id: string; label: string }>;
   league: string;
-  students: string;
   accountsSoon: string;
   pageLabelTemplate: string;
 };
@@ -66,22 +65,23 @@ const ICONS = {
 
 export function BookBrowser({
   cards,
-  bookCount,
+  bookCountByTrack,
   labels,
   locale,
 }: {
   cards: BrowserCard[];
   /**
-   * How many books the catalogue holds — not how many cards are drawn. A
-   * series of twenty volumes is one card but twenty books, and the hero line
-   * sits under "Choose Your Book", so it has to count books.
+   * Books per track — not cards. A series of twenty volumes is one card but
+   * twenty books, and the hero line sits under "Choose Your Book", so it
+   * counts books and follows the selected tab, as the app does.
    */
-  bookCount: number;
+  bookCountByTrack: Record<string, number>;
   labels: BrowserLabels;
   locale: Locale;
 }) {
   const [query, setQuery] = useState('');
-  const [track, setTrack] = useState(labels.tracks[0]?.id ?? 'all');
+  // IELTS first, as the app opens.
+  const [track, setTrack] = useState(labels.tracks[0]?.id ?? 'ielts');
   const [shown, setShown] = useState(PAGE_SIZE);
   const searchId = useId();
 
@@ -91,7 +91,7 @@ export function BookBrowser({
   const filtered = useMemo(() => {
     const needle = deferredQuery.trim().toLowerCase();
     return cards.filter((card) => {
-      if (track !== 'all' && card.track !== track) return false;
+      if (card.track !== track) return false;
       if (!needle) return true;
       return (
         card.title.toLowerCase().includes(needle) ||
@@ -119,7 +119,9 @@ export function BookBrowser({
               {labels.heading}
             </h1>
             <p className="text-on-surface-variant mt-2">
-              {formatClient(labels.availableTemplate, locale, { count: bookCount })}
+              {formatClient(labels.availableTemplate, locale, {
+                count: bookCountByTrack[track] ?? 0,
+              })}
             </p>
 
             <div className="relative mt-6 max-w-2xl">
@@ -197,28 +199,6 @@ export function BookBrowser({
             );
           })}
         </div>
-
-        {/*
-          League and Students need accounts, which Phase 1 does not have. They
-          are drawn as the design shows but marked unavailable rather than
-          shipped as buttons that silently do nothing.
-        */}
-        <div className="flex shrink-0 gap-3">
-          <SoonPill
-            className="gradient-league"
-            label={labels.league}
-            hint={labels.accountsSoon}
-          >
-            <TrophyGlyph />
-          </SoonPill>
-          <SoonPill
-            className="gradient-students"
-            label={labels.students}
-            hint={labels.accountsSoon}
-          >
-            <IconUsers className="size-5" />
-          </SoonPill>
-        </div>
       </div>
 
       {/* ── cards ────────────────────────────────────────────────────────── */}
@@ -247,7 +227,25 @@ export function BookBrowser({
       )}
 
       {/* ── grid footer ──────────────────────────────────────────────────── */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+      {/*
+        League floats over the list at the trailing edge, where the app puts
+        it, rather than sitting in the filter row. It needs accounts, which
+        Phase 1 does not have, so it is marked unavailable with a reason — a
+        button that silently does nothing is worse than one that says why.
+      */}
+      <div className="pointer-events-none sticky bottom-4 z-20 mt-4 flex justify-end">
+        <div className="pointer-events-auto">
+          <SoonPill
+            className="gradient-league"
+            label={labels.league}
+            hint={labels.accountsSoon}
+          >
+            <TrophyGlyph />
+          </SoonPill>
+        </div>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
         <p className="text-on-surface-variant text-[length:var(--text-label)]">
           {formatClient(labels.showingTemplate, locale, {
             shown: visible.length,

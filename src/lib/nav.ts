@@ -4,35 +4,30 @@ import type { MessageKey } from '@/lib/i18n/messages';
 import type { Locale } from '@/lib/i18n/config';
 
 /**
- * The site's primary destinations.
+ * The site's primary destinations — the app's own, verified by running it.
  *
- * The app's bottom bar is Home / Grammar / Play / You / Settings. `You` and
- * `Settings` are account screens, and Phase 1 has no accounts (decision D2), so
- * the web carries the five things a logged-out visitor can actually do. The
- * shape — a five-item bar on the phone — is kept, which is what makes the IA
- * recognisable. See docs/design-tokens.md §8 item 5.
+ * The Flutter app's bottom bar is **Home · Grammar · Play · You · Settings**
+ * (lib/features/shell/shell_scaffold.dart). Books and speaking are *not* tabs:
+ * the home screen is the book browser, and "Speaking Part 1" is a card in that
+ * same list. The app's onboarding says so outright — "Start from Home: pick a
+ * book, open units, then browse words."
+ *
+ * So the web carries Home, Grammar and Play. `You` and `Settings` are account
+ * screens and arrive with Phase 2; the language and theme controls that live
+ * under Settings in the app are in the web header instead, where they are
+ * reachable at every size.
  */
 
 export type NavItem = {
   key: string;
   path: string;
   labelKey: MessageKey;
-  icon: 'home' | 'book' | 'grammar' | 'speaking' | 'play';
+  icon: 'home' | 'grammar' | 'play';
 };
 
 export const NAV_ITEMS: readonly NavItem[] = [
   { key: 'home', path: '', labelKey: 'tabHome', icon: 'home' },
-  { key: 'books', path: '/books', labelKey: 'tabVocabulary', icon: 'book' },
   { key: 'grammar', path: '/grammar', labelKey: 'tabGrammar', icon: 'grammar' },
-  // The app has no standalone "Speaking" string — speaking is not a tab there —
-  // so this uses its approved full title rather than inventing a short Persian
-  // or Kurdish word for it. The bottom bar lets it wrap to two lines.
-  {
-    key: 'speaking',
-    path: '/speaking',
-    labelKey: 'speakingPart1Title',
-    icon: 'speaking',
-  },
   { key: 'play', path: '/play', labelKey: 'tabPlay', icon: 'play' },
 ] as const;
 
@@ -50,7 +45,9 @@ export function localeHref(locale: Locale, path = ''): Route {
 
 /**
  * Whether a nav item is the active section for a pathname.
- * Home matches only exactly; the others match their subtree.
+ *
+ * Home matches exactly, and also owns the book routes — a book page is reached
+ * from Home and belongs to it, the way it does in the app.
  */
 export function isActiveSection(
   pathname: string,
@@ -58,7 +55,16 @@ export function isActiveSection(
   item: NavItem
 ): boolean {
   const base = `/${locale}`;
-  if (item.path === '') return pathname === base || pathname === `${base}/`;
+
+  if (item.path === '') {
+    return (
+      pathname === base ||
+      pathname === `${base}/` ||
+      pathname.startsWith(`${base}/books/`) ||
+      pathname.startsWith(`${base}/speaking`)
+    );
+  }
+
   return (
     pathname === `${base}${item.path}` || pathname.startsWith(`${base}${item.path}/`)
   );

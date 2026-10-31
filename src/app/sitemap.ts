@@ -61,7 +61,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const base = `/${locale}`;
 
     out.push(entry(base, 1));
-    for (const section of ['/books', '/grammar', '/speaking', '/play', '/download']) {
+    // No '/books': the home page is the book browser, as in the app.
+    for (const section of ['/grammar', '/speaking', '/play', '/download']) {
       out.push(entry(`${base}${section}`, 0.8));
     }
 
