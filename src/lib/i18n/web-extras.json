@@ -256,5 +256,10 @@
     "en": "Progress is saved in this browser only. It does not sync with the app.",
     "fa": "پیشرفت فقط در همین مرورگر ذخیره می‌شود و با اپ همگام نمی‌شود.",
     "ckb": "پێشکەوتن تەنها لەم وێبگەڕەدا پاشەکەوت دەکرێت و لەگەڵ ئەپەکە هاوکات نابێت."
+  },
+  "partNumber": {
+    "en": "Part {n}",
+    "fa": "بخش {n}",
+    "ckb": "بەشی {n}"
   }
 }

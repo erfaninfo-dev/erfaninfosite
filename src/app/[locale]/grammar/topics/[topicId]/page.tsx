@@ -2,16 +2,20 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
+import {
+  StudySheet,
+  type StudyLabels,
+  type StudyPart,
+} from '@/components/features/grammar/study-sheet';
 import { ButtonLink } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ExternalLink } from '@/components/ui/external-link';
-import { IconArrowBack, IconPdf } from '@/components/ui/icons';
-import { Badge, Container, PageHeader, SectionHeading } from '@/components/ui/primitives';
+import { IconArrowBack, IconGrammar } from '@/components/ui/icons';
+import { Badge, Container, PageHeader } from '@/components/ui/primitives';
+import { Skeleton } from '@/components/ui/states';
 import { getGrammarTopic, getGrammarTopicPdfs } from '@/lib/api/queries';
-import { SESSION_LENGTH_OPTIONS } from '@/lib/quiz/session';
-import { isLocale, type Locale } from '@/lib/i18n/config';
-import { getTranslator } from '@/lib/i18n/messages';
+import { defaultGlossFor, isLocale, type Locale } from '@/lib/i18n/config';
+import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
+import { getGloss } from '@/lib/request-context';
 
 function parseId(value: string): number | null {
   if (!/^\d+$/.test(value)) return null;
@@ -28,13 +32,24 @@ export async function generateMetadata({
   if (id === null) return {};
   const topic = await getGrammarTopic(id);
   if (!topic) return {};
+  const t = getTranslator(locale);
 
   return {
-    title: topic.topic,
+    title: `${topic.topic} — ${t('grammarTopicsCardLearnTitle')}`,
+    description: t('grammarTopicsCardLearnDesc'),
     alternates: { canonical: `/${locale}/grammar/topics/${id}` },
   };
 }
 
+/**
+ * **Learn** for one grammar topic.
+ *
+ * Study material and nothing else — the PDF lessons, by language — which is
+ * what the app's Learn sheet is. It deliberately shows no question count and
+ * no session length: those belong to Quiz, the other action on the topic card.
+ * Showing them here made Learn look like a quiz setup screen, which is the bug
+ * this replaces.
+ */
 export default async function GrammarTopicPage({
   params,
 }: PageProps<'/[locale]/grammar/topics/[topicId]'>) {
@@ -50,7 +65,7 @@ export default async function GrammarTopicPage({
   const t = getTranslator(locale);
 
   return (
-    <Container>
+    <Container size="prose">
       <ButtonLink
         href={localeHref(locale, '/grammar')}
         variant="ghost"
@@ -63,83 +78,68 @@ export default async function GrammarTopicPage({
 
       <PageHeader
         title={topic.topic}
-        meta={
-          <>
-            <Badge>
-              {t('grammarTopicsQuestionsCount', { count: topic.questionCount })}
-            </Badge>
-            {topic.isNew ? <Badge tone="new">{t('badgeNew')}</Badge> : null}
-          </>
+        meta={<Badge tone="primary">{t('grammarStudySheetEyebrow')}</Badge>}
+        actions={
+          <ButtonLink
+            href={localeHref(locale, `/grammar/quiz?topics=${id}&seed=${id * 7919}`)}
+            variant="secondary"
+            size="md"
+          >
+            <IconGrammar className="size-5" />
+            {t('grammarTopicsCardQuizTitle')}
+          </ButtonLink>
         }
       />
 
-      <Card className="mb-8">
-        <SectionHeading>{t('quizLength')}</SectionHeading>
-        <p className="text-on-surface-variant mb-5">{t('grammarTopicsPick')}</p>
-        <div className="flex flex-wrap gap-3">
-          {SESSION_LENGTH_OPTIONS.filter((n) => n <= topic.questionCount).map((n) => (
-            <ButtonLink
-              key={n}
-              href={localeHref(
-                locale,
-                `/grammar/quiz?topics=${id}&n=${n}&seed=${id * 7919}`
-              )}
-              variant={n === 20 ? 'primary' : 'ghost'}
-              size="md"
-            >
-              {t('grammarTopicsQuestionsCount', { count: n })}
-            </ButtonLink>
-          ))}
-          {topic.questionCount < SESSION_LENGTH_OPTIONS[0] ? (
-            <ButtonLink
-              href={localeHref(locale, `/grammar/quiz?topics=${id}&seed=${id * 7919}`)}
-              size="md"
-            >
-              {t('startQuiz')}
-            </ButtonLink>
-          ) : null}
-        </div>
-      </Card>
-
-      {/* PDFs join to topics by name, not id, and stream in separately. */}
-      <Suspense fallback={null}>
-        <TopicPdfs topic={topic.topic} locale={locale} />
+      <Suspense
+        fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}
+      >
+        <Study topic={topic.topic} locale={locale} />
       </Suspense>
     </Container>
   );
 }
 
-async function TopicPdfs({ topic, locale }: { topic: string; locale: Locale }) {
-  const pdfs = await getGrammarTopicPdfs(topic);
-  if (pdfs.length === 0) return null;
-
+async function Study({ topic, locale }: { topic: string; locale: Locale }) {
+  const [pdfs, gloss] = await Promise.all([getGrammarTopicPdfs(topic), getGloss(locale)]);
   const t = getTranslator(locale);
+  const raw = getRawMessage(locale);
+
+  const parts: StudyPart[] = pdfs.map((pdf) => ({
+    id: pdf.id,
+    title: pdf.title,
+    // `pdf_url` is the Persian lesson, `pdf_url_kur` the Kurdish one.
+    fa: pdf.url,
+    ckb: pdf.urlKurdish,
+  }));
+
+  if (parts.length === 0) {
+    return (
+      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
+        {t('grammarStudyPdfUnavailable')}
+      </p>
+    );
+  }
+
+  const labels: StudyLabels = {
+    chooseLevel: t('grammarStudySheetChooseLevel'),
+    partLabel: t('grammarStudyPdfPartLabel'),
+    view: t('grammarStudyPdfView'),
+    unavailable: t('grammarStudyPdfUnavailable'),
+    languages: [
+      { id: 'fa', label: t('langPersian') },
+      { id: 'ckb', label: t('langKurdishSorani') },
+    ],
+    partTemplate: raw('partNumber'),
+  };
 
   return (
-    <section>
-      <SectionHeading>{t('grammarTopicsCardLearnDesc')}</SectionHeading>
-      <Card className="space-y-2 p-4">
-        {pdfs.map((pdf) => (
-          <div key={pdf.id} className="flex flex-wrap items-center gap-2">
-            <ExternalLink
-              href={pdf.url}
-              className="text-primary hover:bg-surface-3 inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-button)] px-3"
-            >
-              <IconPdf className="size-5" />
-              <bdi lang="en">{pdf.title || topic}</bdi>
-            </ExternalLink>
-
-            {/* A separate Kurdish PDF exists for most topics. */}
-            <ExternalLink
-              href={pdf.urlKurdish}
-              className="text-primary hover:bg-surface-3 inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-button)] px-3"
-            >
-              <IconPdf className="size-5" />
-              {t('pdfKurdish')}
-            </ExternalLink>
-          </div>
-        ))}
-      </Card>
-    </section>
+    <StudySheet
+      parts={parts}
+      labels={labels}
+      locale={locale}
+      // Open on the reader's own gloss language, falling back to the locale's.
+      initialLanguage={gloss || defaultGlossFor(locale)}
+    />
   );
 }
