@@ -176,5 +176,65 @@
     "en": "No lesson text for this unit yet.",
     "fa": "هنوز متن درسی برای این یونیت ثبت نشده است.",
     "ckb": "هێشتا دەقی وانە بۆ ئەم یەکەیە تۆمار نەکراوە."
+  },
+  "chooseYourBook": {
+    "en": "Choose Your Book",
+    "fa": "کتابت را انتخاب کن",
+    "ckb": "کتێبەکەت هەڵبژێرە"
+  },
+  "booksAvailable": {
+    "en": "{count, plural, =1{1 book available} other{{count} books available}}",
+    "fa": "{count, plural, =1{۱ کتاب موجود است} other{{count} کتاب موجود است}}",
+    "ckb": "{count, plural, =1{١ کتێب بەردەستە} other{{count} کتێب بەردەستن}}"
+  },
+  "showingOf": {
+    "en": "Showing {shown} of {total}",
+    "fa": "نمایش {shown} از {total}",
+    "ckb": "پیشاندانی {shown} لە {total}"
+  },
+  "loadMore": {
+    "en": "Load more books",
+    "fa": "کتاب‌های بیشتر",
+    "ckb": "کتێبی زیاتر"
+  },
+  "pageOf": {
+    "en": "Page {page} of {total}",
+    "fa": "صفحهٔ {page} از {total}",
+    "ckb": "لاپەڕەی {page} لە {total}"
+  },
+  "trackAll": {
+    "en": "All",
+    "fa": "همه",
+    "ckb": "هەموو"
+  },
+  "leagueLabel": {
+    "en": "League",
+    "fa": "لیگ",
+    "ckb": "لیگ"
+  },
+  "studentsLabel": {
+    "en": "Students",
+    "fa": "دانش‌آموزان",
+    "ckb": "خوێندکاران"
+  },
+  "signIn": {
+    "en": "Sign in",
+    "fa": "ورود",
+    "ckb": "چوونەژوورەوە"
+  },
+  "comingWithAccounts": {
+    "en": "Available once accounts arrive.",
+    "fa": "با اضافه شدن حساب کاربری در دسترس می‌شود.",
+    "ckb": "کاتێک هەژمار زیاد دەکرێت بەردەست دەبێت."
+  },
+  "settingsLabel": {
+    "en": "Settings",
+    "fa": "تنظیمات",
+    "ckb": "ڕێکخستنەکان"
+  },
+  "noBooksMatch": {
+    "en": "No books match this search.",
+    "fa": "کتابی با این جستجو پیدا نشد.",
+    "ckb": "هیچ کتێبێک لەگەڵ ئەم گەڕانە نایەتەوە."
   }
 }

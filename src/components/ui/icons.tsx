@@ -196,6 +196,36 @@ export const IconAndroid = (p: IconProps) => (
   </Svg>
 );
 
+export const IconUsers = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19" />
+    <circle cx="10" cy="7.5" r="3" />
+    <path d="M20 19v-1.5a3.5 3.5 0 0 0-2.7-3.4M15.5 5a3 3 0 0 1 0 5.8" />
+  </Svg>
+);
+
+export const IconLayers = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m12 3 9 4.5-9 4.5-9-4.5Z" />
+    <path d="m3 12.5 9 4.5 9-4.5M3 17l9 4.5 9-4.5" />
+  </Svg>
+);
+
+export const IconSchool = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m12 4 10 5-10 5L2 9Z" />
+    <path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5" />
+  </Svg>
+);
+
+export const IconSettings = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+    <circle cx="16" cy="7" r="2.2" />
+    <circle cx="10" cy="17" r="2.2" />
+  </Svg>
+);
+
 export const IconFilter = (p: IconProps) => (
   <Svg {...p}>
     <path d="M4 6h16M7 12h10M10 18h4" />

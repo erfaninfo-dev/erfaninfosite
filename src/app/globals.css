@@ -81,41 +81,85 @@
 /* ── tokens ──────────────────────────────────────────────────────────────── */
 
 @theme {
-  /* Light theme. Generated from seed #5B6CFF. */
-  --color-primary: #545a92;
+  /* Light theme. */
+  --color-primary: #2563eb;
   --color-on-primary: #ffffff;
-  --color-primary-container: #dfe0ff;
-  --color-on-primary-container: #3c4279;
+  --color-primary-container: #dbe7ff;
+  --color-on-primary-container: #16307d;
   --color-secondary: #5b5d72;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #e0e0f9;
-  --color-on-secondary-container: #444559;
-  --color-tertiary: #77536c;
+  --color-secondary-container: #e7e5fe;
+  --color-on-secondary-container: #3a2e8f;
+  --color-tertiary: #b42bc4;
   --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #ffd7ef;
-  --color-on-tertiary-container: #5e3c53;
+  --color-tertiary-container: #f6e6f8;
+  --color-on-tertiary-container: #5e1a66;
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
   --color-on-error-container: #93000a;
 
-  /* The app authors these two directly, overriding what fromSeed would give. */
   --color-surface: #f6f8ff;
-  --color-on-surface: #1b1b21;
-  --color-surface-variant: #e3e1ec;
-  --color-on-surface-variant: #46464f;
+  --color-on-surface: #16161d;
+  --color-surface-variant: #e9edfa;
+  --color-on-surface-variant: #5b5f6e;
   --color-surface-1: #ffffff;
-  --color-surface-2: #f5f2fa;
-  --color-surface-3: #efedf4;
-  --color-surface-4: #eae7ef;
-  --color-surface-5: #e4e1e9;
+  --color-surface-2: #f1f4fd;
+  --color-surface-3: #e9edfa;
+  --color-surface-4: #e1e6f6;
+  --color-surface-5: #d8def2;
 
-  --color-outline: #777680;
-  --color-outline-variant: #c7c5d0;
-  --color-inverse-surface: #303036;
-  --color-on-inverse-surface: #f2eff7;
-  --color-inverse-primary: #bdc2ff;
+  /*
+   * Two boundary weights, on purpose.
+   *
+   * `outline-variant` is the hairline on a card edge — decorative, because the
+   * card already reads as a surface. `outline-strong` is for a boundary that
+   * *is* the control: the segmented filter, an input, the Load more button.
+   * WCAG 1.4.11 wants 3:1 for those, and the mock-up's near-invisible hairline
+   * does not reach it, so the two cases get different tokens rather than one
+   * compromise that is wrong for both.
+   */
+  --color-outline: #6d7488;
+  --color-outline-variant: #d5dbec;
+  --color-outline-strong: #848ea8;
+  --color-inverse-surface: #232943;
+  --color-on-inverse-surface: #f1f4fd;
+  --color-inverse-primary: #9dbbff;
   --color-scrim: #000000;
+
+  /*
+   * ── The six card accents ──────────────────────────────────────────────
+   *
+   * The home page gives every book card its own hue. Each accent is one
+   * solid colour; the card's pale fill and its icon circle are both derived
+   * from it with color-mix, so a hue is defined in exactly one place and the
+   * dark theme only has to change what it is mixed into.
+   *
+   * Every solid value carries a white glyph at 3:1 or better, and every
+   * derived tint keeps body text above 15:1. Measured, not assumed — see
+   * docs/design-tokens.md.
+   */
+  --accent-1: #8b5cf6; /* lavender */
+  --accent-2: #16a34a; /* mint    */
+  --accent-3: #0e8e9b; /* cyan    */
+  --accent-4: #3b82f6; /* blue    */
+  --accent-5: #b42bc4; /* orchid  */
+  --accent-6: #d96c0a; /* peach   */
+
+  /* What a card tint is mixed into: white in light mode, the card in dark. */
+  --accent-base: #ffffff;
+  --accent-tint: 12%;
+
+  /*
+   * The two gradient action buttons. Both stops are dark enough to carry
+   * white text at AA — the mock-up's lighter coral did not, so it is deepened
+   * rather than shipped failing.
+   */
+  --gradient-league: linear-gradient(135deg, #d62d55, #be2370);
+  --gradient-students: linear-gradient(135deg, #2f6fe4, #1e49c7);
+
+  /* The hero wash: lavender → pink → peach, pale enough for an h1 on top. */
+  --gradient-hero: linear-gradient(135deg, #ede9fe 0%, #fbe8f3 55%, #feefe3 100%);
 
   /* Quiz feedback. Tonal green at the same steps M3 uses; wrong reuses error. */
   --color-correct: #2e6b4f;
@@ -159,6 +203,9 @@
    * shadow. Only floating overlays get one. See docs/design-tokens.md §4.
    */
   --shadow-overlay: 0 8px 32px -8px rgb(0 0 0 / 0.18);
+  /* The mock-up's soft lift on the hero badge and the raised pills. */
+  --shadow-soft: 0 2px 10px -2px rgb(26 31 51 / 0.08);
+  --shadow-raised: 0 6px 20px -6px rgb(26 31 51 / 0.18);
 
   --duration-fast: 120ms;
   --duration-base: 200ms;
@@ -172,39 +219,60 @@
   --container-wide: 90rem;
 }
 
-/* Dark theme. Generated from seed #8A93FF. */
+/* Dark theme. */
 :root[data-theme='dark'] {
-  --color-primary: #bec2ff;
-  --color-on-primary: #262b60;
-  --color-primary-container: #3d4279;
-  --color-on-primary-container: #e0e0ff;
+  --color-primary: #9dbbff;
+  --color-on-primary: #0a2a6b;
+  --color-primary-container: #1d3a7d;
+  --color-on-primary-container: #dbe7ff;
   --color-secondary: #c5c4dd;
   --color-on-secondary: #2e2f42;
-  --color-secondary-container: #444559;
-  --color-on-secondary-container: #e1e0f9;
-  --color-tertiary: #e7b9d5;
-  --color-on-tertiary: #45263c;
-  --color-tertiary-container: #5e3c53;
-  --color-on-tertiary-container: #ffd8ee;
+  --color-secondary-container: #2e2a5c;
+  --color-on-secondary-container: #dedaff;
+  --color-tertiary: #efa8f6;
+  --color-on-tertiary: #4a0f52;
+  --color-tertiary-container: #5e1a66;
+  --color-on-tertiary-container: #ffd6ff;
   --color-error: #ffb4ab;
   --color-on-error: #690005;
   --color-error-container: #93000a;
   --color-on-error-container: #ffdad6;
 
   --color-surface: #0d1020;
-  --color-on-surface: #e4e1e9;
-  --color-surface-variant: #46464f;
-  --color-on-surface-variant: #c7c5d0;
-  --color-surface-1: #0e0e13;
-  --color-surface-2: #1b1b21;
-  --color-surface-3: #1f1f25;
-  --color-surface-4: #2a292f;
-  --color-surface-5: #34343a;
+  --color-on-surface: #e6e8f2;
+  --color-surface-variant: #232943;
+  --color-on-surface-variant: #a9afc6;
+  --color-surface-1: #141829;
+  --color-surface-2: #1a1f33;
+  --color-surface-3: #232943;
+  --color-surface-4: #2b3252;
+  --color-surface-5: #343c61;
 
-  --color-outline: #91909a;
-  --color-outline-variant: #46464f;
-  --color-inverse-surface: #e4e1e9;
-  --color-on-inverse-surface: #303036;
+  --color-outline: #8b93ad;
+  --color-outline-variant: #2e3553;
+  --color-outline-strong: #616a8f;
+  --color-inverse-surface: #e6e8f2;
+  --color-on-inverse-surface: #232943;
+
+  /*
+   * The accents keep their hue; only what they are tinted into changes, so a
+   * card reads as the same colour in both themes without a second palette.
+   */
+  --accent-base: #141829;
+  --accent-tint: 14%;
+
+  /*
+   * Gradients are darkened for dark mode: the light-mode stops are bright
+   * enough to glare against a near-black page.
+   */
+  --gradient-league: linear-gradient(135deg, #b32446, #9c1c5d);
+  --gradient-students: linear-gradient(135deg, #2a5fc4, #1a3ea8);
+  --gradient-hero: linear-gradient(
+    135deg,
+    color-mix(in oklab, #8b5cf6 16%, #141829) 0%,
+    color-mix(in oklab, #d62d55 13%, #141829) 55%,
+    color-mix(in oklab, #d96c0a 13%, #141829) 100%
+  );
   --color-inverse-primary: #555a92;
 
   --color-correct: #8fd6ae;
@@ -213,6 +281,8 @@
   --color-on-correct-container: #c7f0d9;
 
   --shadow-overlay: 0 8px 32px -8px rgb(0 0 0 / 0.5);
+  --shadow-soft: 0 2px 10px -2px rgb(0 0 0 / 0.4);
+  --shadow-raised: 0 6px 20px -6px rgb(0 0 0 / 0.55);
 }
 
 /* ── base ────────────────────────────────────────────────────────────────── */
@@ -333,6 +403,63 @@
 }
 
 @layer utilities {
+  /*
+   * ── Card accents ────────────────────────────────────────────────────────
+   *
+   * `data-accent="1".."6"` on a card picks one of the six hues. The pale fill
+   * and the solid icon circle are both derived from the same token, so a card
+   * cannot end up with a fill from one hue and a circle from another, and the
+   * dark theme needs no second set of values — only `--accent-base` changes.
+   */
+  [data-accent] {
+    --accent: var(--accent-1);
+  }
+  [data-accent='2'] {
+    --accent: var(--accent-2);
+  }
+  [data-accent='3'] {
+    --accent: var(--accent-3);
+  }
+  [data-accent='4'] {
+    --accent: var(--accent-4);
+  }
+  [data-accent='5'] {
+    --accent: var(--accent-5);
+  }
+  [data-accent='6'] {
+    --accent: var(--accent-6);
+  }
+
+  .accent-card {
+    background-image: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--accent) var(--accent-tint), var(--accent-base)),
+      color-mix(
+        in oklab,
+        var(--accent) calc(var(--accent-tint) / 2.2),
+        var(--accent-base)
+      )
+    );
+  }
+
+  .accent-dot {
+    background-color: var(--accent);
+    color: #fff;
+  }
+
+  /* The hero wash. */
+  .hero-wash {
+    background-image: var(--gradient-hero);
+  }
+
+  .gradient-league {
+    background-image: var(--gradient-league);
+  }
+
+  .gradient-students {
+    background-image: var(--gradient-students);
+  }
+
   /*
    * Page gutters, with safe-area insets for notched phones.
    * 16px phone / 24px tablet / 32px desktop, per ui-ux-spec.md §2.3.

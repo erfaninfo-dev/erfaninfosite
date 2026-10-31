@@ -1,23 +1,17 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { ButtonLink } from '@/components/ui/button';
-import { CardGrid, CardLink } from '@/components/ui/card';
 import {
-  IconBook,
-  IconDownload,
-  IconGrammar,
-  IconPlay,
-  IconSparkle,
-  IconSpeaking,
-} from '@/components/ui/icons';
-import { Badge, Container, SectionHeading } from '@/components/ui/primitives';
-import { CardGridSkeleton } from '@/components/ui/states';
-import { getGrammarTopics } from '@/lib/api/queries';
+  BookBrowser,
+  type BrowserCard,
+  type BrowserLabels,
+} from '@/components/features/home/book-browser';
+import { CardGridSkeleton, Skeleton } from '@/components/ui/states';
+import { Container } from '@/components/ui/primitives';
+import { getBooks, getGrammarBooks, getSpeakingTopics } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
-import { getTranslator } from '@/lib/i18n/messages';
+import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://erfaninfo.com';
@@ -41,10 +35,6 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   if (!isLocale(locale)) notFound();
   const t = getTranslator(locale);
 
-  /*
-   * JSON-LD describing the site as a learning resource. Built from static
-   * strings only — no API content — so it cannot leak data or go stale.
-   */
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
@@ -58,146 +48,171 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     <>
       <script
         type="application/ld+json"
-        // Static object, serialised here — never API content.
+        // A static object built from literals in this repo — never API content.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <Container>
-        <section className="mb-14">
-          <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-            <Image
-              src="/brand/logo.png"
-              alt=""
-              width={88}
-              height={88}
-              priority
-              className="rounded-[var(--radius-card)]"
-            />
-            <div className="min-w-0">
-              <h1 className="text-[length:var(--text-display)]">Erfan Academy</h1>
-              <p className="text-on-surface-variant mt-3 max-w-[var(--container-prose)] text-[length:var(--text-body-lg)]">
-                {t('siteTagline')}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink href={localeHref(locale, '/books')}>
-              <IconBook className="size-5" />
-              {t('tabVocabulary')}
-            </ButtonLink>
-            <ButtonLink href={localeHref(locale, '/grammar')} variant="secondary">
-              <IconGrammar className="size-5" />
-              {t('tabGrammar')}
-            </ButtonLink>
-            <ButtonLink href={localeHref(locale, '/download')} variant="ghost">
-              <IconDownload className="size-5" />
-              {t('downloadTitle')}
-            </ButtonLink>
-          </div>
-        </section>
-
-        <section className="mb-14">
-          <SectionHeading>{t('primaryNavigation')}</SectionHeading>
-          <CardGrid min="15rem">
-            <EntryCard
-              href={localeHref(locale, '/books')}
-              title={t('tabVocabulary')}
-              body={t('allWordsChip')}
-              icon={<IconBook className="size-6" />}
-            />
-            <EntryCard
-              href={localeHref(locale, '/grammar')}
-              title={t('grammarPracticeTitle')}
-              body={t('grammarPracticeSubtitle')}
-              icon={<IconGrammar className="size-6" />}
-            />
-            <EntryCard
-              href={localeHref(locale, '/speaking')}
-              title={t('speakingPart1Title')}
-              body={t('speakingHomeCardSubtitle')}
-              icon={<IconSpeaking className="size-6" />}
-            />
-            <EntryCard
-              href={localeHref(locale, '/play')}
-              title={t('wordBuilderTitle')}
-              body={t('wordBuilderNormalSubtitle')}
-              icon={<IconPlay className="size-6" />}
-            />
-          </CardGrid>
-        </section>
-
-        {/*
-          The heading lives inside NewTopics, not here: `is_new` is editorial
-          and is often false for every topic, and a heading with nothing under
-          it is worse than no section at all.
-        */}
-        <Suspense fallback={<CardGridSkeleton count={4} />}>
-          <NewTopics locale={locale} />
+      <Container size="content" className="relative">
+        <Suspense fallback={<HomeSkeleton />}>
+          <Browser locale={locale} />
         </Suspense>
       </Container>
+
+      <BackgroundWave />
     </>
   );
 }
 
-function EntryCard({
-  href,
-  title,
-  body,
-  icon,
-}: {
-  href: Parameters<typeof CardLink>[0]['href'];
-  title: string;
-  body: string;
-  icon: React.ReactNode;
-}) {
+function HomeSkeleton() {
   return (
-    <CardLink href={href}>
-      <div className="bg-secondary-container text-on-secondary-container mb-3 flex size-12 items-center justify-center rounded-[var(--radius-logo)]">
-        {icon}
-      </div>
-      <h3 className="text-on-surface text-[length:var(--text-h4)]">{title}</h3>
-      <p className="text-on-surface-variant mt-1.5 text-[length:var(--text-label)]">
-        {body}
-      </p>
-    </CardLink>
+    <>
+      <Skeleton className="mb-6 h-64 w-full rounded-[1.75rem]" />
+      <Skeleton className="mb-6 h-13 w-full rounded-2xl" />
+      <CardGridSkeleton count={6} />
+    </>
   );
 }
 
 /**
- * "What's new", driven by `grammar_topics.is_new` as the brief specifies.
+ * The cards shown on the home page.
  *
- * If nothing is flagged new the section renders nothing rather than an empty
- * heading — the flag is editorial and is often all false.
+ * Books lead, because choosing one is what the page is for. Grammar books and
+ * speaking follow as entry points, so the grid is a map of the whole site
+ * rather than a book list with the other sections hidden behind the nav.
+ *
+ * Every title, subtitle, badge and count comes from the API. The accent hue is
+ * derived from the entry's id so a card keeps its colour between renders and
+ * between server and client.
  */
-async function NewTopics({ locale }: { locale: Locale }) {
-  const topics = await getGrammarTopics();
-  const t = getTranslator(locale);
+async function Browser({ locale }: { locale: Locale }) {
+  const [books, grammarBooks, speakingTopics] = await Promise.all([
+    getBooks(),
+    getGrammarBooks(),
+    getSpeakingTopics(),
+  ]);
 
-  const fresh = topics.filter((topic) => topic.isNew).slice(0, 8);
-  if (fresh.length === 0) return null;
+  const t = getTranslator(locale);
+  const raw = getRawMessage(locale);
+
+  /** 1–6, stable for a given id. */
+  const accentFor = (seed: number) => ((seed * 7) % 6) + 1;
+
+  /*
+   * Books that belong to a series are shown once, as the series, with the
+   * number of volumes — twenty separate "Cambridge IELTS" cards would bury
+   * everything else. Standalone books get their own card.
+   */
+  const seriesSeen = new Set<string>();
+  const bookCards: BrowserCard[] = [];
+
+  for (const book of books) {
+    if (book.seriesTitle) {
+      if (seriesSeen.has(book.seriesTitle)) continue;
+      seriesSeen.add(book.seriesTitle);
+      const volumes = books.filter((b) => b.seriesTitle === book.seriesTitle);
+      bookCards.push({
+        id: `series-${book.seriesId ?? book.seriesTitle}`,
+        href: localeHref(locale, `/books/${book.id}`),
+        title: book.seriesTitle,
+        subtitle: t('homeSeriesVolumesCount', { count: volumes.length }),
+        badge: null,
+        accent: accentFor(book.seriesId ?? book.id),
+        icon: 'book',
+        track: book.track,
+      });
+      continue;
+    }
+
+    bookCards.push({
+      id: `book-${book.id}`,
+      href: localeHref(locale, `/books/${book.id}`),
+      title: book.title,
+      subtitle: book.description,
+      badge: null,
+      accent: accentFor(book.id),
+      icon: 'book',
+      track: book.track,
+    });
+  }
+
+  const grammarCards: BrowserCard[] = grammarBooks.map((book) => ({
+    id: `grammar-${book.id}`,
+    href: localeHref(locale, `/grammar/books/${book.id}`),
+    title: book.title,
+    subtitle: book.description,
+    // A "0 units" badge is accurate but says nothing; two grammar books
+    // genuinely report none.
+    badge: book.unitCount > 0 ? t('unitCount', { count: book.unitCount }) : null,
+    accent: accentFor(book.id + 3),
+    icon: 'grammar',
+    track: 'ielts',
+  }));
+
+  const speakingCard: BrowserCard[] =
+    speakingTopics.length > 0
+      ? [
+          {
+            id: 'speaking',
+            href: localeHref(locale, '/speaking'),
+            title: t('speakingPart1Title'),
+            subtitle: t('speakingHomeCardSubtitle'),
+            badge: t('speakingPart1Badge'),
+            accent: 3,
+            icon: 'speaking',
+            track: 'ielts',
+          },
+        ]
+      : [];
+
+  const cards = [...speakingCard, ...grammarCards, ...bookCards];
+
+  /*
+   * The track segments come from the data: a segment that would always be
+   * empty is not shown. `is_student` books are the "Class" track and there are
+   * none today, so that segment simply does not appear until there are.
+   */
+  const tracks = [{ id: 'all', label: t('trackAll') }];
+  if (cards.some((c) => c.track === 'ielts')) {
+    tracks.push({ id: 'ielts', label: t('homeTrackIelts') });
+  }
+  if (cards.some((c) => c.track === 'general')) {
+    tracks.push({ id: 'general', label: t('homeTrackGeneral') });
+  }
+
+  const labels: BrowserLabels = {
+    heading: t('chooseYourBook'),
+    searchHint: t('searchBooksHint'),
+    availableTemplate: raw('booksAvailable'),
+    showingTemplate: raw('showingOf'),
+    loadMore: t('loadMore'),
+    noResults: t('noBooksMatch'),
+    tracks,
+    league: t('leagueLabel'),
+    students: t('studentsLabel'),
+    accountsSoon: t('comingWithAccounts'),
+    pageLabelTemplate: raw('pageOf'),
+  };
 
   return (
-    <section>
-      <SectionHeading>{t('releaseNotesTitle')}</SectionHeading>
-      <CardGrid min="14rem">
-        {fresh.map((topic) => (
-          <CardLink
-            key={topic.id}
-            href={localeHref(locale, `/grammar/topics/${topic.id}`)}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="text-on-surface text-[length:var(--text-h4)]">
-                <bdi lang="en">{topic.topic}</bdi>
-              </h3>
-              <IconSparkle className="text-tertiary size-5 shrink-0" />
-            </div>
-            <div className="mt-auto pt-4">
-              <Badge tone="new">{t('badgeNew')}</Badge>
-            </div>
-          </CardLink>
-        ))}
-      </CardGrid>
-    </section>
+    <BookBrowser cards={cards} bookCount={books.length} labels={labels} locale={locale} />
+  );
+}
+
+/** The faint wave along the bottom of the page. Decorative only. */
+function BackgroundWave() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-x-0 bottom-0 -z-10 h-40 overflow-hidden"
+    >
+      <svg
+        viewBox="0 0 1440 160"
+        preserveAspectRatio="none"
+        className="text-primary/8 size-full"
+        fill="currentColor"
+      >
+        <path d="M0 80c180-50 360-50 540-10s360 70 540 30 300-60 360-70v130H0Z" />
+      </svg>
+    </div>
   );
 }

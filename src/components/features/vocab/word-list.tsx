@@ -105,7 +105,7 @@ export function WordList({
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 aria-label={labels.allTypes}
-                className="border-outline-variant bg-surface-1 text-on-surface dark:bg-surface-2 h-11 rounded-[var(--radius-button)] border px-3 text-[length:var(--text-label)]"
+                className="border-outline-strong bg-surface-1 text-on-surface dark:bg-surface-2 h-11 rounded-[var(--radius-button)] border px-3 text-[length:var(--text-label)]"
               >
                 <option value="">{labels.allTypes}</option>
                 {types.map((t) => (
@@ -126,7 +126,7 @@ export function WordList({
                   'text-[length:var(--text-label)] font-semibold transition-colors duration-[var(--duration-fast)]',
                   importantOnly
                     ? 'bg-secondary-container text-on-secondary-container border-transparent'
-                    : 'border-outline-variant text-on-surface-variant hover:bg-surface-3'
+                    : 'border-outline-strong text-on-surface-variant hover:bg-surface-3'
                 )}
               >
                 {labels.importantOnly}

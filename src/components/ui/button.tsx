@@ -12,7 +12,7 @@ const VARIANTS: Record<Variant, string> = {
   secondary:
     'bg-secondary-container text-on-secondary-container hover:brightness-105 active:brightness-95 disabled:bg-surface-5 disabled:text-on-surface-variant',
   ghost:
-    'bg-transparent text-primary border border-outline-variant hover:bg-surface-3 active:bg-surface-4 disabled:text-on-surface-variant',
+    'bg-transparent text-primary border border-outline-strong hover:bg-surface-3 active:bg-surface-4 disabled:text-on-surface-variant',
   destructive:
     'bg-error text-on-error hover:brightness-110 active:brightness-95 disabled:bg-surface-5 disabled:text-on-surface-variant',
 };
