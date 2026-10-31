@@ -44,10 +44,21 @@ export function WordListSection({
     searchHint: t('searchWordWholeBook'),
     important: t('important'),
     importantOnly: t('importantOnlyChip'),
-    otherLanguages: t('showOtherLanguages'),
     allTypes: t('allTypes'),
     resultsTemplate: raw('resultsCount'),
     noResults: t('noMatchingWords'),
+    sheet: {
+      englishMeaning: t('englishMeaning'),
+      example: t('wordExample'),
+      important: t('important'),
+      close: t('close'),
+      // The app labels each meaning with its language name.
+      languageName: {
+        en: t('langEnglish'),
+        fa: t('translationLangPersian'),
+        ckb: t('translationLangKurdishSorani'),
+      },
+    },
   };
 
   return (

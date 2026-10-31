@@ -96,6 +96,7 @@ document.documentElement.dataset.theme=t;
 
 export default async function LocaleLayout({
   children,
+  modal,
   params,
 }: LayoutProps<'/[locale]'>) {
   const { locale } = await params;
@@ -142,6 +143,13 @@ export default async function LocaleLayout({
         <main id="main" tabIndex={-1} className="pb-nav pt-8 outline-none">
           {children}
         </main>
+
+        {/*
+          The modal slot. Empty unless a route is intercepted into it — see
+          @modal/default.tsx — which is how Learn opens as a sheet over the
+          grammar list while keeping its own URL.
+        */}
+        {modal}
 
         <BottomNav locale={locale} labels={navLabels} />
       </body>

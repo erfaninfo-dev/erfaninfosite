@@ -1,16 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-
 import { IconChevron, IconStar } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 
 /**
  * One word in a list.
  *
- * The browser receives a flat, pre-resolved shape rather than the full
- * `Word` object: the gloss chain and the mojibake guard both run on the
- * server, so the client ships no language logic and no unused translations.
+ * A trigger, not an accordion: tapping it opens the detail sheet, which is what
+ * the app does. The row keeps a fixed height whatever happens, which is what
+ * lets the list be virtualised without rows jumping as others expand.
+ *
+ * The browser receives a flat, pre-resolved shape rather than the full `Word`
+ * object: the gloss chain and the mojibake guard both run on the server, so the
+ * client ships no language logic and no unused translations.
  */
 export type WordRowData = {
   id: number;
@@ -22,7 +24,7 @@ export type WordRowData = {
   example: string;
   /** English example, shown when it differs from the gloss example. */
   exampleEn: string;
-  /** The two languages the reader did not pick, for the expanded view. */
+  /** The two languages the reader did not pick. */
   others: Array<{ lang: 'en' | 'fa' | 'ckb'; text: string }>;
 };
 
@@ -30,27 +32,23 @@ export function WordRow({
   data,
   labels,
   glossLang,
+  onOpen,
 }: {
   data: WordRowData;
-  labels: { important: string; otherLanguages: string };
+  labels: { important: string };
   glossLang: 'fa' | 'ckb';
+  onOpen: (word: WordRowData) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const hasDetail =
-    data.example.length > 0 || data.exampleEn.length > 0 || data.others.length > 0;
-
   return (
     <div className="border-outline-variant/50 border-b last:border-b-0">
       <button
         type="button"
-        onClick={() => hasDetail && setOpen((v) => !v)}
-        aria-expanded={hasDetail ? open : undefined}
-        disabled={!hasDetail}
+        onClick={() => onOpen(data)}
+        // A stable hook for the virtualisation test, which has to count rows
+        // without relying on how they happen to be styled.
+        data-word-row=""
         className={cn(
-          'flex min-h-14 w-full items-center gap-3 px-4 py-3 text-start',
-          hasDetail
-            ? 'hover:bg-surface-2 dark:hover:bg-surface-3 cursor-pointer'
-            : 'cursor-default',
+          'hover:bg-surface-2 dark:hover:bg-surface-3 flex min-h-14 w-full items-center gap-3 px-4 py-3 text-start',
           'transition-colors duration-[var(--duration-fast)]'
         )}
       >
@@ -80,48 +78,8 @@ export function WordRow({
           />
         ) : null}
 
-        {hasDetail ? (
-          <IconChevron
-            className={cn(
-              'text-on-surface-variant size-4 shrink-0 transition-transform duration-[var(--duration-fast)]',
-              open && 'rotate-90'
-            )}
-          />
-        ) : null}
+        <IconChevron className="text-on-surface-variant size-4 shrink-0" />
       </button>
-
-      {open ? (
-        <div className="bg-surface-2/60 dark:bg-surface-3/50 space-y-3 px-4 pb-4">
-          {data.exampleEn ? (
-            <p lang="en" dir="ltr" className="text-on-surface">
-              {data.exampleEn}
-            </p>
-          ) : null}
-          {data.example && data.example !== data.exampleEn ? (
-            <p lang={glossLang} className="text-on-surface-variant">
-              {data.example}
-            </p>
-          ) : null}
-
-          {data.others.length > 0 ? (
-            <dl className="space-y-1">
-              <dt className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
-                {labels.otherLanguages}
-              </dt>
-              {data.others.map((other) => (
-                <dd key={other.lang} className="flex gap-2">
-                  <span className="text-on-surface-variant text-[length:var(--text-caption)] uppercase">
-                    {other.lang}
-                  </span>
-                  <bdi lang={other.lang} dir={other.lang === 'en' ? 'ltr' : 'rtl'}>
-                    {other.text}
-                  </bdi>
-                </dd>
-              ))}
-            </dl>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }

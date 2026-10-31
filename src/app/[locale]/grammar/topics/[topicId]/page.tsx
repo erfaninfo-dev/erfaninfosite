@@ -2,20 +2,15 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import {
-  StudySheet,
-  type StudyLabels,
-  type StudyPart,
-} from '@/components/features/grammar/study-sheet';
+import { StudyBody } from '@/components/features/grammar/study-body';
 import { ButtonLink } from '@/components/ui/button';
 import { IconArrowBack, IconGrammar } from '@/components/ui/icons';
 import { Badge, Container, PageHeader } from '@/components/ui/primitives';
 import { Skeleton } from '@/components/ui/states';
-import { getGrammarTopic, getGrammarTopicPdfs } from '@/lib/api/queries';
-import { defaultGlossFor, isLocale, type Locale } from '@/lib/i18n/config';
-import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
+import { getGrammarTopic } from '@/lib/api/queries';
+import { isLocale } from '@/lib/i18n/config';
+import { getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
-import { getGloss } from '@/lib/request-context';
 
 function parseId(value: string): number | null {
   if (!/^\d+$/.test(value)) return null;
@@ -45,7 +40,9 @@ export async function generateMetadata({
  * **Learn** for one grammar topic.
  *
  * Study material and nothing else — the PDF lessons, by language — which is
- * what the app's Learn sheet is. It deliberately shows no question count and
+ * what the app's Learn sheet is. Reached directly, or from a link someone
+ * shared; opening it from the grammar list shows the same content as a sheet
+ * instead, through the intercepted route in `@modal`. It deliberately shows no question count and
  * no session length: those belong to Quiz, the other action on the topic card.
  * Showing them here made Learn look like a quiz setup screen, which is the bug
  * this replaces.
@@ -94,52 +91,8 @@ export default async function GrammarTopicPage({
       <Suspense
         fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}
       >
-        <Study topic={topic.topic} locale={locale} />
+        <StudyBody topic={topic.topic} locale={locale} />
       </Suspense>
     </Container>
-  );
-}
-
-async function Study({ topic, locale }: { topic: string; locale: Locale }) {
-  const [pdfs, gloss] = await Promise.all([getGrammarTopicPdfs(topic), getGloss(locale)]);
-  const t = getTranslator(locale);
-  const raw = getRawMessage(locale);
-
-  const parts: StudyPart[] = pdfs.map((pdf) => ({
-    id: pdf.id,
-    title: pdf.title,
-    // `pdf_url` is the Persian lesson, `pdf_url_kur` the Kurdish one.
-    fa: pdf.url,
-    ckb: pdf.urlKurdish,
-  }));
-
-  if (parts.length === 0) {
-    return (
-      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
-        {t('grammarStudyPdfUnavailable')}
-      </p>
-    );
-  }
-
-  const labels: StudyLabels = {
-    chooseLevel: t('grammarStudySheetChooseLevel'),
-    partLabel: t('grammarStudyPdfPartLabel'),
-    view: t('grammarStudyPdfView'),
-    unavailable: t('grammarStudyPdfUnavailable'),
-    languages: [
-      { id: 'fa', label: t('langPersian') },
-      { id: 'ckb', label: t('langKurdishSorani') },
-    ],
-    partTemplate: raw('partNumber'),
-  };
-
-  return (
-    <StudySheet
-      parts={parts}
-      labels={labels}
-      locale={locale}
-      // Open on the reader's own gloss language, falling back to the locale's.
-      initialLanguage={gloss || defaultGlossFor(locale)}
-    />
   );
 }

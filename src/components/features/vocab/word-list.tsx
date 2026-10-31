@@ -4,6 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { WordRow, type WordRowData } from '@/components/features/vocab/word-row';
+import { WordSheet, type WordSheetLabels } from '@/components/features/vocab/word-sheet';
 import { Badge } from '@/components/ui/primitives';
 import { IconSearch } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
@@ -26,11 +27,11 @@ export type WordListLabels = {
   searchHint: string;
   important: string;
   importantOnly: string;
-  otherLanguages: string;
   allTypes: string;
   /** Raw ICU, e.g. "{count, plural, ...}" — the count is a browser-side value. */
   resultsTemplate: string;
   noResults: string;
+  sheet: WordSheetLabels;
 };
 
 export function WordList({
@@ -49,6 +50,8 @@ export function WordList({
   const [query, setQuery] = useState('');
   const [type, setType] = useState('');
   const [importantOnly, setImportantOnly] = useState(false);
+  // One sheet for the whole list, not one per row.
+  const [selected, setSelected] = useState<WordRowData | null>(null);
   const searchId = useId();
 
   /*
@@ -148,7 +151,12 @@ export function WordList({
           {labels.noResults}
         </p>
       ) : filtered.length > VIRTUALIZE_ABOVE ? (
-        <VirtualRows rows={filtered} labels={labels} glossLang={glossLang} />
+        <VirtualRows
+          rows={filtered}
+          labels={labels}
+          glossLang={glossLang}
+          onOpen={setSelected}
+        />
       ) : (
         <div className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 overflow-hidden rounded-[var(--radius-card)] border">
           {filtered.map((w) => (
@@ -156,30 +164,39 @@ export function WordList({
               key={w.id}
               data={w}
               glossLang={glossLang}
-              labels={{
-                important: labels.important,
-                otherLanguages: labels.otherLanguages,
-              }}
+              labels={{ important: labels.important }}
+              onOpen={setSelected}
             />
           ))}
         </div>
       )}
+
+      <WordSheet
+        word={selected}
+        glossLang={glossLang}
+        labels={labels.sheet}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 }
 
 /**
- * Virtualised rendering for long lists. Rows can grow when expanded, so the
- * virtualiser measures them rather than trusting the estimate.
+ * Virtualised rendering for long lists.
+ *
+ * Rows are a fixed height now that detail opens in a sheet rather than inline,
+ * so the estimate is exact and nothing reflows as the reader scrolls.
  */
 function VirtualRows({
   rows,
   labels,
   glossLang,
+  onOpen,
 }: {
   rows: WordRowData[];
   labels: WordListLabels;
   glossLang: 'fa' | 'ckb';
+  onOpen: (word: WordRowData) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -229,10 +246,8 @@ function VirtualRows({
                 <WordRow
                   data={row}
                   glossLang={glossLang}
-                  labels={{
-                    important: labels.important,
-                    otherLanguages: labels.otherLanguages,
-                  }}
+                  labels={{ important: labels.important }}
+                  onOpen={onOpen}
                 />
               </div>
             );
@@ -241,17 +256,17 @@ function VirtualRows({
       ) : (
         // Pre-hydration, render the first screenful so the list is not blank
         // and the page has real content for search engines and no-JS readers.
-        rows.slice(0, 20).map((row) => (
-          <WordRow
-            key={row.id}
-            data={row}
-            glossLang={glossLang}
-            labels={{
-              important: labels.important,
-              otherLanguages: labels.otherLanguages,
-            }}
-          />
-        ))
+        rows
+          .slice(0, 20)
+          .map((row) => (
+            <WordRow
+              key={row.id}
+              data={row}
+              glossLang={glossLang}
+              labels={{ important: labels.important }}
+              onOpen={onOpen}
+            />
+          ))
       )}
     </div>
   );

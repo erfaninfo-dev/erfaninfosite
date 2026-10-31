@@ -40,13 +40,34 @@ test.describe('vocabulary', () => {
     const search = page.locator('main input[type="search"]');
     await expect(search).toBeVisible();
 
-    const before = await page.locator('main button[aria-expanded]').count();
+    const before = await page.locator('main [data-word-row]').count();
     await search.fill('zzzzzznotaword');
     await page.waitForTimeout(400);
-    const after = await page.locator('main button[aria-expanded]').count();
+    const after = await page.locator('main [data-word-row]').count();
 
     expect(after).toBeLessThan(before);
     await expect(page.locator('main')).toContainText(/no matching|نتیجه|هیچ/i);
+  });
+
+  test('tapping a word opens its detail as a sheet', async ({ page }) => {
+    await page.goto('/en/books/2/units/1', { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
+
+    const firstRow = page.locator('main [data-word-row]').first();
+    await expect(firstRow).toBeVisible();
+    const word = (await firstRow.locator('bdi').first().innerText()).trim();
+
+    await firstRow.click();
+
+    // The app opens a sheet rather than expanding the row in place.
+    const sheet = page.locator('dialog[open]');
+    await expect(sheet).toBeVisible();
+    await expect(sheet).toContainText(word);
+
+    await page.keyboard.press('Escape');
+    await expect(sheet).toHaveCount(0);
+    // The list is still where it was: a sheet does not navigate.
+    await expect(page.locator('main input[type="search"]')).toBeVisible();
   });
 
   test('a long book list is virtualised, not fully rendered', async ({ page }) => {
@@ -55,9 +76,7 @@ test.describe('vocabulary', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);
 
-    const rendered = await page
-      .locator('main button[aria-expanded], main button')
-      .count();
+    const rendered = await page.locator('main [data-word-row]').count();
     expect(
       rendered,
       'the whole word list appears to be in the DOM; virtualisation is not working'

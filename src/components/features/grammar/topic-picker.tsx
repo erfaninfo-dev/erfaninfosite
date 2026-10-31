@@ -3,16 +3,10 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  useDeferredValue,
-  useEffect,
-  useId,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import { useDeferredValue, useId, useMemo, useState, useSyncExternalStore } from 'react';
 
 import { Badge } from '@/components/ui/primitives';
+import { Sheet } from '@/components/ui/sheet';
 import { IconChevron, IconGrammar, IconSearch, IconSparkle } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { formatClient } from '@/lib/i18n/client-format';
@@ -263,15 +257,15 @@ export function TopicPicker({
       ) : null}
 
       {/* The question-count step the app shows before a session starts. */}
-      {choosingLength ? (
-        <LengthSheet
-          lengths={lengths.length > 0 ? [...lengths] : [Math.min(bank, floor)]}
-          label={labels.chooseLength}
-          note={labels.notSynced}
-          onPick={start}
-          onClose={() => setChoosingLength(false)}
-        />
-      ) : null}
+      <LengthSheet
+        open={choosingLength}
+        locale={locale}
+        lengths={lengths.length > 0 ? [...lengths] : [Math.min(bank, floor)]}
+        label={labels.chooseLength}
+        note={labels.notSynced}
+        onPick={start}
+        onClose={() => setChoosingLength(false)}
+      />
     </>
   );
 }
@@ -304,61 +298,44 @@ function ActionCard({
   );
 }
 
-/** A modal dialog: focus is trapped by the browser, Escape closes. */
+/**
+ * The question-count step, on the shared sheet so it behaves like every other
+ * half-screen in the app — and in the same place the app puts it.
+ */
 function LengthSheet({
+  open,
+  locale,
   lengths,
   label,
   note,
   onPick,
   onClose,
 }: {
+  open: boolean;
+  locale: Locale;
   lengths: number[];
   label: string;
   note: string;
   onPick: (n: number) => void;
   onClose: () => void;
 }) {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', onKey);
-    // The page behind a dialog must not scroll.
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [onClose]);
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label={label}
-        onClick={onClose}
-        className="bg-scrim/50 absolute inset-0"
-        tabIndex={-1}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={label}
-        className="bg-surface-1 relative w-full max-w-md rounded-t-[1.75rem] p-6 shadow-[var(--shadow-overlay)] sm:rounded-[1.75rem]"
-      >
-        <h2 className="text-[length:var(--text-h4)] font-bold">{label}</h2>
+    <Sheet open={open} onClose={onClose} label={label}>
+      <div className="p-6 pt-2 sm:pt-6">
+        <h2 className="text-on-surface text-[length:var(--text-h4)] font-bold">
+          {label}
+        </h2>
 
         <div className="mt-5 flex flex-wrap gap-3">
           {lengths.map((n) => (
             <button
               key={n}
               type="button"
-              autoFocus={n === lengths[0]}
               onClick={() => onPick(n)}
               className="border-outline-strong hover:bg-surface-2 text-on-surface inline-flex min-h-12 min-w-16 items-center justify-center rounded-full border px-5 font-bold"
             >
-              {n}
+              {/* Persian and Kurdish readers see their own digits here too. */}
+              {formatClient('{n}', locale, { n })}
             </button>
           ))}
         </div>
@@ -367,6 +344,6 @@ function LengthSheet({
           {note}
         </p>
       </div>
-    </div>
+    </Sheet>
   );
 }

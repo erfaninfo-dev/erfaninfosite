@@ -107,3 +107,46 @@ entirely in our code:
 Net effect: the 10.4 s cost is paid about once a minute per book by the server, and essentially
 never by a user. The `unit` filter remains available as a future option if you ever want it, but
 it is **not** being built and the PHP is not being touched.
+
+## D5 — Half-screens, as the app uses them
+
+The app opens secondary content in a modal bottom sheet rather than pushing a screen, so the list
+behind it keeps its scroll position and its selection. The site now does the same, through one
+`src/components/ui/sheet.tsx` built on the native `<dialog>` element — focus moves in and returns
+to the trigger, focus is trapped, Escape closes, and `::backdrop` gives a real scrim. On top of
+that: a scroll lock behind the sheet, a click-outside close and a drag-down close on touch. It is
+a bottom sheet on a phone and a centred dialog from `sm` up, which is the convention on a desktop
+browser; the drag handle is hidden there, because there is nothing to drag.
+
+Three places in Phase 1 use it, matching the app one for one:
+
+| App | Site |
+| --- | --- |
+| `grammar_topic_learn_sheet.dart` | Learn, opened from the grammar list |
+| `grammar_question_count_sheet.dart` | the question-count step before a quiz |
+| `word_info_sheet.dart` / word detail | a word's detail, from a unit or book word list |
+
+**Learn is an intercepted route**, not sheet state: `@modal/(.)grammar/topics/[topicId]`. Opening
+it from the list gives a sheet and a real URL; opening that URL directly — a shared link, a reload,
+a crawler — gives the full page. Closing calls `router.back()`, so the list returns exactly as it
+was. The app cannot offer a link to a sheet; the web can, and losing that would be worse than the
+divergence.
+
+**The word list changed shape because of this.** Rows were accordions that expanded in place;
+they are now fixed-height triggers, and one sheet serves the whole list. A 1,900-word book
+therefore has exactly one dialog in the DOM, and virtualised rows no longer jump as a neighbour
+expands — the row estimate is now exact.
+
+### What is deliberately not a sheet
+
+- **A book's PDFs.** The app hides them behind a toolbar button and `book_pdf_picker_sheet.dart`;
+  the site lists them on the book page. The content is small, needs no choice, and is worth having
+  in the page for a reader and for search.
+- **The grammar topic PDF picker.** Learn already shows the PDFs inside itself, with a tab per
+  language. A sheet opened from a sheet would be the app's structure, not its behaviour.
+- **Tapping a word inside a quiz question** (`grammar_question_word_tap_text.dart`). It loads the
+  whole `words.php` catalog and falls back to a free Google Translate endpoint. Both are out of
+  scope here: the first is the slow call D4 exists to avoid, the second is a third-party service
+  the brief does not cover. A legitimate later feature, not part of this change.
+- **Reporting a question** (`_showGrammarReportSheet`). It writes to the API, which is out of
+  bounds without approval.
