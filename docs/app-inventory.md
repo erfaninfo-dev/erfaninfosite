@@ -1,9 +1,11 @@
 # App inventory — Erfan Academy (Flutter) as the reference for the web version
 
 **Source read:** `C:\Users\Kwestan\Ielts essential words\ielts_vocab_app` — package `ielts_vocab_app`,
-version 1.0.22+22, 397 Dart files, 28 feature folders. **Read-only.** Nothing in it was modified.
+version 1.0.22+22, 397 Dart files, 28 feature folders. **Read-only.** No source file was modified.
 
-Written during Phase 0 on 2026-10-30. Everything below is observed in the source, not assumed.
+Written during Phase 0 on 2026-10-30 from the source, then **checked against the running app on
+2026-10-31**: built for web with `flutter build web` into a temporary folder and driven in a
+browser. Section 3.1 records what that settled.
 
 ---
 
@@ -55,6 +57,33 @@ web port must keep it — otherwise a word that renders fine in the app shows `?
 28 feature folders. File counts show where the real weight is: `word_builder` 120 files,
 `grammar` 17, `flashcards` 16, `speaking` 13, `unit_samples` 13, `you` 13, `cambridge` 12,
 `teacher` 12, `home` 11, `stories` 10.
+
+### 3.1 What running the app settled
+
+The source says the bottom bar has five tabs. Seeing it confirmed the part that matters most for
+the website's information architecture, and corrected a guess:
+
+- **The bar is Home · Grammar · Play · You · Settings.** There is **no Vocabulary tab and no
+  Speaking tab.**
+- **Home _is_ the book browser.** Its hero reads "Choose Your Book" over a search field, with two
+  track tabs — **IELTS and General**, IELTS selected — and below them the books, a series collapsed
+  to a single card ("Cambridge IELTS · 20 books in series").
+- **Speaking is a card in that same list**, not a section of its own.
+- The onboarding says it outright: _"Start from Home: pick a book, open units, then browse words."_
+- **The count follows the selected tab.** The app shows "24 books available" with IELTS active —
+  the IELTS count, not the 33 the API returns in total. That also explains the redesign mock-up's
+  "24 books available": it was this screen.
+- **League is a floating pill** over the bottom-trailing corner of the list, not a control in the
+  filter row, and **Students is not on the app's home at all**.
+- The **Class** tab does not appear for a signed-out reader, matching `is_student` being false on
+  every book today.
+- **Grammar books are not on home**; grammar is its own tab there and its own section here.
+- Sign-in is **skippable**: the app is fully usable without an account, which is what makes a
+  logged-out Phase 1 website faithful rather than a stub.
+
+The website's navigation follows this exactly: Home, Grammar, Play. `You` and `Settings` arrive
+with accounts in Phase 2; the language and theme controls that sit under Settings in the app are in
+the web header instead, reachable at every size.
 
 ### Public / no-login (web Phase 1 candidates)
 
