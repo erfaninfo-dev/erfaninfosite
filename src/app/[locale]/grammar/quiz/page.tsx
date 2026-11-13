@@ -8,7 +8,6 @@ import { ButtonLink } from '@/components/ui/button';
 import { IconArrowBack } from '@/components/ui/icons';
 import { Container, PageHeader } from '@/components/ui/primitives';
 import { EmptyState, Skeleton } from '@/components/ui/states';
-import { glossOf } from '@/lib/api/normalize';
 import { getGrammarQuestions, getGrammarTopics } from '@/lib/api/queries';
 import { SESSION_SIZE, resolveQuestionCount } from '@/lib/quiz/session';
 import { isLocale, type Locale } from '@/lib/i18n/config';
@@ -144,7 +143,6 @@ async function Session({
    * questions instead of 300.
    */
   const poolSize = Math.min(SESSION_SIZE, Math.max(want * 3, 30));
-  const gloss = locale === 'ckb' ? 'ckb' : 'fa';
   const pool: Array<QuizQuestion & { topic: string }> = merged
     .slice(0, poolSize)
     .map((q) => ({
@@ -153,7 +151,7 @@ async function Session({
       questionText: q.questionText,
       options: q.options,
       correctAnswer: q.correctAnswer,
-      explanation: glossOf(q.explanation, gloss) || q.explanation.en,
+      explanation: q.explanation,
     }));
 
   return (
@@ -162,7 +160,6 @@ async function Session({
       want={want}
       seed={seed}
       locale={locale}
-      explanationLang={locale}
       backHref={backHref}
       labels={{
         progressTemplate: raw('questionProgress'),
@@ -175,6 +172,9 @@ async function Session({
         retryWrong: t('onlyPastMistakes'),
         restart: t('practiseAgain'),
         backToTopics: t('grammarPracticeTitle'),
+        explanationHeading: t('grammarExplanationHeading'),
+        explanationTabFa: t('grammarExplanationTabFa'),
+        explanationTabCkb: t('grammarExplanationTabCkb'),
       }}
     />
   );

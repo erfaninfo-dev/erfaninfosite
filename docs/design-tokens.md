@@ -66,8 +66,27 @@ hue is defined once and the dark theme only changes what it is mixed into
 All clear the 3:1 a graphic needs. The pale fills they produce keep body text
 above 15:1 in both themes.
 
-A card's accent is chosen from its id, never at random — otherwise it would
-change between renders and between server and client.
+A card's accent is chosen from its place in the home list, the same rotation
+the app uses, never at random — otherwise it would change between renders and
+between server and client.
+
+`--accent-speaking` is `#0D9488`, the app's speaking teal (`kSpeakingBrandTeal`).
+It is a seventh hue because none of the six card accents is that teal. The
+speaking card mixes it the same way as the others, so dark mode only changes
+`--accent-base`. White on the solid circle is about 4.6:1.
+
+A speaking question's accent walks five of those hues in the app's order:
+`--accent-4`, `--accent-2`, `--accent-1`, `--accent-6`, `--accent-5`
+(blue, green, lavender, peach, orchid). Idea categories use the same set,
+plus `--color-error` for disadvantage and `--color-primary` for an unknown
+category. `data-accent="error"` and `data-accent="primary"` only point
+`--accent` at those existing tokens.
+
+A unit card is not one of those hues. The app fills it from the three
+container tones — primary, then secondary, then tertiary — mixed into the
+card surface. `.jelly-card` does that with the existing container tokens, so
+no new colour is introduced. The icon circle uses `--color-primary` and
+`--color-on-primary`.
 
 ## 4. Gradients
 

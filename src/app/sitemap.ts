@@ -10,6 +10,7 @@ import {
   getUnits,
 } from '@/lib/api/queries';
 import { LOCALES } from '@/lib/i18n/config';
+import { PLAY_SECTION_VISIBLE } from '@/lib/nav';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://erfaninfo.com').replace(
   /\/+$/,
@@ -62,11 +63,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     out.push(entry(base, 1));
     // No '/books': the home page is the book browser, as in the app.
-    for (const section of ['/grammar', '/speaking', '/play', '/download']) {
+    const sections = PLAY_SECTION_VISIBLE
+      ? ['/grammar', '/speaking', '/play', '/download']
+      : ['/grammar', '/speaking', '/download'];
+    for (const section of sections) {
       out.push(entry(`${base}${section}`, 0.8));
     }
 
     for (const book of books) out.push(entry(`${base}/books/${book.id}`, 0.7));
+    const seriesIds = [
+      ...new Set(books.map((book) => book.seriesId).filter((id): id is number => id != null)),
+    ];
+    for (const seriesId of seriesIds) {
+      out.push(entry(`${base}/books/series/${seriesId}`, 0.7));
+    }
     for (const book of grammarBooks)
       out.push(entry(`${base}/grammar/books/${book.id}`, 0.7));
     for (const topic of grammarTopics) {
@@ -78,8 +88,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const model of speakingModels) {
       out.push(entry(`${base}/speaking/models/${model.id}`, 0.5));
     }
-    for (const category of categories)
-      out.push(entry(`${base}/play/${category.slug}`, 0.6));
+    if (PLAY_SECTION_VISIBLE) {
+      for (const category of categories)
+        out.push(entry(`${base}/play/${category.slug}`, 0.6));
+    }
   }
 
   // Unit pages for the first few books, as deeper discovery points.

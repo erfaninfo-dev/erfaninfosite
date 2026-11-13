@@ -13,6 +13,7 @@ import type {
   RawGrammarUnitText,
   RawSection,
   RawSpeakingIdeas,
+  RawSpeakingIdeasSearch,
   RawSpeakingModel,
   RawSpeakingQuestion,
   RawSpeakingTopic,
@@ -135,6 +136,28 @@ export type Book = {
   seriesSortOrder: number;
   volumeOrder: number;
 };
+
+/** Volume 15 is the only Cambridge practice pack the app opens as tests. */
+export function isCambridgeVolume15(book: Pick<Book, 'title'>): boolean {
+  return /cambridge\s+ielts\s+15\b/i.test(book.title);
+}
+
+/**
+ * The app's `kIdiomsSpeakingBookId`. That book opens an illustrated unit
+ * grid rather than the ordinary unit cards.
+ */
+export const IDIOMS_SPEAKING_BOOK_ID = 37;
+
+/**
+ * Same order as the app's `Book.compareSeriesVolumes`: volume, then sort
+ * order, then title. The API's `volume_order` is a display index, so Cambridge
+ * 18 comes before 17.
+ */
+export function compareSeriesVolumes(a: Book, b: Book): number {
+  if (a.volumeOrder !== b.volumeOrder) return a.volumeOrder - b.volumeOrder;
+  if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+  return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+}
 
 export function normalizeBook(raw: RawBook): Book {
   return {
@@ -455,10 +478,17 @@ export type SpeakingQuestion = {
   topicId: number | null;
   topicTitle: string;
   modelId: number | null;
+  /** App label is `speakingModelNumber(modelNumber)`, not the row id. */
+  modelNumber: number;
   modelTitle: string;
   modelFormula: string;
   modelTemplate: string;
-  bandAnswers: Array<{ band: string; answer: string }>;
+  /**
+   * Band samples. `answer` is the English text the copy button uses.
+   * `fa` / `ckb` are the gloss, with the same fallback as the sample answer
+   * (the other local language, never English).
+   */
+  bandAnswers: Array<{ band: string; answer: string; fa: string; ckb: string }>;
 };
 
 export function normalizeSpeakingQuestion(raw: RawSpeakingQuestion): SpeakingQuestion {
@@ -470,12 +500,19 @@ export function normalizeSpeakingQuestion(raw: RawSpeakingQuestion): SpeakingQue
     topicId: raw.topic?.id ?? null,
     topicTitle: raw.topic?.title.trim() ?? '',
     modelId: raw.model?.id ?? null,
+    modelNumber: raw.model?.model_number ?? 0,
     modelTitle: raw.model?.title.trim() ?? '',
     modelFormula: raw.model?.formula.trim() ?? '',
     modelTemplate: raw.model?.template.trim() ?? '',
     bandAnswers: (raw.band_answers ?? [])
-      .map((b) => ({ band: (b.band ?? '').trim(), answer: b.answer.trim() }))
-      .filter((b) => b.answer.length > 0),
+      .map((b) => ({
+        band: (b.band ?? '').trim(),
+        answer: b.answer.trim(),
+        fa: b.fa_answer.trim(),
+        ckb: b.kur_answer.trim(),
+      }))
+      .filter((b) => b.band.length > 0 && b.answer.length > 0)
+      .sort((a, b) => (Number.parseFloat(a.band) || 0) - (Number.parseFloat(b.band) || 0)),
   };
 }
 
@@ -512,6 +549,34 @@ export function normalizeSpeakingIdeas(raw: RawSpeakingIdeas): {
         .sort((a, b) => a.sortOrder - b.sortOrder),
     })),
   };
+}
+
+export type SpeakingIdeaSearchHit = {
+  id: number;
+  topicId: number;
+  topicTitle: string;
+  category: string;
+  categoryTitleEn: string;
+  phrase: string;
+  example: string;
+  band: string;
+  sortOrder: number;
+  isCurrentTopic: boolean;
+};
+
+export function normalizeSpeakingIdeasSearch(raw: RawSpeakingIdeasSearch): SpeakingIdeaSearchHit[] {
+  return raw.results.map((hit) => ({
+    id: hit.id,
+    topicId: hit.topic?.id ?? 0,
+    topicTitle: hit.topic?.title.trim() ?? '',
+    category: hit.category.trim(),
+    categoryTitleEn: hit.category_title_en.trim(),
+    phrase: hit.phrase.trim(),
+    example: hit.example.trim(),
+    band: (hit.band_text ?? '').trim(),
+    sortOrder: hit.sort_order ?? 0,
+    isCurrentTopic: hit.is_current_topic,
+  }));
 }
 
 /* ── word games ──────────────────────────────────────────────────────────── */

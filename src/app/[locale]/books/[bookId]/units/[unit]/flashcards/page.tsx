@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 import {
-  Flashcards,
-  type FlashcardData,
-} from '@/components/features/flashcards/flashcards';
+  FlashcardSetup,
+  type SetupCard,
+} from '@/components/features/flashcards/setup';
 import { ButtonLink } from '@/components/ui/button';
 import { IconArrowBack } from '@/components/ui/icons';
 import { Container, PageHeader } from '@/components/ui/primitives';
@@ -13,7 +13,7 @@ import { EmptyState, Skeleton } from '@/components/ui/states';
 import { glossOf } from '@/lib/api/normalize';
 import { getBook, getUnitWords } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
-import { getTranslator } from '@/lib/i18n/messages';
+import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
 import { getGloss } from '@/lib/request-context';
 
@@ -35,8 +35,11 @@ export async function generateMetadata({
 
 export default async function UnitFlashcardsPage({
   params,
+  searchParams,
 }: PageProps<'/[locale]/books/[bookId]/units/[unit]/flashcards'>) {
-  const { locale, bookId, unit } = await params;
+  const [{ locale, bookId, unit }, query] = await Promise.all([params, searchParams]);
+  const sectionRaw = Array.isArray(query.section) ? query.section[0] : query.section;
+  const sectionNo = sectionRaw && /^\d+$/.test(sectionRaw) ? Number(sectionRaw) : null;
   if (!isLocale(locale)) notFound();
   const id = parseId(bookId);
   const unitNo = parseId(unit);
@@ -64,7 +67,7 @@ export default async function UnitFlashcardsPage({
       <Suspense
         fallback={<Skeleton className="h-72 w-full rounded-[var(--radius-card)]" />}
       >
-        <Cards bookId={id} unit={unitNo} locale={locale} />
+        <Cards bookId={id} unit={unitNo} section={sectionNo} locale={locale} />
       </Suspense>
     </Container>
   );
@@ -73,26 +76,30 @@ export default async function UnitFlashcardsPage({
 async function Cards({
   bookId,
   unit,
+  section,
   locale,
 }: {
   bookId: number;
   unit: number;
+  section: number | null;
   locale: Locale;
 }) {
   const [words, gloss] = await Promise.all([
     getUnitWords(bookId, unit),
     getGloss(locale),
   ]);
+  const scoped = section == null ? words : words.filter((word) => word.section === section);
   const t = getTranslator(locale);
 
   // The gloss is resolved on the server, so the browser receives plain strings.
-  const cards: FlashcardData[] = words
+  const cards: SetupCard[] = scoped
     .map((w) => ({
       id: String(w.id),
       front: w.word,
       back: glossOf(w.meaning, gloss),
       exampleEn: w.example.en,
       exampleGloss: glossOf(w.example, gloss),
+      important: w.important,
     }))
     .filter((c) => c.front && c.back);
 
@@ -114,10 +121,23 @@ async function Cards({
   }
 
   return (
-    <Flashcards
+    <FlashcardSetup
       cards={cards}
       glossLang={gloss}
+      locale={locale}
+      progressTemplate={getRawMessage(locale)('wordCount')}
       labels={{
+        title: t('flashcardSetupTitle'),
+        deck: t('flashcardSetupDeck'),
+        all: t('flashcardSetupPoolAll'),
+        important: t('flashcardSetupPoolImportant'),
+        order: t('flashcardSetupOrder'),
+        shuffle: t('flashcardSetupShuffle'),
+        direction: t('flashcardSetupDirection'),
+        wordToMeaning: t('flashcardSetupDirectionWordToMeaning'),
+        meaningToWord: t('flashcardSetupDirectionMeaningToWord'),
+        start: t('flashcardSetupStart'),
+        empty: t('noMatchingWords'),
         progress: t('wordCount', { count: cards.length }),
         reveal: t('tapCardToReveal'),
         next: t('next'),

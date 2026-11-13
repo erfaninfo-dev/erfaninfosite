@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { ExternalLink } from '@/components/ui/external-link';
-import { IconPdf } from '@/components/ui/icons';
+import { IconBook, IconPdf } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { formatClient } from '@/lib/i18n/client-format';
 import type { GlossLang, Locale } from '@/lib/i18n/config';
@@ -28,6 +28,7 @@ export type StudyPart = {
 
 export type StudyLabels = {
   chooseLevel: string;
+  study: string;
   partLabel: string;
   view: string;
   unavailable: string;
@@ -120,6 +121,16 @@ export function StudySheet({
           ))}
         </ul>
       )}
+
+      {available[0] ? (
+        <ExternalLink
+          href={available[0][language]}
+          className="bg-primary text-on-primary mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 font-bold no-underline"
+        >
+          <IconBook className="size-5" />
+          {labels.study}
+        </ExternalLink>
+      ) : null}
     </div>
   );
 }

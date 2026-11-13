@@ -145,6 +145,8 @@
   --accent-4: #3b82f6; /* blue    */
   --accent-5: #b42bc4; /* orchid  */
   --accent-6: #d96c0a; /* peach   */
+  /* Speaking card. The app's `kSpeakingBrandTeal` (0xFF0D9488). */
+  --accent-speaking: #0d9488;
 
   /* What a card tint is mixed into: white in light mode, the card in dark. */
   --accent-base: #ffffff;
@@ -440,6 +442,16 @@
   [data-accent='6'] {
     --accent: var(--accent-6);
   }
+  [data-accent='speaking'] {
+    --accent: var(--accent-speaking);
+  }
+  /* Idea categories that have no card accent: red disadvantage, indigo default. */
+  [data-accent='error'] {
+    --accent: var(--color-error);
+  }
+  [data-accent='primary'] {
+    --accent: var(--color-primary);
+  }
 
   .accent-card {
     background-image: linear-gradient(
@@ -467,6 +479,25 @@
   .accent-dot-text {
     background-color: color-mix(in srgb, var(--accent) 80%, black);
     color: #fff;
+  }
+
+  /*
+   * Unit cards. The app paints these from the three container tones
+   * (primary, then secondary, then tertiary), not from the six book accents.
+   * Mixing each container into the card surface keeps one look in both themes.
+   */
+  .jelly-card {
+    background-image: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-primary-container) 58%, var(--color-surface-1)),
+      color-mix(in oklab, var(--color-secondary-container) 45%, var(--color-surface-1)),
+      color-mix(in oklab, var(--color-tertiary-container) 52%, var(--color-surface-1))
+    );
+    border: 1.4px solid color-mix(in oklab, white 72%, transparent);
+  }
+
+  :root[data-theme='dark'] .jelly-card {
+    border-color: color-mix(in oklab, white 14%, transparent);
   }
 
   /* The hero wash. */

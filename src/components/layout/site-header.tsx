@@ -5,6 +5,8 @@ import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { MainNav } from '@/components/layout/main-nav';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { IconSearch, IconSettings } from '@/components/ui/icons';
+import { fetchAccount } from '@/lib/auth/api';
+import { getAuthToken } from '@/lib/auth/session';
 import type { Locale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
 import { NAV_ITEMS, localeHref } from '@/lib/nav';
@@ -26,6 +28,12 @@ const INNER =
 export async function SiteHeader({ locale }: { locale: Locale }) {
   const gloss = await getGloss(locale);
   const t = getTranslator(locale);
+  const token = await getAuthToken();
+  let signedIn = false;
+  if (token) {
+    const me = await fetchAccount(token);
+    signedIn = me !== 'unauthorized' && me !== 'unavailable';
+  }
 
   const navLabels: Record<string, string> = {
     navPrimary: t('primaryNavigation'),
@@ -51,9 +59,8 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
             className="rounded-[var(--radius-logo)]"
           />
           {/*
-            The wordmark and Sign in appear only from lg. At md the five
-            section pills plus the controls already fill the bar, and adding
-            either pushed the header past the viewport at exactly 768 px.
+            The wordmark appears only from lg. At md the section pills plus
+            the controls already fill the bar.
           */}
           <span className="text-on-surface hidden text-[length:var(--text-h4)] font-bold lg:inline">
             Erfan Academy
@@ -86,25 +93,17 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
 
           <ThemeToggle labels={{ lightMode: t('lightMode'), darkMode: t('darkMode') }} />
 
-          {/*
-            Sign in needs accounts, which Phase 1 does not have. It is drawn as
-            the design shows but marked unavailable, rather than shipped as a
-            button that silently does nothing.
-          */}
-          <button
-            type="button"
-            aria-disabled="true"
-            title={t('comingWithAccounts')}
-            className="bg-primary text-on-primary ms-1 hidden min-h-10 cursor-not-allowed items-center rounded-full px-4 font-semibold opacity-90 lg:inline-flex"
+          <Link
+            href={localeHref(locale, signedIn ? '/you' : `/login?next=/${locale}/you`)}
+            className="bg-primary text-on-primary ms-1 hidden min-h-10 items-center rounded-full px-4 font-semibold no-underline lg:inline-flex"
           >
-            {t('signIn')}
-            <span className="sr-only"> — {t('comingWithAccounts')}</span>
-          </button>
+            {signedIn ? t('tabYou') : t('signIn')}
+          </Link>
 
           <Link
-            href={localeHref(locale, '/download')}
+            href={localeHref(locale, '/settings')}
             aria-label={t('settingsLabel')}
-            title={t('downloadTitle')}
+            title={t('settingsTitle')}
             className="text-on-surface hover:bg-surface-2 hidden size-11 items-center justify-center rounded-full no-underline transition-colors duration-[var(--duration-fast)] sm:inline-flex"
           >
             <IconSettings className="size-5" />

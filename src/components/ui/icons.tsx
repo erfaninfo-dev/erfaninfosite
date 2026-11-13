@@ -45,6 +45,13 @@ export const IconHome = (p: IconProps) => (
   </Svg>
 );
 
+export const IconArticle = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M7 3.5h7l5 5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" />
+    <path d="M14 3.5V9h5M9 13h6M9 17h6" />
+  </Svg>
+);
+
 export const IconBook = (p: IconProps) => (
   <Svg {...p}>
     <path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19a1 1 0 0 1 1 1v14" />
@@ -161,6 +168,40 @@ export const IconStar = (p: IconProps) => (
   </Svg>
 );
 
+export const IconBookmark = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-3.5L6 20V5.5a1 1 0 0 1 1-1Z" />
+  </Svg>
+);
+
+export const IconFire = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 3s4 3.2 4 7.2A4 4 0 0 1 8 10c0-1.2.6-2.2 1.2-3.2C8 8.2 7 9.6 7 11.5A5 5 0 0 0 12 16.5 5 5 0 0 0 17 11.2C17 6.8 12 3 12 3Z" />
+  </Svg>
+);
+
+export const IconVolume = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 10v4h3l4 3V7L7 10H4Z" />
+    <path d="M15 9.5a3.5 3.5 0 0 1 0 5M17.5 7a6.5 6.5 0 0 1 0 10" />
+  </Svg>
+);
+
+export const IconVoice = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 4a2.5 2.5 0 0 1 2.5 2.5V12a2.5 2.5 0 0 1-5 0V6.5A2.5 2.5 0 0 1 12 4Z" />
+    <path d="M7 11a5 5 0 0 0 10 0M12 16v3" />
+  </Svg>
+);
+
+export const IconQuiz = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="4" y="3" width="16" height="18" rx="2" />
+    <path d="M9 9a3 3 0 1 1 3.5 2.9c-.6.2-1 .7-1 1.3V14" />
+    <path d="M12 17.5h.01" />
+  </Svg>
+);
+
 export const IconCards = (p: IconProps) => (
   <Svg {...p}>
     <rect x="3" y="6" width="13" height="14" rx="2" />
@@ -179,6 +220,13 @@ export const IconSparkle = (p: IconProps) => (
   <Svg {...p}>
     <path d="m12 3 1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9Z" />
     <path d="M18 15.5 18.8 17.4l1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8Z" />
+  </Svg>
+);
+
+export const IconCopy = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="8" y="8" width="11" height="12" rx="2" />
+    <path d="M16 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2" />
   </Svg>
 );
 
@@ -223,6 +271,64 @@ export const IconSettings = (p: IconProps) => (
     <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
     <circle cx="16" cy="7" r="2.2" />
     <circle cx="10" cy="17" r="2.2" />
+  </Svg>
+);
+
+export const IconPerson = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="8" r="3.5" />
+    <path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" />
+  </Svg>
+);
+
+export const IconInsights = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 19V5M4 19h16" />
+    <path d="M8 15v-4M12 15V9M16 15v-6" />
+  </Svg>
+);
+
+export const IconLoop = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M17 3a8 8 0 0 1 0 14" />
+    <path d="M17 3h3v3" />
+    <path d="M7 21a8 8 0 0 1 0-14" />
+    <path d="M7 21H4v-3" />
+  </Svg>
+);
+
+export const IconMessage = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 4V7a2 2 0 0 1 2-2Z" />
+  </Svg>
+);
+
+export const IconFlag = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M6 3v18" />
+    <path d="M6 4h9l-2 4 2 4H6" />
+  </Svg>
+);
+
+export const IconKey = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="9" cy="15" r="4" />
+    <path d="M13 15h7M17 11v8" />
+  </Svg>
+);
+
+export const IconLogin = (p: IconProps) => (
+  <Svg {...p} className={cn('rtl-flip', p.className)}>
+    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+    <path d="M10 12H3m0 0 3-3m-3 3 3 3" />
+  </Svg>
+);
+
+export const IconPersonAdd = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M3 20c0-3.3 2.7-6 6-6" />
+    <path d="M19 8v6M16 11h6" />
   </Svg>
 );
 

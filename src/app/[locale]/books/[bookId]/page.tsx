@@ -1,16 +1,19 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { ButtonLink } from '@/components/ui/button';
-import { Card, CardGrid, CardLink } from '@/components/ui/card';
+import { UnitGrid } from '@/components/features/books/unit-grid';
+import { QuizFab } from '@/components/features/quiz/quiz-fab';
+import { Card } from '@/components/ui/card';
 import { ExternalLink } from '@/components/ui/external-link';
-import { IconChevron, IconPdf, IconSearch } from '@/components/ui/icons';
-import { Badge, Container, PageHeader, SectionHeading } from '@/components/ui/primitives';
+import { IconArrowBack, IconPdf } from '@/components/ui/icons';
+import { Container, SectionHeading } from '@/components/ui/primitives';
 import { CardGridSkeleton } from '@/components/ui/states';
+import { IDIOMS_SPEAKING_BOOK_ID } from '@/lib/api/normalize';
 import { getBook, getBookPdfs, getUnits } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
-import { getTranslator } from '@/lib/i18n/messages';
+import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
 
 /** Route params are strings; anything not a positive integer is a 404. */
@@ -31,21 +34,19 @@ export async function generateMetadata({
   const book = await getBook(id);
   if (!book) return {};
 
+  const t = getTranslator(locale);
   return {
-    title: book.title,
+    title: `${t('unitsTitle')} · ${book.title}`,
     description: book.description || undefined,
     alternates: { canonical: `/${locale}/books/${id}` },
   };
 }
 
 /**
- * The page body reads `params` inside `<Suspense>` rather than at the top.
- *
- * Book ids are deliberately not pre-rendered (a deleted book must not survive
- * as a stale static page), so without this the whole route would be blocked
- * from prerendering and every visitor would wait on the API for the shell too.
- * This way the header, navigation and page frame are static, and only the data
- * streams.
+ * A book's units. The app bar says "Units", not the book title, and the grid
+ * is the same 2 / 3 / 4 columns the app uses. Column order follows the locale;
+ * only the inside of a card is left-to-right. Study PDFs stay on this page
+ * because the series card's PDF button links here.
  */
 export default async function BookPage({
   params,
@@ -64,37 +65,27 @@ export default async function BookPage({
   if (!book) notFound();
 
   const t = getTranslator(locale);
+  const backHref = book.seriesId
+    ? localeHref(locale, `/books/series/${book.seriesId}`)
+    : localeHref(locale);
 
   return (
-    <Container>
-      <PageHeader
-        title={book.title}
-        description={book.description || undefined}
-        meta={
-          <Badge tone={book.track === 'ielts' ? 'primary' : 'neutral'}>
-            {book.track === 'ielts' ? t('homeTrackIelts') : t('homeTrackGeneral')}
-          </Badge>
-        }
-        actions={
-          <ButtonLink
-            href={localeHref(locale, `/books/${id}/words`)}
-            variant="secondary"
-            size="md"
-          >
-            <IconSearch className="size-5" />
-            {t('searchWordWholeBook')}
-          </ButtonLink>
-        }
-      />
+    <Container className="pb-28">
+      <div className="mb-4 flex items-center gap-2">
+        <Link
+          href={backHref}
+          aria-label={t('backToBooks')}
+          className="bg-surface-1 text-on-surface-variant shadow-[var(--shadow-soft)] grid size-11 shrink-0 place-items-center rounded-full"
+        >
+          <IconArrowBack className="size-5" />
+        </Link>
+        <h1 className="text-on-surface truncate text-lg font-extrabold">{t('unitsTitle')}</h1>
+      </div>
 
-      <section className="mb-10">
-        <SectionHeading>{t('unitPlural')}</SectionHeading>
-        <Suspense fallback={<CardGridSkeleton count={6} />}>
-          <UnitGrid bookId={id} locale={locale} />
-        </Suspense>
-      </section>
+      <Suspense fallback={<CardGridSkeleton count={6} />}>
+        <UnitBrowser bookId={id} locale={locale} idioms={id === IDIOMS_SPEAKING_BOOK_ID} />
+      </Suspense>
 
-      {/* PDFs are a small, separate fetch: they stream in on their own. */}
       <Suspense fallback={null}>
         <BookPdfs bookId={id} locale={locale} />
       </Suspense>
@@ -102,40 +93,41 @@ export default async function BookPage({
   );
 }
 
-async function UnitGrid({ bookId, locale }: { bookId: number; locale: Locale }) {
+async function UnitBrowser({
+  bookId,
+  locale,
+  idioms,
+}: {
+  bookId: number;
+  locale: Locale;
+  idioms: boolean;
+}) {
   const units = await getUnits(bookId);
   const t = getTranslator(locale);
-
-  if (units.length === 0) {
-    // A book with no units yet is legitimate — an empty state, not a 404.
-    return (
-      <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
-        {t('noMatchingUnits')}
-      </p>
-    );
-  }
+  const raw = getRawMessage(locale);
 
   return (
-    <CardGrid min="13rem">
-      {units.map((unit) => (
-        <CardLink
-          key={unit.unit}
-          href={localeHref(locale, `/books/${bookId}/units/${unit.unit}`)}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-on-surface text-[length:var(--text-h4)]">
-              {t('unitLabel', { unit: unit.unit })}
-            </h3>
-            <IconChevron className="text-on-surface-variant size-5 shrink-0" />
-          </div>
-          {unit.details ? (
-            <p className="text-on-surface-variant mt-1.5 text-[length:var(--text-label)]">
-              <bdi lang="en">{unit.details}</bdi>
-            </p>
-          ) : null}
-        </CardLink>
-      ))}
-    </CardGrid>
+    <>
+      <UnitGrid
+        bookId={bookId}
+        units={units}
+        locale={locale}
+        layout={idioms ? 'idioms' : 'units'}
+        labels={{
+          search: t('searchUnitsHint'),
+          hintTemplate: raw('unitsGridHint'),
+          unitLabelTemplate: raw('unitLabel'),
+          tapToOpen: t('tapToOpen'),
+          noMatch: t('noMatchingUnits'),
+          none: t('noUnitsFound'),
+          retry: t('retry'),
+          clear: t('close'),
+        }}
+      />
+      {units.length > 0 && !idioms ? (
+        <QuizFab href={localeHref(locale, `/books/${bookId}/quiz`)} label={t('tooltipQuiz')} />
+      ) : null}
+    </>
   );
 }
 
@@ -147,7 +139,7 @@ async function BookPdfs({ bookId, locale }: { bookId: number; locale: Locale }) 
   const t = getTranslator(locale);
 
   return (
-    <section>
+    <section id="study-pdfs" className="mt-10">
       <SectionHeading>{t('bookStudyPdfTooltip')}</SectionHeading>
       <Card className="divide-outline-variant/50 divide-y p-0">
         {pdfs.map((pdf) => (

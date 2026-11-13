@@ -35,14 +35,28 @@ function getServerSnapshot(): 'light' | 'dark' {
   return 'light';
 }
 
+/** Apply light, dark, or the system preference, and tell every toggle. */
+export function applyTheme(next: Theme) {
+  const resolved =
+    next === 'system'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      : next;
+  document.documentElement.dataset.theme = resolved;
+  if (next === 'system') {
+    document.cookie = `${THEME_COOKIE}=; path=/; max-age=0`;
+  } else {
+    setPreferenceCookie(THEME_COOKIE, next);
+  }
+  for (const listener of listeners) listener();
+}
+
 export function ThemeToggle({ labels }: { labels: Record<string, string> }) {
   const resolved = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const toggle = useCallback(() => {
-    const next: Theme = resolved === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    setPreferenceCookie(THEME_COOKIE, next);
-    for (const listener of listeners) listener();
+    applyTheme(resolved === 'dark' ? 'light' : 'dark');
   }, [resolved]);
 
   const isDark = resolved === 'dark';

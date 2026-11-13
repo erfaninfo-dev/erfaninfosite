@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import {
   Flashcards,
@@ -14,7 +14,7 @@ import { glossOf } from '@/lib/api/normalize';
 import { getGameCategory } from '@/lib/api/queries';
 import { isLocale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
-import { localeHref } from '@/lib/nav';
+import { PLAY_SECTION_VISIBLE, localeHref } from '@/lib/nav';
 import { seededShuffle } from '@/lib/shuffle';
 import { getGloss } from '@/lib/request-context';
 
@@ -44,6 +44,7 @@ export default async function PlayCategoryPage({
 }: PageProps<'/[locale]/play/[slug]'>) {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
+  if (!PLAY_SECTION_VISIBLE) redirect(localeHref(locale, ''));
   const safe = parseSlug(slug);
   if (!safe) notFound();
 

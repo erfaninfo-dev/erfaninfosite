@@ -23,12 +23,31 @@ test.describe('vocabulary', () => {
       await firstBook.click();
 
       await page.waitForLoadState('networkidle');
+      // A series card opens the volume list before any single book, as in the app.
+      if (/\/books\/series\//.test(page.url())) {
+        const volume = page.locator('main a[href*="/books/"]:not([href*="/series/"])').first();
+        await expect(volume).toBeVisible();
+        await volume.click();
+        await page.waitForLoadState('networkidle');
+      }
+
       const firstUnit = page.locator('main a[href*="/units/"]').first();
       await expect(firstUnit).toBeVisible();
       await firstUnit.click();
 
       await page.waitForLoadState('networkidle');
-      // The unit page shows real words with a search field over them.
+      // A unit that has sections opens that list before the words, as in the app.
+      // A unit without sections lands on the word list directly.
+      const search = page.locator('main input[type="search"]');
+      if ((await search.count()) === 0) {
+        const section = page.locator('main a[href*="/sections/"]').first();
+        await expect(section).toBeVisible();
+        await section.click();
+        await page.waitForLoadState('networkidle');
+      }
+      // The app opens the sample tab first. The word search lives on Words.
+      const wordsTab = page.getByRole('tab', { name: /words|واژه|وشە/i });
+      if ((await wordsTab.count()) > 0) await wordsTab.click();
       await expect(page.locator('main input[type="search"]')).toBeVisible();
     });
   }
@@ -37,36 +56,34 @@ test.describe('vocabulary', () => {
     await page.goto('/en/books/2/units/1', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
+    const wordsTab = page.getByRole('tab', { name: /words|واژه|وشە/i });
+    if ((await wordsTab.count()) > 0) await wordsTab.click();
+
     const search = page.locator('main input[type="search"]');
     await expect(search).toBeVisible();
 
-    const before = await page.locator('main [data-word-row]').count();
+    const before = await page.locator('main [data-vocab-card]').count();
     await search.fill('zzzzzznotaword');
     await page.waitForTimeout(400);
-    const after = await page.locator('main [data-word-row]').count();
+    const after = await page.locator('main [data-vocab-card]').count();
 
     expect(after).toBeLessThan(before);
     await expect(page.locator('main')).toContainText(/no matching|نتیجه|هیچ/i);
   });
 
-  test('tapping a word opens its detail as a sheet', async ({ page }) => {
+  test('a word card already shows its meaning', async ({ page }) => {
     await page.goto('/en/books/2/units/1', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
 
-    const firstRow = page.locator('main [data-word-row]').first();
-    await expect(firstRow).toBeVisible();
-    const word = (await firstRow.locator('bdi').first().innerText()).trim();
+    const wordsTab = page.getByRole('tab', { name: /words|واژه|وشە/i });
+    if ((await wordsTab.count()) > 0) await wordsTab.click();
 
-    await firstRow.click();
-
-    // The app opens a sheet rather than expanding the row in place.
-    const sheet = page.locator('dialog[open]');
-    await expect(sheet).toBeVisible();
-    await expect(sheet).toContainText(word);
-
-    await page.keyboard.press('Escape');
-    await expect(sheet).toHaveCount(0);
-    // The list is still where it was: a sheet does not navigate.
+    const card = page.locator('main [data-vocab-card]').first();
+    await expect(card).toBeVisible();
+    const word = (await card.locator('h2 bdi').first().innerText()).trim();
+    expect(word.length).toBeGreaterThan(0);
+    await expect(card).toContainText(word);
+    // The meaning sits on the card. Opening it does not navigate away.
     await expect(page.locator('main input[type="search"]')).toBeVisible();
   });
 

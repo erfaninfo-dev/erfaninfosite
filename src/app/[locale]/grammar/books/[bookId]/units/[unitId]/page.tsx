@@ -5,9 +5,10 @@ import { Suspense } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { IconArrowBack } from '@/components/ui/icons';
-import { Container, PageHeader, Prose, StudyText } from '@/components/ui/primitives';
+import { Container, PageHeader } from '@/components/ui/primitives';
 import { EmptyState, Skeleton } from '@/components/ui/states';
 import { bilingualFor, bilingualIsFallback } from '@/lib/api/normalize';
+import { parseGrammarLessonLines } from '@/lib/grammar/lesson-lines';
 import { getGrammarBook, getGrammarUnit, getGrammarUnitTexts } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
@@ -90,6 +91,39 @@ export default async function GrammarUnitPage({
  * language triple, and the Kurdish one is often empty. When it is, the Persian
  * document is shown with a note, rather than a blank panel.
  */
+function LessonBody({ body, glossLang }: { body: string; glossLang: 'fa' | 'ckb' }) {
+  const lines = parseGrammarLessonLines(body);
+  return (
+    <div className="max-w-[var(--container-prose)] space-y-1.5">
+      {lines.map((line, index) =>
+        line.kind === 'local' ? (
+          <p
+            key={index}
+            lang={glossLang}
+            dir="rtl"
+            className="text-primary text-right text-[0.9375rem] leading-relaxed font-bold"
+          >
+            {line.text}
+          </p>
+        ) : (
+          <p
+            key={index}
+            lang="en"
+            dir="ltr"
+            className={
+              line.kind === 'heading'
+                ? 'text-on-surface mt-4 text-left text-base font-extrabold'
+                : 'text-on-surface text-left text-[0.9375rem] leading-relaxed'
+            }
+          >
+            {line.text}
+          </p>
+        )
+      )}
+    </div>
+  );
+}
+
 async function LessonTexts({ unitId, locale }: { unitId: number; locale: Locale }) {
   const [texts, gloss] = await Promise.all([
     getGrammarUnitTexts(unitId),
@@ -122,9 +156,7 @@ async function LessonTexts({ unitId, locale }: { unitId: number; locale: Locale 
               {t('notAvailableInKurdish')}
             </p>
           ) : null}
-          <Prose>
-            <StudyText>{text.body}</StudyText>
-          </Prose>
+          <LessonBody body={text.body} glossLang={gloss} />
         </Card>
       ))}
     </div>

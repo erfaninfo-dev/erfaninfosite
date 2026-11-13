@@ -2,17 +2,16 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { SpeakingAnswerCard } from '@/components/features/speaking/answer-card';
-import { ButtonLink } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { IconArrowBack } from '@/components/ui/icons';
-import { Container, PageHeader } from '@/components/ui/primitives';
-import { EmptyState, Skeleton } from '@/components/ui/states';
+import {
+  ModelQuestions,
+  type ModelQuestionLabels,
+} from '@/components/features/speaking/model-questions';
+import { Container } from '@/components/ui/primitives';
+import { Skeleton } from '@/components/ui/states';
 import { ApiError } from '@/lib/api/errors';
 import { getSpeakingModel, getSpeakingModelQuestions } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
-import { getTranslator } from '@/lib/i18n/messages';
-import { localeHref } from '@/lib/nav';
+import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { getGloss } from '@/lib/request-context';
 
 function parseId(value: string): number | null {
@@ -30,10 +29,11 @@ export async function generateMetadata({
   if (id === null) return {};
   const model = await getSpeakingModel(id);
   if (!model) return {};
+  const t = getTranslator(locale);
 
   return {
-    title: model.title,
-    description: model.formula || undefined,
+    title: t('speakingModelNumber', { number: model.modelNumber }),
+    description: model.title || model.formula || undefined,
     alternates: { canonical: `/${locale}/speaking/models/${id}` },
   };
 }
@@ -41,9 +41,8 @@ export async function generateMetadata({
 /**
  * A model answer pattern.
  *
- * Note the envelope: `speaking_questions.php?model_id=` returns
- * `{model, questions}`, while `?topic_id=` returns `{topic, questions}`. Two
- * shapes from one endpoint — see docs/api-contract.md §1.
+ * `speaking_questions.php?model_id=` returns `{model, questions}`, while
+ * `?topic_id=` returns `{topic, questions}`. Two shapes from one endpoint.
  */
 export default async function SpeakingModelPage({
   params,
@@ -56,66 +55,18 @@ export default async function SpeakingModelPage({
   const model = await getSpeakingModel(id);
   if (!model) notFound();
 
-  const t = getTranslator(locale);
-
   return (
     <Container>
-      <ButtonLink
-        href={localeHref(locale, '/speaking')}
-        variant="ghost"
-        size="md"
-        className="mb-5"
-      >
-        <IconArrowBack className="size-5" />
-        {t('speakingPart1Title')}
-      </ButtonLink>
-
-      <PageHeader
-        title={model.title}
-        meta={
-          <span className="text-on-surface-variant text-[length:var(--text-label)]">
-            {t('speakingModelNumber', { number: model.modelNumber })}
-          </span>
-        }
-      />
-
-      {model.formula || model.template ? (
-        <Card className="mb-8 space-y-4">
-          {model.formula ? (
-            <div>
-              <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
-                {t('speakingFormula')}
-              </p>
-              <p lang="en" dir="ltr" className="mt-1">
-                {model.formula}
-              </p>
-            </div>
-          ) : null}
-          {model.template ? (
-            <div>
-              <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
-                {t('speakingTemplate')}
-              </p>
-              {/* The [brackets] in a template are literal content, not markup. */}
-              <p lang="en" dir="ltr" className="mt-1 max-w-[var(--container-prose)]">
-                {model.template}
-              </p>
-            </div>
-          ) : null}
-        </Card>
-      ) : null}
-
-      <Suspense
-        fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}
-      >
-        <ModelQuestions modelId={id} locale={locale} />
+      <Suspense fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}>
+        <Model modelId={id} locale={locale} />
       </Suspense>
     </Container>
   );
 }
 
-async function ModelQuestions({ modelId, locale }: { modelId: number; locale: Locale }) {
+async function Model({ modelId, locale }: { modelId: number; locale: Locale }) {
   const t = getTranslator(locale);
+  const raw = getRawMessage(locale);
   const gloss = await getGloss(locale);
 
   let data;
@@ -126,20 +77,30 @@ async function ModelQuestions({ modelId, locale }: { modelId: number; locale: Lo
     throw error;
   }
 
-  if (data.questions.length === 0) {
-    return <EmptyState title={t('speakingNoQuestions')} />;
-  }
+  const labels: ModelQuestionLabels = {
+    back: t('back'),
+    modelAnswer: t('speakingModelAnswer'),
+    modelNumberTemplate: raw('speakingModelNumber'),
+    subtitleTemplate: raw('speakingModelQuestionsSubtitle'),
+    expandAll: t('speakingExpandAll'),
+    collapseAll: t('speakingCollapseAll'),
+    formula: t('speakingFormula'),
+    template: t('speakingTemplate'),
+    sampleAnswer: t('speakingSampleAnswer'),
+    bandAnswerTemplate: raw('speakingBandAnswer'),
+    copied: t('speakingAnswerCopied'),
+    persian: t('grammarExplanationTabFa'),
+    kurdish: t('translationLangKurdiTab'),
+    noQuestions: t('speakingNoQuestions'),
+  };
 
   return (
-    <div className="space-y-5">
-      {data.questions.map((question) => (
-        <SpeakingAnswerCard
-          key={question.id}
-          question={question}
-          locale={locale}
-          gloss={gloss}
-        />
-      ))}
-    </div>
+    <ModelQuestions
+      model={data.model}
+      questions={data.questions}
+      locale={locale}
+      gloss={gloss}
+      labels={labels}
+    />
   );
 }

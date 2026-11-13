@@ -228,6 +228,8 @@ export type RawSpeakingModel = z.infer<typeof speakingModelSchema>;
 const speakingBandAnswerSchema = z.object({
   band: z.union([z.string(), z.number()]).transform(String).nullish(),
   answer: nullableText,
+  fa_answer: nullableText,
+  kur_answer: nullableText,
 });
 
 export const speakingQuestionSchema = z.object({
@@ -277,6 +279,29 @@ export const speakingTopicIdeasSchema = z.object({
   ),
 });
 export type RawSpeakingIdeas = z.infer<typeof speakingTopicIdeasSchema>;
+
+/** `speaking_topic_ideas_search.php?q=&topic_id=&part=1` */
+export const speakingIdeasSearchSchema = z.object({
+  query: z.string().nullish(),
+  priority_topic_id: z.number().nullish(),
+  results: z.array(
+    z.object({
+      id: z.number(),
+      topic: z.object({ id: z.number(), title: z.string() }).nullish(),
+      category: z.string(),
+      category_title_en: nullableText,
+      phrase: nullableText,
+      example: nullableText,
+      band_text: z.union([z.string(), z.number()]).transform(String).nullish(),
+      sort_order: z.number().nullish(),
+      is_current_topic: z
+        .union([z.boolean(), z.number()])
+        .nullish()
+        .transform((value) => value === true || value === 1),
+    })
+  ),
+});
+export type RawSpeakingIdeasSearch = z.infer<typeof speakingIdeasSearchSchema>;
 
 /* ── word games ──────────────────────────────────────────────────────────── */
 

@@ -2,6 +2,10 @@ import 'server-only';
 
 import { cache } from 'react';
 
+import { fetchAccount, fetchStudentBooks } from '@/lib/auth/api';
+import { hasClassAccess } from '@/lib/auth/account';
+import { getAuthToken } from '@/lib/auth/session';
+
 import { CATALOG, CATALOG_SLOW, apiGet } from './client';
 import { ENDPOINTS, TAGS, entityTag } from './endpoints';
 import * as N from './normalize';
@@ -120,14 +124,23 @@ export const getSections = cache(
   }
 );
 
-/** Also requires both params. Coverage is patchy; an empty list is normal. */
+/**
+ * Also requires both params. Coverage is patchy; an empty list is normal.
+ *
+ * Passing `section` is what the app does on a section's word screen. Without
+ * it this endpoint often returns `[]` even when that section has a passage.
+ */
 export const getUnitSamples = cache(
-  async (bookId: number, unit: number): Promise<N.UnitSample[]> => {
+  async (bookId: number, unit: number, section?: number): Promise<N.UnitSample[]> => {
     const raw = await apiGet(
       ENDPOINTS.unitSamples,
       S.unitSamplesSchema,
       { ...CATALOG, tags: [TAGS.books, entityTag.book(bookId)] },
-      { book_id: bookId, unit }
+      {
+        book_id: bookId,
+        unit,
+        ...(section != null && section > 0 ? { section } : {}),
+      }
     );
     return raw.map(N.normalizeUnitSample).sort((a, b) => a.id - b.id);
   }
@@ -262,10 +275,12 @@ export const getGrammarTopicPdfs = cache(
 /* ── speaking ────────────────────────────────────────────────────────────── */
 
 export const getSpeakingTopics = cache(async (): Promise<N.SpeakingTopic[]> => {
-  const raw = await apiGet(ENDPOINTS.speakingTopics, S.speakingTopicsSchema, {
-    ...CATALOG,
-    tags: [TAGS.speaking],
-  });
+  const raw = await apiGet(
+    ENDPOINTS.speakingTopics,
+    S.speakingTopicsSchema,
+    { ...CATALOG, tags: [TAGS.speaking] },
+    { part: 1 }
+  );
   return raw
     .map(N.normalizeSpeakingTopic)
     .filter((t) => t.questionCount > 0)
@@ -278,10 +293,12 @@ export async function getSpeakingTopic(topicId: number): Promise<N.SpeakingTopic
 }
 
 export const getSpeakingModels = cache(async (): Promise<N.SpeakingModel[]> => {
-  const raw = await apiGet(ENDPOINTS.speakingModels, S.speakingModelsSchema, {
-    ...CATALOG,
-    tags: [TAGS.speaking],
-  });
+  const raw = await apiGet(
+    ENDPOINTS.speakingModels,
+    S.speakingModelsSchema,
+    { ...CATALOG, tags: [TAGS.speaking] },
+    { part: 1 }
+  );
   return raw
     .map(N.normalizeSpeakingModel)
     .sort((a, b) => a.modelNumber - b.modelNumber || a.id - b.id);
@@ -331,9 +348,9 @@ export const getSpeakingModelQuestions = cache(
         ...raw.model,
         question_count: raw.questions.length,
       }),
-      questions: raw.questions
-        .map(N.normalizeSpeakingQuestion)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id),
+      // The app lists these in payload order. sort_order belongs to the
+      // question's own topic, so sorting here would reshuffle the model.
+      questions: raw.questions.map(N.normalizeSpeakingQuestion),
     };
   }
 );
@@ -352,6 +369,19 @@ export const getSpeakingTopicIdeas = cache(
       { topic_id: topicId }
     );
     return N.normalizeSpeakingIdeas(raw);
+  }
+);
+
+/** Ideas search across topics, with the open topic ranked first. `part=1`. */
+export const searchSpeakingTopicIdeas = cache(
+  async (topicId: number, query: string): Promise<N.SpeakingIdeaSearchHit[]> => {
+    const raw = await apiGet(
+      ENDPOINTS.speakingIdeasSearch,
+      S.speakingIdeasSearchSchema,
+      { ...CATALOG, tags: [TAGS.speaking, entityTag.speakingTopic(topicId)] },
+      { q: query, topic_id: topicId, part: 1 }
+    );
+    return N.normalizeSpeakingIdeasSearch(raw);
   }
 );
 

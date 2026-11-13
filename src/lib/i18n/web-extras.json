@@ -150,7 +150,7 @@
   "unitCount": {
     "en": "{count, plural, =1{1 unit} other{{count} units}}",
     "fa": "{count, plural, =1{۱ یونیت} other{{count} یونیت}}",
-    "ckb": "{count, plural, =1{١ یەکە} other{{count} یەکە}}"
+    "ckb": "{count, plural, =1{١ یەکە} other{{count} یەکەکان}}"
   },
   "topicCount": {
     "en": "{count, plural, =1{1 topic} other{{count} topics}}",

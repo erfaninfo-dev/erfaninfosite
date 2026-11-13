@@ -6,10 +6,11 @@ import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'r
 import { WordRow, type WordRowData } from '@/components/features/vocab/word-row';
 import { WordSheet, type WordSheetLabels } from '@/components/features/vocab/word-sheet';
 import { Badge } from '@/components/ui/primitives';
-import { IconSearch } from '@/components/ui/icons';
+import { IconClose, IconSearch } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { formatClient } from '@/lib/i18n/client-format';
 import type { Locale } from '@/lib/i18n/config';
+import { searchBookWords } from '@/lib/vocab/search-words';
 
 /**
  * A searchable, filterable word list.
@@ -40,18 +41,25 @@ export function WordList({
   glossLang,
   types,
   locale,
+  bookId,
+  plain = false,
 }: {
   words: WordRowData[];
   labels: WordListLabels;
   glossLang: 'fa' | 'ckb';
   types: string[];
   locale: Locale;
+  /** When set, a typed query searches every word of the book, not just `words`. */
+  bookId?: number;
+  /** The study screen: headword search only, no type or important filters. */
+  plain?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [type, setType] = useState('');
   const [importantOnly, setImportantOnly] = useState(false);
   // One sheet for the whole list, not one per row.
   const [selected, setSelected] = useState<WordRowData | null>(null);
+  const [bookMatches, setBookMatches] = useState<WordRowData[] | null>(null);
   const searchId = useId();
 
   /*
@@ -60,20 +68,41 @@ export function WordList({
    * priority, which is the behaviour a 250 ms debounce approximates.
    */
   const deferredQuery = useDeferredValue(query);
+  const needle = deferredQuery.trim().toLowerCase();
+
+  useEffect(() => {
+    if (!bookId || !needle) {
+      setBookMatches(null);
+      return;
+    }
+    let cancel = false;
+    setBookMatches(null);
+    searchBookWords(bookId, needle, locale)
+      .then((rows) => {
+        if (!cancel) setBookMatches(rows);
+      })
+      .catch(() => {
+        if (!cancel) setBookMatches([]);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [bookId, locale, needle]);
 
   const filtered = useMemo(() => {
-    const needle = deferredQuery.trim().toLowerCase();
+    if (bookMatches && needle) return bookMatches;
     return words.filter((w) => {
-      if (importantOnly && !w.important) return false;
-      if (type && w.type !== type) return false;
+      if (!plain && importantOnly && !w.important) return false;
+      if (!plain && type && w.type !== type) return false;
       if (!needle) return true;
+      if (plain || bookId) return w.word.toLowerCase().includes(needle);
       return (
         w.word.toLowerCase().includes(needle) ||
         w.meaning.toLowerCase().includes(needle) ||
         w.example.toLowerCase().includes(needle)
       );
     });
-  }, [words, deferredQuery, type, importantOnly]);
+  }, [bookId, bookMatches, importantOnly, needle, plain, type, words]);
 
   const anyImportant = useMemo(() => words.some((w) => w.important), [words]);
   const resultsLabel = formatClient(labels.resultsTemplate, locale, {
@@ -95,13 +124,23 @@ export function WordList({
             className={cn(
               'bg-surface-3 h-12 w-full rounded-[var(--radius-input)] border-0 ps-11 pe-4',
               // 16px minimum, which also stops iOS zooming on focus.
-              'text-on-surface placeholder:text-on-surface-variant text-[length:var(--text-body)]',
+              'text-on-surface placeholder:text-on-surface-variant pe-12 text-[length:var(--text-body)]',
               'dark:bg-surface-3'
             )}
           />
+          {query ? (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="text-on-surface-variant absolute end-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full"
+              aria-label={labels.sheet.close}
+            >
+              <IconClose className="size-4" />
+            </button>
+          ) : null}
         </div>
 
-        {(types.length > 1 || anyImportant) && (
+        {!plain && (types.length > 1 || anyImportant) && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {types.length > 1 ? (
               <select

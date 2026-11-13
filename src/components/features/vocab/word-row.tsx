@@ -67,7 +67,7 @@ export function WordRow({
           ) : null}
         </span>
 
-        <bdi lang={glossLang} className="text-on-surface-variant min-w-0 flex-1 text-end">
+        <bdi lang={glossLang} dir="rtl" className="text-on-surface-variant min-w-0 flex-1 text-right">
           {data.meaning}
         </bdi>
 

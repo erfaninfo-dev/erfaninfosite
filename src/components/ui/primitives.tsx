@@ -100,12 +100,14 @@ export function Isolated({ children }: { children: ReactNode }) {
 export function StudyText({
   children,
   className,
+  dir,
 }: {
   children: string;
   className?: string;
+  dir?: 'ltr' | 'rtl';
 }) {
   return (
-    <div className={cn('study-text max-w-[var(--container-prose)]', className)}>
+    <div dir={dir} className={cn('study-text max-w-[var(--container-prose)]', className)}>
       {children}
     </div>
   );

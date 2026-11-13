@@ -1,10 +1,10 @@
 'use client';
 
 import type { Route } from 'next';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button, ButtonLink } from '@/components/ui/button';
-import { IconCheck, IconCross, IconRefresh } from '@/components/ui/icons';
+import { IconCheck, IconCross, IconLightbulb, IconRefresh } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { formatClient } from '@/lib/i18n/client-format';
 import { NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
@@ -26,9 +26,29 @@ export type QuizQuestion = {
   questionText: string;
   options: Array<{ key: string; text: string }>;
   correctAnswer: string;
-  /** Already resolved to the reader's language on the server. */
-  explanation: string;
+  explanation: { en: string; fa: string; ckb: string };
 };
+
+type ExplanationTab = 'fa' | 'ckb';
+
+function explanationForTab(
+  explanation: QuizQuestion['explanation'],
+  tab: ExplanationTab
+): { text: string; lang: 'fa' | 'ckb' | 'en' } {
+  const fa = explanation.fa.trim();
+  const ckb = explanation.ckb.trim();
+  const en = explanation.en.trim();
+  if (tab === 'fa') {
+    if (fa) return { text: fa, lang: 'fa' };
+    if (ckb) return { text: ckb, lang: 'ckb' };
+    if (en) return { text: en, lang: 'en' };
+    return { text: '', lang: 'fa' };
+  }
+  if (ckb) return { text: ckb, lang: 'ckb' };
+  if (fa) return { text: fa, lang: 'fa' };
+  if (en) return { text: en, lang: 'en' };
+  return { text: '', lang: 'ckb' };
+}
 
 /**
  * Labels are plain strings, never functions: functions cannot be passed from a
@@ -48,6 +68,9 @@ export type QuizLabels = {
   retryWrong: string;
   restart: string;
   backToTopics: string;
+  explanationHeading: string;
+  explanationTabFa: string;
+  explanationTabCkb: string;
 };
 
 /** The app's `isCorrectKey`: trimmed, case-insensitive, empty is never right. */
@@ -60,14 +83,12 @@ function isCorrectKey(correctAnswer: string, selected: string | undefined): bool
 export function Quiz({
   questions,
   labels,
-  explanationLang,
   locale,
   backHref,
   onAnswer,
 }: {
   questions: QuizQuestion[];
   labels: QuizLabels;
-  explanationLang: 'en' | 'fa' | 'ckb';
   locale: Locale;
   backHref: Route;
   /** Called once per question, the first time it is answered. */
@@ -77,7 +98,12 @@ export function Quiz({
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [done, setDone] = useState(false);
+  const [explanationTab, setExplanationTab] = useState<ExplanationTab>('fa');
   const liveRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    setExplanationTab('fa');
+  }, [index]);
 
   const total = pool.length;
   const question = pool[index];
@@ -142,6 +168,9 @@ export function Quiz({
     question.options.find(
       (o) => o.key.toLowerCase() === question.correctAnswer.toLowerCase()
     )?.text ?? '';
+  const resolvedExplanation = answered
+    ? explanationForTab(question.explanation, explanationTab)
+    : null;
 
   return (
     <div className="mx-auto w-full max-w-[var(--container-quiz)]">
@@ -239,16 +268,51 @@ export function Quiz({
                 </bdi>
               </p>
             ) : null}
+          </div>
+        ) : null}
 
-            {question.explanation ? (
-              <p
-                lang={explanationLang}
-                dir={explanationLang === 'en' ? 'ltr' : 'rtl'}
-                className="mt-2"
-              >
-                {question.explanation}
-              </p>
-            ) : null}
+        {answered && resolvedExplanation ? (
+          <div className="jelly-card mt-4 rounded-[var(--radius-card)] p-4">
+            <div className="text-primary mb-3 flex items-center gap-2 font-extrabold">
+              <IconLightbulb className="size-5 shrink-0" />
+              <span>{labels.explanationHeading}</span>
+            </div>
+            <div
+              dir="rtl"
+              className="bg-surface-3 mb-5 grid grid-cols-2 gap-1 rounded-full p-1"
+              role="tablist"
+            >
+              {(['fa', 'ckb'] as const).map((tab) => {
+                const active = explanationTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setExplanationTab(tab)}
+                    className={cn(
+                      'min-h-10 rounded-full text-sm font-extrabold',
+                      active
+                        ? 'bg-primary text-on-primary shadow-[var(--shadow-soft)]'
+                        : 'text-on-surface-variant'
+                    )}
+                  >
+                    {tab === 'fa' ? labels.explanationTabFa : labels.explanationTabCkb}
+                  </button>
+                );
+              })}
+            </div>
+            <p
+              lang={resolvedExplanation.lang}
+              dir={resolvedExplanation.lang === 'en' ? 'ltr' : 'rtl'}
+              className={cn(
+                'text-on-surface mt-1 text-base leading-relaxed',
+                resolvedExplanation.lang !== 'en' && 'text-right'
+              )}
+            >
+              {resolvedExplanation.text || '—'}
+            </p>
           </div>
         ) : null}
 

@@ -15,7 +15,7 @@ import {
 } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
-import { localeHref } from '@/lib/nav';
+import { PLAY_SECTION_VISIBLE, localeHref } from '@/lib/nav';
 import { getGloss } from '@/lib/request-context';
 
 export async function generateMetadata({
@@ -187,7 +187,7 @@ async function Results({ term, locale }: { term: string; locale: Locale }) {
         </section>
       ) : null}
 
-      {categoryHits.length > 0 ? (
+      {PLAY_SECTION_VISIBLE && categoryHits.length > 0 ? (
         <section>
           <SectionHeading>{t('tabPlay')}</SectionHeading>
           <ResultList>

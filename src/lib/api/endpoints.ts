@@ -26,6 +26,7 @@ export const ENDPOINTS = {
   speakingModels: 'speaking_model_questions.php',
   speakingQuestions: 'speaking_questions.php',
   speakingTopicIdeas: 'speaking_topic_ideas.php',
+  speakingIdeasSearch: 'speaking_topic_ideas_search.php',
 
   gameCategories: 'game_word_categories.php',
   appUpdate: 'app_update.php',

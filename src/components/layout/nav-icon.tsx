@@ -2,7 +2,9 @@ import {
   IconBook,
   IconGrammar,
   IconHome,
+  IconPerson,
   IconPlay,
+  IconSettings,
   IconSpeaking,
 } from '@/components/ui/icons';
 import type { NavItem } from '@/lib/nav';
@@ -13,6 +15,8 @@ const ICONS = {
   grammar: IconGrammar,
   speaking: IconSpeaking,
   play: IconPlay,
+  you: IconPerson,
+  settings: IconSettings,
 } as const;
 
 export function NavIcon({

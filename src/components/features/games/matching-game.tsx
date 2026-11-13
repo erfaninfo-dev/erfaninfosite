@@ -195,7 +195,9 @@ export function MatchingGame({
                         'border-outline-variant bg-surface-2 hover:border-primary/60 hover:bg-surface-3 dark:bg-surface-3'
                     )}
                   >
-                    <bdi lang={glossLang}>{option.meaning}</bdi>
+                    <bdi lang={glossLang} dir="rtl" className="block w-full text-right">
+                      {option.meaning}
+                    </bdi>
                   </button>
                 );
               })}

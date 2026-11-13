@@ -1,20 +1,18 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { WordListSection } from '@/components/features/vocab/word-list-server';
-import { ButtonLink } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { SectionList } from '@/components/features/books/section-list';
+import { QuizFab } from '@/components/features/quiz/quiz-fab';
+import { IdiomCards, type IdiomCardData } from '@/components/features/vocab/idiom-cards';
+import { SampleList } from '@/components/features/vocab/sample-list';
+import { StudyTabs } from '@/components/features/vocab/study-tabs';
+import { VocabCards, type VocabCardData } from '@/components/features/vocab/vocab-cards';
 import { IconArrowBack, IconCards } from '@/components/ui/icons';
-import {
-  Badge,
-  Container,
-  PageHeader,
-  SectionHeading,
-  StudyText,
-} from '@/components/ui/primitives';
+import { Container } from '@/components/ui/primitives';
 import { ListSkeleton } from '@/components/ui/states';
-import { bilingualFor, bilingualIsFallback } from '@/lib/api/normalize';
+import { glossOf, IDIOMS_SPEAKING_BOOK_ID, type Word } from '@/lib/api/normalize';
 import {
   getBook,
   getSections,
@@ -69,66 +67,148 @@ export default async function UnitPage({
   if (!current) notFound();
 
   const t = getTranslator(locale);
+  const idioms = id === IDIOMS_SPEAKING_BOOK_ID;
 
   return (
-    <Container size="wide">
-      <ButtonLink
-        href={localeHref(locale, `/books/${id}`)}
-        variant="ghost"
-        size="md"
-        className="mb-5"
-      >
-        <IconArrowBack className="size-5" />
-        {book.title}
-      </ButtonLink>
+    <Container className="pb-28">
+      <div className="mb-4 flex items-center gap-2">
+        <Link
+          href={localeHref(locale, `/books/${id}`)}
+          aria-label={t('backToUnits')}
+          className="bg-surface-1 text-on-surface-variant shadow-[var(--shadow-soft)] grid size-11 shrink-0 place-items-center rounded-full"
+        >
+          <IconArrowBack className="size-5" />
+        </Link>
+        <h1 className="text-on-surface min-w-0 flex-1 truncate text-lg font-extrabold">
+          {idioms && current.details ? (
+            <bdi lang="en">{current.details}</bdi>
+          ) : (
+            t('unitLabel', { unit: unitNo })
+          )}
+        </h1>
+        <Link
+          href={localeHref(locale, `/books/${id}/units/${unitNo}/flashcards`)}
+          aria-label={t('tooltipFlashcards')}
+          className="bg-surface-1 text-primary shadow-[var(--shadow-soft)] grid size-11 shrink-0 place-items-center rounded-full"
+        >
+          <IconCards className="size-5" />
+        </Link>
+      </div>
+      {current.details && !idioms ? (
+        <p className="text-on-surface-variant mb-4 text-sm">
+          <bdi lang="en">{current.details}</bdi>
+        </p>
+      ) : null}
 
-      <PageHeader
-        title={t('unitLabel', { unit: unitNo })}
-        description={current.details || undefined}
-        actions={
-          <ButtonLink
-            href={localeHref(locale, `/books/${id}/units/${unitNo}/flashcards`)}
-            variant="secondary"
-            size="md"
-          >
-            <IconCards className="size-5" />
-            {t('tabReview')}
-          </ButtonLink>
-        }
+      <Suspense fallback={<ListSkeleton rows={6} />}>
+        <UnitBody
+          bookId={id}
+          bookTitle={book.title}
+          unit={unitNo}
+          locale={locale}
+          topic={current.details}
+          idioms={idioms}
+        />
+      </Suspense>
+      <QuizFab
+        href={localeHref(locale, `/books/${id}/quiz?units=${unitNo}`)}
+        label={t('tooltipQuiz')}
       />
-
-      {/* Each section streams independently: one slow fetch never blocks the page. */}
-      <Suspense fallback={null}>
-        <UnitSections bookId={id} unit={unitNo} locale={locale} />
-      </Suspense>
-
-      <Suspense fallback={<ListSkeleton rows={8} />}>
-        <UnitWords bookId={id} unit={unitNo} locale={locale} />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <UnitSamples bookId={id} unit={unitNo} locale={locale} />
-      </Suspense>
     </Container>
   );
 }
 
-async function UnitWords({
+/**
+ * A unit with sections is the section list. A unit without sections is the
+ * word screen, with the sample text as the first tab when the unit has one.
+ */
+function toCards(words: Word[], gloss: 'fa' | 'ckb'): VocabCardData[] {
+  return words
+    .filter((word) => word.word)
+    .map((word, index) => ({
+      id: word.id,
+      number: index + 1,
+      word: word.word,
+      type: word.type,
+      important: word.important,
+      meaningEn: word.meaning.en,
+      gloss: glossOf(word.meaning, gloss),
+      exampleEn: word.example.en,
+      exampleGloss: glossOf(word.example, gloss),
+      unit: word.unit,
+      section: word.section,
+    }));
+}
+
+async function UnitBody({
   bookId,
+  bookTitle,
   unit,
   locale,
+  topic,
+  idioms,
 }: {
   bookId: number;
+  bookTitle: string;
   unit: number;
   locale: Locale;
+  topic: string;
+  idioms: boolean;
 }) {
-  const [words, gloss] = await Promise.all([
-    getUnitWords(bookId, unit),
-    getGloss(locale),
-  ]);
+  const sections = await getSections(bookId, unit);
   const t = getTranslator(locale);
 
-  if (words.length === 0) {
+  if (idioms) {
+    const [words, gloss] = await Promise.all([getUnitWords(bookId, unit), getGloss(locale)]);
+    const cards: IdiomCardData[] = words
+      .filter((word) => word.word)
+      .map((word, index) => ({
+        id: word.id,
+        number: index + 1,
+        word: word.word,
+        meaningEn: word.meaning.en,
+        gloss: glossOf(word.meaning, gloss),
+        exampleEn: word.example.en,
+        exampleGloss: glossOf(word.example, gloss),
+        topic: topic ? `${topic} Idioms` : '',
+      }));
+    if (cards.length === 0) {
+      return (
+        <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
+          {t('noMatchingWords')}
+        </p>
+      );
+    }
+    return (
+      <IdiomCards
+        cards={cards}
+        locale={locale}
+        glossLang={gloss}
+        labels={{
+          search: t('searchWordWholeBook'),
+          empty: t('noMatchingWords'),
+          clear: t('close'),
+          example: t('wordExample'),
+          favorite: t('favorite'),
+          important: t('important'),
+          pronounceWord: t('pronounceWord'),
+          pronounceExample: t('pronounceExample'),
+        }}
+      />
+    );
+  }
+
+  if (sections.length > 0) {
+    return <SectionList bookId={bookId} unit={unit} sections={sections} locale={locale} t={t} />;
+  }
+
+  const [words, samples, gloss] = await Promise.all([
+    getUnitWords(bookId, unit),
+    getUnitSamples(bookId, unit),
+    getGloss(locale),
+  ]);
+
+  if (words.length === 0 && samples.length === 0) {
     return (
       <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-10 text-center">
         {t('noMatchingWords')}
@@ -136,87 +216,43 @@ async function UnitWords({
     );
   }
 
-  return <WordListSection words={words} locale={locale} gloss={gloss} />;
-}
-
-/**
- * Sections exist for some books and not others — book 1 unit 1 has three,
- * book 2 unit 1 has none. When a unit has none, this renders nothing at all
- * rather than an empty heading.
- */
-async function UnitSections({
-  bookId,
-  unit,
-  locale,
-}: {
-  bookId: number;
-  unit: number;
-  locale: Locale;
-}) {
-  const sections = await getSections(bookId, unit);
-  if (sections.length === 0) return null;
-
-  const t = getTranslator(locale);
-
   return (
-    <div className="mb-6 flex flex-wrap gap-2">
-      {sections.map((section) => (
-        <Badge key={section.section} tone="neutral">
-          {section.details || t('sectionLabel', { section: section.section })}
-        </Badge>
-      ))}
-    </div>
-  );
-}
-
-/**
- * Bilingual reading samples. `text_en_fa` and `text_en_kur` are two whole
- * documents, not a language triple, so when the reader's own language is
- * missing the other is shown with a note rather than a blank panel.
- */
-async function UnitSamples({
-  bookId,
-  unit,
-  locale,
-}: {
-  bookId: number;
-  unit: number;
-  locale: Locale;
-}) {
-  const [samples, gloss] = await Promise.all([
-    getUnitSamples(bookId, unit),
-    getGloss(locale),
-  ]);
-  if (samples.length === 0) return null;
-
-  const t = getTranslator(locale);
-
-  return (
-    <section className="mt-10">
-      <SectionHeading>{t('unitSamplesOpen')}</SectionHeading>
-      <div className="space-y-4">
-        {samples.map((sample) => {
-          const text = bilingualFor(sample.text, gloss);
-          if (!text) return null;
-          const fallback = bilingualIsFallback(sample.text, gloss);
-
-          return (
-            <Card key={sample.id}>
-              {sample.title ? (
-                <h3 className="mb-3 text-[length:var(--text-h4)]">
-                  <bdi lang="en">{sample.title}</bdi>
-                </h3>
-              ) : null}
-              {fallback ? (
-                <p className="text-on-surface-variant mb-3 text-[length:var(--text-caption)]">
-                  {t('notAvailableInKurdish')}
-                </p>
-              ) : null}
-              <StudyText>{text}</StudyText>
-            </Card>
-          );
-        })}
-      </div>
-    </section>
+    <StudyTabs
+      textLabel={t('samplesTabLabel')}
+      wordsLabel={t('wordsTabLabel')}
+      text={
+        samples.length > 0 ? (
+          <SampleList
+            samples={samples}
+            locale={locale}
+            heading=""
+            bookId={bookId}
+            unit={unit}
+            bookTitle={bookTitle}
+          />
+        ) : null
+      }
+      words={
+        words.length > 0 ? (
+          <VocabCards
+            cards={toCards(words, gloss)}
+            bookId={bookId}
+            bookTitle={bookTitle}
+            locale={locale}
+            glossLang={gloss}
+            labels={{
+              search: t('searchWordWholeBook'),
+              empty: t('noMatchingWords'),
+              clear: t('close'),
+              example: t('wordExample'),
+              important: t('important'),
+              favorite: t('favorite'),
+              pronounceWord: t('pronounceWord'),
+              pronounceExample: t('pronounceExample'),
+            }}
+          />
+        ) : null
+      }
+    />
   );
 }

@@ -12,24 +12,32 @@ import type { Locale } from '@/lib/i18n/config';
  * same list. The app's onboarding says so outright — "Start from Home: pick a
  * book, open units, then browse words."
  *
- * So the web carries Home, Grammar and Play. `You` and `Settings` are account
- * screens and arrive with Phase 2; the language and theme controls that live
- * under Settings in the app are in the web header instead, where they are
- * reachable at every size.
+ * The web bottom bar matches the app when Play is on: Home, Grammar, Play, You,
+ * Settings. Set [PLAY_SECTION_VISIBLE] to false to hide Play until the web
+ * section is ready.
  */
+
+/** When false, Play is omitted from nav and play routes redirect home. */
+export const PLAY_SECTION_VISIBLE = false;
 
 export type NavItem = {
   key: string;
   path: string;
   labelKey: MessageKey;
-  icon: 'home' | 'grammar' | 'play';
+  icon: 'home' | 'grammar' | 'play' | 'you' | 'settings';
 };
 
-export const NAV_ITEMS: readonly NavItem[] = [
+const ALL_NAV_ITEMS = [
   { key: 'home', path: '', labelKey: 'tabHome', icon: 'home' },
   { key: 'grammar', path: '/grammar', labelKey: 'tabGrammar', icon: 'grammar' },
   { key: 'play', path: '/play', labelKey: 'tabPlay', icon: 'play' },
-] as const;
+  { key: 'you', path: '/you', labelKey: 'tabYou', icon: 'you' },
+  { key: 'settings', path: '/settings', labelKey: 'tabSettings', icon: 'settings' },
+] as const satisfies readonly NavItem[];
+
+export const NAV_ITEMS: readonly NavItem[] = PLAY_SECTION_VISIBLE
+  ? ALL_NAV_ITEMS
+  : ALL_NAV_ITEMS.filter((item) => item.key !== 'play');
 
 /**
  * Build a locale-prefixed href.
@@ -62,6 +70,23 @@ export function isActiveSection(
       pathname === `${base}/` ||
       pathname.startsWith(`${base}/books/`) ||
       pathname.startsWith(`${base}/speaking`)
+    );
+  }
+
+  if (item.key === 'you') {
+    return (
+      pathname === `${base}/you` ||
+      pathname.startsWith(`${base}/you/`) ||
+      pathname === `${base}/profile` ||
+      pathname.startsWith(`${base}/profile/`) ||
+      pathname === `${base}/stats` ||
+      pathname.startsWith(`${base}/stats/`) ||
+      pathname === `${base}/review` ||
+      pathname.startsWith(`${base}/review/`) ||
+      pathname === `${base}/student-panel` ||
+      pathname.startsWith(`${base}/student-panel/`) ||
+      pathname.startsWith(`${base}/admin/`) ||
+      pathname.startsWith(`${base}/teacher/`)
     );
   }
 

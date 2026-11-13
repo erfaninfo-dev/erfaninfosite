@@ -2,16 +2,17 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { SpeakingAnswerCard } from '@/components/features/speaking/answer-card';
-import { ButtonLink } from '@/components/ui/button';
-import { IconArrowBack, IconLightbulb } from '@/components/ui/icons';
-import { Container, PageHeader } from '@/components/ui/primitives';
-import { EmptyState, Skeleton } from '@/components/ui/states';
+import {
+  TopicQuestions,
+  type TopicQuestionLabels,
+} from '@/components/features/speaking/topic-questions';
+import { Container } from '@/components/ui/primitives';
+import { Skeleton } from '@/components/ui/states';
 import { ApiError } from '@/lib/api/errors';
-import { getSpeakingTopic, getSpeakingTopicQuestions } from '@/lib/api/queries';
+import type { SpeakingIdeaCategory } from '@/lib/api/normalize';
+import { getSpeakingTopic, getSpeakingTopicIdeas, getSpeakingTopicQuestions } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
-import { getTranslator } from '@/lib/i18n/messages';
-import { localeHref } from '@/lib/nav';
+import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { getGloss } from '@/lib/request-context';
 
 function parseId(value: string): number | null {
@@ -47,45 +48,26 @@ export default async function SpeakingTopicPage({
   const topic = await getSpeakingTopic(id);
   if (!topic) notFound();
 
-  const t = getTranslator(locale);
-
   return (
     <Container>
-      <ButtonLink
-        href={localeHref(locale, '/speaking')}
-        variant="ghost"
-        size="md"
-        className="mb-5"
-      >
-        <IconArrowBack className="size-5" />
-        {t('speakingPart1Title')}
-      </ButtonLink>
-
-      <PageHeader
-        title={topic.title}
-        actions={
-          <ButtonLink
-            href={localeHref(locale, `/speaking/topics/${id}/ideas`)}
-            variant="secondary"
-            size="md"
-          >
-            <IconLightbulb className="size-5" />
-            {t('speakingTabIdeas')}
-          </ButtonLink>
-        }
-      />
-
-      <Suspense
-        fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}
-      >
-        <Questions topicId={id} locale={locale} />
+      <Suspense fallback={<Skeleton className="h-64 w-full rounded-[var(--radius-card)]" />}>
+        <Topic topicId={id} fallbackTitle={topic.title} locale={locale} />
       </Suspense>
     </Container>
   );
 }
 
-async function Questions({ topicId, locale }: { topicId: number; locale: Locale }) {
+async function Topic({
+  topicId,
+  fallbackTitle,
+  locale,
+}: {
+  topicId: number;
+  fallbackTitle: string;
+  locale: Locale;
+}) {
   const t = getTranslator(locale);
+  const raw = getRawMessage(locale);
   const gloss = await getGloss(locale);
 
   /*
@@ -101,20 +83,48 @@ async function Questions({ topicId, locale }: { topicId: number; locale: Locale 
     throw error;
   }
 
-  if (data.questions.length === 0) {
-    return <EmptyState title={t('speakingNoQuestions')} />;
+  let categories: SpeakingIdeaCategory[] = [];
+  try {
+    const ideas = await getSpeakingTopicIdeas(topicId);
+    categories = ideas.categories.filter((category) => category.ideas.length > 0);
+  } catch (error) {
+    if (!(error instanceof ApiError && error.status === 404)) throw error;
   }
 
+  const title = data.topic.title.trim() || fallbackTitle.trim() || t('speakingUntitledTopic');
+
+  const labels: TopicQuestionLabels = {
+    back: t('back'),
+    questions: t('speakingTabQuestions'),
+    ideas: t('speakingTabIdeas'),
+    noQuestions: t('speakingNoQuestions'),
+    noIdeas: t('speakingNoIdeas'),
+    modelAnswer: t('speakingModelAnswer'),
+    modelNumberTemplate: raw('speakingModelNumber'),
+    formula: t('speakingFormula'),
+    template: t('speakingTemplate'),
+    sampleAnswer: t('speakingSampleAnswer'),
+    bandAnswerTemplate: raw('speakingBandAnswer'),
+    copied: t('speakingAnswerCopied'),
+    persian: t('grammarExplanationTabFa'),
+    kurdish: t('translationLangKurdiTab'),
+    searchIdeas: t('speakingSearchIdeasHint'),
+    noSearchResults: t('speakingIdeasNoSearchResults'),
+    otherTopics: t('speakingIdeasOtherTopics'),
+    ideasErrorTemplate: raw('speakingIdeasLoadError'),
+    retry: t('retry'),
+    clear: t('close'),
+  };
+
   return (
-    <div className="space-y-5">
-      {data.questions.map((question) => (
-        <SpeakingAnswerCard
-          key={question.id}
-          question={question}
-          locale={locale}
-          gloss={gloss}
-        />
-      ))}
-    </div>
+    <TopicQuestions
+      topicId={topicId}
+      title={title}
+      questions={data.questions}
+      categories={categories}
+      locale={locale}
+      gloss={gloss}
+      labels={labels}
+    />
   );
 }

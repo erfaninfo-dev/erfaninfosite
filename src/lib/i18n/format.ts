@@ -39,6 +39,21 @@ export function formatPlain(value: number): string {
 }
 
 /**
+ * Persian (U+06F0) and Arabic-Indic (U+0660) digits become ASCII 0-9.
+ *
+ * Codes are compared as ASCII on the server. A Persian keyboard types ۱۲۳۴۵۶,
+ * and password_reset_confirm.php strips every non-ASCII digit before the
+ * length check, so an otherwise correct code comes back as invalid.
+ */
+export function toAsciiDigits(value: string): string {
+  return value.replace(/[۰-۹٠-٩]/g, (digit) => {
+    const code = digit.codePointAt(0) ?? 0;
+    const base = code >= 0x06f0 ? 0x06f0 : 0x0660;
+    return String(code - base);
+  });
+}
+
+/**
  * The API's timestamps are `"YYYY-MM-DD HH:MM:SS"` with no timezone and no `T`,
  * so they are **not** ISO 8601 and `new Date(...)` parses them inconsistently
  * across engines. `grammar_topics.topic_created_at` can also be the MySQL zero

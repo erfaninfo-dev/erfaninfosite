@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import {
-  BookBrowser,
-  type BrowserCard,
-  type BrowserLabels,
-} from '@/components/features/home/book-browser';
+import { BookBrowser, type BrowserLabels } from '@/components/features/home/book-browser';
 import { CardGridSkeleton, Skeleton } from '@/components/ui/states';
 import { Container } from '@/components/ui/primitives';
-import { getBooks, getSpeakingTopics } from '@/lib/api/queries';
+import type { HomePanelFabProps } from '@/components/panel/home-panel-fab';
+import { getBookPdfs, getBooks, getSpeakingTopics, getUnits } from '@/lib/api/queries';
+import { fetchAccount } from '@/lib/auth/api';
+import { fetchMessagesUnreadSummary } from '@/lib/auth/panel-api';
+import { getAuthToken } from '@/lib/auth/session';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
@@ -76,126 +76,117 @@ function HomeSkeleton() {
 /**
  * The cards shown on the home page.
  *
- * This mirrors the app's home screen, checked by running it: the hero asks you
- * to choose a book, two track tabs filter IELTS from General, and the list is
- * the books — series collapsed to one card — plus a "Speaking Part 1" card in
- * the same list. Grammar is deliberately absent: it is its own tab there and
- * its own section here.
- *
- * Every title, subtitle, badge and count comes from the API. The accent hue is
- * derived from the entry's id so a card keeps its colour between renders and
- * between server and client.
+ * Checked against the running app: the hero asks you to choose a book, two
+ * track tabs filter IELTS from General, Speaking Part 1 is a full-width card
+ * above the IELTS grid, and a series is one card. A standalone book shows how
+ * many units it has. Grammar is its own tab, so it is not a card here.
  */
 async function Browser({ locale }: { locale: Locale }) {
-  const [books, speakingTopics] = await Promise.all([getBooks(), getSpeakingTopics()]);
+  const [books, speakingTopics, pdfs] = await Promise.all([
+    getBooks(),
+    getSpeakingTopics(),
+    getBookPdfs(),
+  ]);
+  const pdfBookIds = [...new Set(pdfs.map((pdf) => pdf.bookId))];
 
   const t = getTranslator(locale);
   const raw = getRawMessage(locale);
 
-  /** 1–6, stable for a given id. */
-  const accentFor = (seed: number) => ((seed * 7) % 6) + 1;
+  const unitCounts: Record<number, number> = {};
+  await Promise.all(
+    books
+      .filter((book) => book.seriesId == null)
+      .map(async (book) => {
+        unitCounts[book.id] = (await getUnits(book.id)).length;
+      })
+  );
 
   /*
-   * Books that belong to a series are shown once, as the series, with the
-   * number of volumes — twenty separate "Cambridge IELTS" cards would bury
-   * everything else. Standalone books get their own card.
-   */
-  const seriesSeen = new Set<string>();
-  const bookCards: BrowserCard[] = [];
-
-  for (const book of books) {
-    if (book.seriesTitle) {
-      if (seriesSeen.has(book.seriesTitle)) continue;
-      seriesSeen.add(book.seriesTitle);
-      const volumes = books.filter((b) => b.seriesTitle === book.seriesTitle);
-      bookCards.push({
-        id: `series-${book.seriesId ?? book.seriesTitle}`,
-        href: localeHref(locale, `/books/${book.id}`),
-        title: book.seriesTitle,
-        subtitle: t('homeSeriesVolumesCount', { count: volumes.length }),
-        badge: null,
-        accent: accentFor(book.seriesId ?? book.id),
-        icon: 'book',
-        track: book.track,
-      });
-      continue;
-    }
-
-    bookCards.push({
-      id: `book-${book.id}`,
-      href: localeHref(locale, `/books/${book.id}`),
-      title: book.title,
-      subtitle: book.description,
-      badge: null,
-      accent: accentFor(book.id),
-      icon: 'book',
-      track: book.track,
-    });
-  }
-
-  const speakingCard: BrowserCard[] =
-    speakingTopics.length > 0
-      ? [
-          {
-            id: 'speaking',
-            href: localeHref(locale, '/speaking'),
-            title: t('speakingPart1Title'),
-            subtitle: t('speakingHomeCardSubtitle'),
-            badge: t('speakingPart1Badge'),
-            accent: 3,
-            icon: 'speaking',
-            track: 'ielts',
-          },
-        ]
-      : [];
-
-  const cards = [...speakingCard, ...bookCards];
-
-  /*
-   * Two tabs, IELTS first, exactly as the app shows them — no "All". A segment
-   * that would always be empty is not drawn: `is_student` books are the app's
-   * "Class" track and no book carries that flag today, so it does not appear
-   * until one does.
+   * Two tabs, IELTS first, exactly as the app shows them. Class is the app's
+   * student catalog and stays hidden until Membership.
    */
   const tracks: Array<{ id: string; label: string }> = [];
-  if (cards.some((c) => c.track === 'ielts')) {
+  if (books.some((book) => book.track === 'ielts')) {
     tracks.push({ id: 'ielts', label: t('homeTrackIelts') });
   }
-  if (cards.some((c) => c.track === 'general')) {
+  if (books.some((book) => book.track === 'general')) {
     tracks.push({ id: 'general', label: t('homeTrackGeneral') });
   }
-  if (books.some((b) => b.isStudent)) {
-    tracks.push({ id: 'class', label: t('homeTrackClass') });
+
+  let panelFab: HomePanelFabProps | null = null;
+  const token = await getAuthToken();
+  if (token) {
+    const account = await fetchAccount(token);
+    if (
+      account !== 'unauthorized' &&
+      account !== 'unavailable'
+    ) {
+      const summary = await fetchMessagesUnreadSummary(token);
+      const badge =
+        summary !== 'failed'
+          ? account.isTeacher || account.isAdmin
+            ? summary.teacherStudentsWithUnread
+            : summary.studentUnreadFromTeacher
+          : 0;
+      const showPanelFab =
+        account.isTeacher || account.isAdmin || account.teacherUserId != null;
+      if (showPanelFab) {
+        if (account.isTeacher || account.isAdmin) {
+          panelFab = {
+            locale,
+            href: localeHref(locale, '/teacher'),
+            label: t('tabStudents'),
+            tooltip: t('tabStudents'),
+            variant: 'teacher',
+            badge,
+          };
+        } else {
+          panelFab = {
+            locale,
+            href: localeHref(locale, '/student-panel'),
+            label: t('myPanelFab'),
+            tooltip: t('studentPanelFabTooltip'),
+            variant: 'student',
+            badge,
+          };
+        }
+      }
+    }
   }
 
   const labels: BrowserLabels = {
     heading: t('chooseYourBook'),
     searchHint: t('searchBooksHint'),
     availableTemplate: raw('booksAvailable'),
-    showingTemplate: raw('showingOf'),
-    loadMore: t('loadMore'),
-    noResults: t('noBooksMatch'),
+    volumesTemplate: raw('homeSeriesVolumesCount'),
+    unitCountTemplate: raw('unitCount'),
+    noResults: t('noBooksFound'),
     tracks,
-    league: t('leagueLabel'),
+    league: 'League',
     accountsSoon: t('comingWithAccounts'),
-    pageLabelTemplate: raw('pageOf'),
+    soonLine: 'New lessons are coming soon',
+    soonBadge: 'Soon...',
+    pdf: t('bookStudyPdfOpen'),
   };
 
   return (
     <BookBrowser
-      cards={cards}
-      /*
-       * The books in each track, so the hero line matches the tab the reader
-       * is on — the app shows "24 books available" with IELTS selected, which
-       * is the IELTS count, not the whole 33.
-       */
-      bookCountByTrack={{
-        ielts: books.filter((b) => b.track === 'ielts').length,
-        general: books.filter((b) => b.track === 'general').length,
-        class: books.filter((b) => b.isStudent).length,
-      }}
+      books={books}
+      unitCounts={unitCounts}
+      pdfBookIds={pdfBookIds}
+      speaking={
+        speakingTopics.length > 0
+          ? {
+              href: localeHref(locale, '/speaking'),
+              title: t('speakingHomeCardTitle'),
+              subtitle: t('speakingHomeCardSubtitle'),
+              badge: t('speakingPart1Badge'),
+            }
+          : null
+      }
       labels={labels}
       locale={locale}
+      panelFab={panelFab}
     />
   );
 }

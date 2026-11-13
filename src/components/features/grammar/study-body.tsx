@@ -37,6 +37,7 @@ export async function StudyBody({ topic, locale }: { topic: string; locale: Loca
 
   const labels: StudyLabels = {
     chooseLevel: t('grammarStudySheetChooseLevel'),
+    study: t('grammarStudySheetEyebrow'),
     partLabel: t('grammarStudyPdfPartLabel'),
     view: t('grammarStudyPdfView'),
     unavailable: t('grammarStudyPdfUnavailable'),

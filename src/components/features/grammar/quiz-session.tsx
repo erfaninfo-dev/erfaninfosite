@@ -37,7 +37,6 @@ export function QuizSession({
   want,
   seed,
   locale,
-  explanationLang,
   backHref,
   labels,
 }: {
@@ -45,7 +44,6 @@ export function QuizSession({
   want: number;
   seed: number;
   locale: Locale;
-  explanationLang: 'en' | 'fa' | 'ckb';
   backHref: Route;
   labels: QuizLabels;
 }) {
@@ -74,7 +72,6 @@ export function QuizSession({
     <Quiz
       questions={questions}
       locale={locale}
-      explanationLang={explanationLang}
       backHref={backHref}
       labels={labels}
       // Mirrors the app's `markAttempted`: a question counts as seen the moment

@@ -2,366 +2,419 @@
 
 import type { Route } from 'next';
 import Link from 'next/link';
-import { useDeferredValue, useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
 import {
   IconBook,
-  IconChevron,
-  IconGrammar,
   IconLayers,
+  IconPdf,
   IconSchool,
   IconSearch,
   IconSpeaking,
-  IconUsers,
 } from '@/components/ui/icons';
+import { isCambridgeVolume15, type Book } from '@/lib/api/normalize';
 import { cn } from '@/lib/cn';
+import { HomePanelFab, type HomePanelFabProps } from '@/components/panel/home-panel-fab';
+import { homeEntries } from '@/lib/home/entries';
 import { formatClient } from '@/lib/i18n/client-format';
 import type { Locale } from '@/lib/i18n/config';
+import { localeHref } from '@/lib/nav';
 
 /**
- * The home page's book browser: the hero search, the track filter, the card
- * grid and "load more".
+ * Home: the app's signed-out book browser.
  *
- * The cards arrive fully resolved from the server — title, subtitle, badge and
- * accent are all computed there — so this component holds only interaction
- * state. It ships no language logic and no API knowledge.
+ * The hero, the track filter and the cards arrive resolved from the server.
+ * This component only filters them. Speaking sits above the grid on IELTS.
+ * There is no pager — the app shows every book on the selected track.
  */
 
 export type BrowserCard = {
   id: string;
-  /** Built on the server by `localeHref`, which is where the cast lives. */
-  href: Route;
+  /** Null when the app leaves the card untappable (a book with no units yet). */
+  href: Route | null;
   title: string;
   subtitle: string;
+  /** Joined titles and descriptions, so search matches a volume inside a series. */
+  description: string;
   badge: string | null;
-  /** 1–6, chosen from the entry's id so it never changes between renders. */
-  accent: number;
-  icon: 'book' | 'speaking' | 'grammar' | 'school';
+  /** 1–6, or the speaking teal. Stable for a given row. */
+  accent: number | 'speaking';
+  icon: 'book' | 'speaking';
   track: string;
+  kind: 'speaking' | 'series' | 'book';
+  soon: boolean;
+  /** Study-PDF link for a standalone book. Stays above the card's main link. */
+  pdfHref: Route | null;
 };
 
 export type BrowserLabels = {
   heading: string;
   searchHint: string;
-  /** Raw ICU; the count is a browser-side value. */
+  /** Raw ICU; the count follows the selected track and the search. */
   availableTemplate: string;
-  showingTemplate: string;
-  loadMore: string;
+  /** Raw ICU for a series card: how many volumes survived the search. */
+  volumesTemplate: string;
+  /** Raw ICU for a standalone book: how many units it has. */
+  unitCountTemplate: string;
   noResults: string;
   tracks: Array<{ id: string; label: string }>;
   league: string;
   accountsSoon: string;
-  pageLabelTemplate: string;
+  /** The app hardcodes both of these in English on a Soon card. */
+  soonLine: string;
+  soonBadge: string;
+  pdf: string;
 };
 
-const PAGE_SIZE = 6;
+export type SpeakingCard = {
+  href: Route;
+  title: string;
+  subtitle: string;
+  badge: string;
+};
 
 const ICONS = {
   book: IconBook,
   speaking: IconSpeaking,
-  grammar: IconGrammar,
-  school: IconSchool,
 } as const;
 
 export function BookBrowser({
-  cards,
-  bookCountByTrack,
+  books,
+  unitCounts,
+  pdfBookIds,
+  speaking,
   labels,
   locale,
+  panelFab,
 }: {
-  cards: BrowserCard[];
-  /**
-   * Books per track — not cards. A series of twenty volumes is one card but
-   * twenty books, and the hero line sits under "Choose Your Book", so it
-   * counts books and follows the selected tab, as the app does.
-   */
-  bookCountByTrack: Record<string, number>;
+  books: Book[];
+  /** Unit totals for standalone books. A series card does not show one. */
+  unitCounts: Record<number, number>;
+  /** Books that have a study PDF, so the card can offer it. */
+  pdfBookIds: number[];
+  speaking: SpeakingCard | null;
   labels: BrowserLabels;
   locale: Locale;
+  panelFab?: HomePanelFabProps | null;
 }) {
   const [query, setQuery] = useState('');
-  // IELTS first, as the app opens.
   const [track, setTrack] = useState(labels.tracks[0]?.id ?? 'ielts');
-  const [shown, setShown] = useState(PAGE_SIZE);
   const searchId = useId();
 
-  // Keeps typing responsive without a manual debounce.
-  const deferredQuery = useDeferredValue(query);
-
-  const filtered = useMemo(() => {
-    const needle = deferredQuery.trim().toLowerCase();
-    return cards.filter((card) => {
-      if (card.track !== track) return false;
+  const trackBooks = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return books.filter((book) => {
+      if (book.track !== track) return false;
       if (!needle) return true;
       return (
-        card.title.toLowerCase().includes(needle) ||
-        card.subtitle.toLowerCase().includes(needle)
+        book.title.toLowerCase().includes(needle) ||
+        book.description.toLowerCase().includes(needle)
       );
     });
-  }, [cards, deferredQuery, track]);
+  }, [books, query, track]);
 
-  const visible = filtered.slice(0, shown);
-  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(pages, Math.ceil(shown / PAGE_SIZE));
+  const bookCards = useMemo(
+    () =>
+      homeEntries(trackBooks).flatMap((entry, index) => {
+        const card = toCard(entry, index, unitCounts, pdfBookIds, labels, locale);
+        return card ? [card] : [];
+      }),
+    [labels, locale, pdfBookIds, trackBooks, unitCounts]
+  );
 
-  function choose(nextTrack: string) {
-    setTrack(nextTrack);
-    setShown(PAGE_SIZE);
-  }
+  const showSpeaking = speaking != null && track === 'ielts' && trackBooks.length > 0;
 
   return (
     <>
-      {/* ── hero ─────────────────────────────────────────────────────────── */}
-      <section className="hero-wash relative mb-6 overflow-hidden rounded-[1.75rem] px-6 py-8 sm:px-10 sm:py-10">
-        <div className="relative z-10 flex items-start justify-between gap-6">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-on-surface text-[length:var(--text-display)] leading-[1.1] font-extrabold">
+      <section className="border-outline-variant/70 bg-surface-1 mb-4 rounded-[var(--radius-card)] border px-5 py-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-on-surface text-[length:var(--text-h2)] leading-tight font-bold">
               {labels.heading}
             </h1>
-            <p className="text-on-surface-variant mt-2">
+            <p className="text-on-surface-variant mt-1 text-[length:var(--text-body)]">
               {formatClient(labels.availableTemplate, locale, {
-                count: bookCountByTrack[track] ?? 0,
+                count: trackBooks.length,
               })}
             </p>
-
-            <div className="relative mt-6 max-w-2xl">
-              <IconSearch className="text-on-surface-variant pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2" />
-              <input
-                id={searchId}
-                type="search"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setShown(PAGE_SIZE);
-                }}
-                placeholder={labels.searchHint}
-                aria-label={labels.searchHint}
-                className={cn(
-                  'bg-surface-1 h-13 w-full rounded-full border-0 ps-12 pe-5',
-                  'shadow-[var(--shadow-soft)]',
-                  // 16px minimum, which also stops iOS zooming on focus.
-                  'text-on-surface placeholder:text-on-surface-variant text-[length:var(--text-body)]'
-                )}
-              />
-            </div>
           </div>
-
-          {/* The logo badge. No room for it on a phone. */}
-          <div
-            aria-hidden="true"
-            className="bg-surface-1 hidden size-28 shrink-0 items-center justify-center rounded-3xl shadow-[var(--shadow-raised)] md:flex"
-          >
+          <div className="bg-surface-1 shadow-[var(--shadow-soft)] grid size-14 shrink-0 place-items-center rounded-[var(--radius-logo)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/logo.png" alt="" width={72} height={72} />
+            <img src="/brand/logo.png" alt="" width={40} height={40} />
           </div>
         </div>
 
-        {/* The dotted motif behind the badge. Never mirrored; purely texture. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute end-32 top-8 hidden size-24 opacity-40 md:block"
-          style={{
-            backgroundImage: 'radial-gradient(currentColor 1.5px, transparent 1.5px)',
-            backgroundSize: '12px 12px',
-            color: 'var(--color-on-surface-variant)',
-          }}
-        />
+        <div className="relative mt-4">
+          <IconSearch className="text-on-surface-variant pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2" />
+          <input
+            id={searchId}
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={labels.searchHint}
+            aria-label={labels.searchHint}
+            className={cn(
+              'bg-surface-2 h-13 w-full rounded-[var(--radius-input)] border-0 ps-12 pe-4',
+              'text-on-surface placeholder:text-on-surface-variant text-[length:var(--text-body)]'
+            )}
+          />
+        </div>
       </section>
 
-      {/* ── filters ──────────────────────────────────────────────────────── */}
-      <div className="mb-6 flex flex-wrap items-stretch gap-3">
-        <div
-          role="group"
-          aria-label={labels.heading}
-          className="border-outline-strong bg-surface-1 flex min-w-0 flex-1 overflow-hidden rounded-2xl border"
-        >
-          {labels.tracks.map((item, index) => {
-            const active = track === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => choose(item.id)}
-                aria-pressed={active}
-                className={cn(
-                  'flex min-h-13 flex-1 items-center justify-center gap-2 px-3 py-3',
-                  'text-[length:var(--text-label)] font-semibold',
-                  'transition-colors duration-[var(--duration-fast)]',
-                  index > 0 && 'border-outline-strong border-s',
-                  active
-                    ? 'bg-secondary-container text-on-secondary-container'
-                    : 'text-on-surface-variant hover:bg-surface-2'
-                )}
-              >
-                <TrackIcon id={item.id} active={active} />
-                <span className="truncate">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
+      <div
+        role="group"
+        aria-label={labels.heading}
+        className="border-outline-strong bg-surface-1 mb-4 flex overflow-hidden rounded-full border"
+      >
+        {labels.tracks.map((item, index) => {
+          const active = track === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setTrack(item.id)}
+              aria-pressed={active}
+              className={cn(
+                'flex min-h-13 flex-1 items-center justify-center gap-2 px-3',
+                'text-[length:var(--text-label)] font-bold',
+                'transition-colors duration-[var(--duration-fast)]',
+                index > 0 && 'border-outline-strong border-s',
+                active
+                  ? 'bg-secondary-container text-on-secondary-container'
+                  : 'text-on-surface-variant hover:bg-surface-2'
+              )}
+            >
+              <TrackIcon id={item.id} active={active} />
+              <span className="truncate">{item.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* ── cards ────────────────────────────────────────────────────────── */}
       <p aria-live="polite" className="sr-only">
-        {formatClient(labels.showingTemplate, locale, {
-          shown: visible.length,
-          total: filtered.length,
-        })}
+        {trackBooks.length === 0
+          ? labels.noResults
+          : formatClient(labels.availableTemplate, locale, { count: trackBooks.length })}
       </p>
 
-      {visible.length === 0 ? (
+      {trackBooks.length === 0 ? (
         <p className="border-outline-variant text-on-surface-variant rounded-[var(--radius-card)] border border-dashed px-6 py-12 text-center">
           {labels.noResults}
         </p>
       ) : (
-        <div
-          className="grid gap-5"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(19rem, 100%), 1fr))',
-          }}
-        >
-          {visible.map((card) => (
-            <BookCard key={card.id} card={card} />
-          ))}
+        <div className="flex flex-col gap-3.5">
+          {showSpeaking && speaking ? (
+            <HomeCard
+              card={{
+                id: 'speaking',
+                href: speaking.href,
+                title: speaking.title,
+                subtitle: speaking.subtitle,
+                description: '',
+                badge: speaking.badge,
+                accent: 'speaking',
+                icon: 'speaking',
+                track: 'ielts',
+                kind: 'speaking',
+                soon: false,
+                pdfHref: null,
+              }}
+              labels={labels}
+              locale={locale}
+            />
+          ) : null}
+          {/*
+            The app draws this grid left-to-right even in Persian and Kurdish,
+            so the first book stays on the left when the two screens sit together.
+            Columns break at 700px and 1100px, the same widths the app uses.
+          */}
+          <div
+            dir="ltr"
+            className="grid grid-cols-1 gap-3.5 min-[700px]:grid-cols-2 min-[1100px]:grid-cols-3"
+          >
+            {bookCards.map((card) => (
+              <HomeCard key={card.id} card={card} labels={labels} locale={locale} />
+            ))}
+          </div>
         </div>
       )}
 
-      {/* ── grid footer ──────────────────────────────────────────────────── */}
-      {/*
-        League floats over the list at the trailing edge, where the app puts
-        it, rather than sitting in the filter row. It needs accounts, which
-        Phase 1 does not have, so it is marked unavailable with a reason — a
-        button that silently does nothing is worse than one that says why.
-      */}
-      <div className="pointer-events-none sticky bottom-4 z-20 mt-4 flex justify-end">
-        <div className="pointer-events-auto">
-          <SoonPill
-            className="gradient-league"
-            label={labels.league}
-            hint={labels.accountsSoon}
-          >
-            <TrophyGlyph />
-          </SoonPill>
-        </div>
-      </div>
-
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-        <p className="text-on-surface-variant text-[length:var(--text-label)]">
-          {formatClient(labels.showingTemplate, locale, {
-            shown: visible.length,
-            total: filtered.length,
-          })}
-        </p>
-
-        {pages > 1 ? (
-          <div className="flex items-center gap-2">
-            {Array.from({ length: pages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                type="button"
-                onClick={() => setShown(page * PAGE_SIZE)}
-                aria-current={page === currentPage ? 'true' : undefined}
-                aria-label={formatClient(labels.pageLabelTemplate, locale, {
-                  page,
-                  total: pages,
-                })}
-                className={cn(
-                  // A 44px hit area around a small dot, per the touch-target rule.
-                  'grid size-11 place-items-center rounded-full'
-                )}
-              >
-                <span
-                  className={cn(
-                    'block size-2 rounded-full transition-colors duration-[var(--duration-fast)]',
-                    page === currentPage ? 'bg-primary' : 'bg-outline-variant'
-                  )}
-                />
-              </button>
-            ))}
+      <div className="pointer-events-none fixed end-4 bottom-24 z-20 flex flex-col items-end gap-3">
+        {panelFab ? (
+          <div className="pointer-events-auto">
+            <HomePanelFab {...panelFab} />
           </div>
         ) : null}
-
-        {visible.length < filtered.length ? (
-          <button
-            type="button"
-            onClick={() => setShown((n) => n + PAGE_SIZE)}
-            className={cn(
-              'inline-flex min-h-12 items-center gap-2 rounded-full px-5',
-              'border-outline-strong bg-surface-1 text-on-surface border font-semibold',
-              'hover:bg-surface-2 transition-colors duration-[var(--duration-fast)]'
-            )}
+        <div className="pointer-events-auto">
+          <Link
+            href={localeHref(locale, '/league')}
+            className="gradient-league inline-flex min-h-12 items-center gap-2 rounded-full px-4 font-semibold text-white no-underline shadow-[var(--shadow-soft)]"
           >
-            {labels.loadMore}
-            <IconChevron className="size-4 rotate-90" />
-          </button>
-        ) : null}
+            <TrophyGlyph />
+            <span>{labels.league}</span>
+          </Link>
+        </div>
       </div>
     </>
   );
 }
 
-function BookCard({ card }: { card: BrowserCard }) {
-  const Icon = ICONS[card.icon];
+function HomeCard({
+  card,
+  labels,
+  locale,
+}: {
+  card: BrowserCard;
+  labels: BrowserLabels;
+  locale: Locale;
+}) {
+  const Icon = card.soon ? null : card.kind === 'series' ? IconLayers : ICONS[card.icon];
+  const pill = card.soon ? labels.soonBadge : card.badge;
+  const alignEnd = locale !== 'en';
 
   return (
-    <Link
-      href={card.href}
+    <article
       data-accent={card.accent}
+      aria-disabled={card.soon || undefined}
       className={cn(
-        'accent-card group relative flex min-h-48 flex-col overflow-hidden rounded-[1.25rem] p-5 no-underline',
-        'border-outline-variant/70 border',
-        'hover:border-primary/50 transition-[border-color] duration-[var(--duration-fast)]'
+        'accent-card border-outline-variant/70 relative flex h-full flex-col overflow-hidden rounded-[var(--radius-card)] border p-3.5',
+        card.kind === 'speaking'
+          ? 'aspect-[2.15/1] min-[700px]:aspect-[2.96/1] min-[1100px]:aspect-[4.44/1]'
+          : 'aspect-[2.15/1] min-[700px]:aspect-[1.48/1]',
+        card.soon && 'opacity-80'
       )}
     >
-      <div className="relative z-10 flex items-start justify-between gap-3">
-        <span className="accent-dot grid size-11 shrink-0 place-items-center rounded-full">
-          <Icon className="size-5" />
+      {card.href && !card.soon ? (
+        <Link
+          href={card.href}
+          aria-label={card.title}
+          className="absolute inset-0 z-10 rounded-[inherit]"
+        />
+      ) : null}
+
+      <div className="pointer-events-none relative z-0 flex items-start justify-between gap-3">
+        <span className="accent-dot grid size-10 shrink-0 place-items-center rounded-full">
+          {card.soon ? <HourglassGlyph /> : Icon ? <Icon className="size-5" /> : null}
         </span>
-        {/* Directional, so it mirrors in RTL like every other arrow. */}
-        <IconArrowOut className="rtl-flip text-on-surface-variant/70 size-5 shrink-0" />
+        {card.soon ? (
+          <span className="size-5" />
+        ) : (
+          <IconArrowOut className="text-on-surface-variant size-5 shrink-0" />
+        )}
       </div>
 
-      {/*
-        h2, not h3: the page has one h1 ("Choose Your Book") and the cards sit
-        directly under it with no section heading between, so h3 would skip a
-        level.
-      */}
-      <h2 className="text-on-surface relative z-10 mt-4 text-[length:var(--text-h4)] font-bold">
-        <bdi lang="en">{card.title}</bdi>
+      <h2 className="text-on-surface pointer-events-none relative z-0 mt-2.5 line-clamp-2 text-base leading-[1.15] font-extrabold">
+        <bdi lang={card.kind === 'speaking' ? undefined : 'en'}>{card.title}</bdi>
       </h2>
-
-      {card.subtitle ? (
-        <p className="text-on-surface-variant relative z-10 mt-1 line-clamp-2 text-[length:var(--text-label)]">
-          <bdi lang="en">{card.subtitle}</bdi>
+      {card.soon ? (
+        <p className="text-on-surface-variant pointer-events-none relative z-0 mt-1 truncate text-xs font-bold">
+          {labels.soonLine}
+        </p>
+      ) : card.subtitle ? (
+        <p className="text-on-surface-variant pointer-events-none relative z-0 mt-1 line-clamp-2 text-xs leading-snug">
+          <bdi>{card.subtitle}</bdi>
         </p>
       ) : null}
 
-      {card.badge ? (
-        <span className="bg-surface-1/70 text-on-surface-variant relative z-10 mt-auto inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 pt-1.5 text-[length:var(--text-caption)] font-semibold">
-          <IconLayers className="size-3.5" />
-          {card.badge}
-        </span>
+      {pill ? (
+        <div
+          className={cn(
+            'relative z-20 mt-auto flex items-center gap-2 pt-3',
+            alignEnd && 'justify-end'
+          )}
+        >
+          <span
+            className={cn(
+              'pointer-events-none inline-flex w-fit items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold',
+              card.soon
+                ? 'accent-dot-text'
+                : card.kind === 'speaking'
+                  ? 'bg-[color-mix(in_oklab,var(--accent)_14%,transparent)] font-extrabold text-[var(--accent)]'
+                  : 'bg-surface-1/80 text-on-surface-variant'
+            )}
+          >
+            {card.soon || card.kind === 'speaking' ? null : <IconLayers className="size-3.5" />}
+            {pill}
+          </span>
+          {card.pdfHref ? (
+            <Link
+              href={card.pdfHref}
+              className="text-[var(--accent)] relative inline-flex min-h-8 items-center gap-1 rounded-full border border-[color-mix(in_oklab,var(--accent)_45%,transparent)] px-2.5 text-xs font-bold"
+            >
+              <IconPdf className="size-4" />
+              {labels.pdf}
+            </Link>
+          ) : null}
+        </div>
       ) : null}
-
-      <WaveMotif />
-    </Link>
+    </article>
   );
 }
 
-/** The faint bar motif in the card's trailing bottom corner. */
-function WaveMotif() {
+function toCard(
+  entry: ReturnType<typeof homeEntries>[number],
+  index: number,
+  unitCounts: Record<number, number>,
+  pdfBookIds: number[],
+  labels: BrowserLabels,
+  locale: Locale
+): BrowserCard | null {
+  const accent = (index % 6) + 1;
+
+  if (entry.kind === 'series') {
+    const first = entry.books[0];
+    if (!first) return null;
+    return {
+      id: `series-${first.seriesId ?? entry.title}`,
+      href: first.seriesId
+        ? localeHref(locale, `/books/series/${first.seriesId}`)
+        : localeHref(locale, `/books/${first.id}`),
+      title: entry.title,
+      subtitle: '',
+      description: '',
+      badge: formatClient(labels.volumesTemplate, locale, { count: entry.books.length }),
+      accent,
+      icon: 'book',
+      track: first.track,
+      kind: 'series',
+      soon: false,
+      pdfHref: null,
+    };
+  }
+
+  const count = unitCounts[entry.book.id] ?? 0;
+  const soon = count === 0 && !isCambridgeVolume15(entry.book);
+  const bookHref = localeHref(locale, `/books/${entry.book.id}`);
+  return {
+    id: `book-${entry.book.id}`,
+    href: soon ? null : bookHref,
+    title: entry.book.title,
+    subtitle: '',
+    description: '',
+    badge: soon ? null : formatClient(labels.unitCountTemplate, locale, { count }),
+    accent,
+    icon: 'book',
+    track: entry.book.track,
+    kind: 'book',
+    soon,
+    pdfHref: !soon && pdfBookIds.includes(entry.book.id) ? (`${bookHref}#study-pdfs` as Route) : null,
+  };
+}
+
+function HourglassGlyph() {
   return (
     <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
-      viewBox="0 0 120 60"
-      className="pointer-events-none absolute end-0 bottom-0 h-14 w-28 opacity-25"
-      fill="currentColor"
+      className="size-5"
     >
-      {[6, 18, 30, 42, 54, 66, 78, 90, 102].map((x, i) => {
-        const heights = [18, 34, 24, 46, 30, 52, 26, 38, 20];
-        const h = heights[i] ?? 24;
-        return <rect key={x} x={x} y={60 - h} width="7" height={h} rx="3.5" />;
-      })}
+      <path d="M6 3h12M6 21h12" />
+      <path d="M7 3c0 4 4 5 5 9s-5 5-5 9M17 3c0 4-4 5-5 9s5 5 5 9" />
     </svg>
   );
 }
@@ -419,44 +472,6 @@ function TrackIcon({ id, active }: { id: string; active: boolean }) {
       </svg>
     );
   }
-  if (id === 'class') return <IconUsers className="size-4 shrink-0" />;
+  if (id === 'ielts') return <IconSchool className="size-4 shrink-0" />;
   return <IconBook className="size-4 shrink-0" />;
-}
-
-/**
- * A control the design calls for that cannot work until accounts exist.
- *
- * Rendered exactly as drawn, but `aria-disabled` with a visible explanation on
- * hover and focus — a button that silently does nothing is worse than one that
- * says why.
- */
-function SoonPill({
-  className,
-  label,
-  hint,
-  children,
-}: {
-  className: string;
-  label: string;
-  hint: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-disabled="true"
-      title={hint}
-      onClick={(e) => e.preventDefault()}
-      className={cn(
-        'inline-flex min-h-13 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-full px-5 sm:flex-initial',
-        'font-semibold text-white shadow-[var(--shadow-soft)]',
-        'opacity-90',
-        className
-      )}
-    >
-      {children}
-      <span className="whitespace-nowrap">{label}</span>
-      <span className="sr-only">{hint}</span>
-    </button>
-  );
 }

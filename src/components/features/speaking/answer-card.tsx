@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/primitives';
 import { glossOf, otherGlosses, type SpeakingQuestion } from '@/lib/api/normalize';
 import type { GlossLang, Locale } from '@/lib/i18n/config';
@@ -59,7 +60,8 @@ export function SpeakingAnswerCard({
           </p>
           <p
             lang={gloss}
-            className="text-on-surface-variant max-w-[var(--container-prose)]"
+            dir="rtl"
+            className="text-on-surface-variant max-w-[var(--container-prose)] text-right"
           >
             {glossAnswer}
           </p>
@@ -76,7 +78,11 @@ export function SpeakingAnswerCard({
               <p
                 key={other.lang}
                 lang={other.lang}
-                className="text-on-surface-variant max-w-[var(--container-prose)]"
+                dir={other.lang === 'en' ? 'ltr' : 'rtl'}
+                className={cn(
+                  'text-on-surface-variant max-w-[var(--container-prose)]',
+                  other.lang !== 'en' && 'text-right'
+                )}
               >
                 {other.text}
               </p>

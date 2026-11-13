@@ -124,10 +124,11 @@ export function Flashcards({
         </bdi>
 
         {revealed ? (
-          <div className="space-y-3">
+          <div className="w-full space-y-3">
             <bdi
               lang={glossLang}
-              className="text-primary block text-[length:var(--text-h3)]"
+              dir="rtl"
+              className="text-primary block w-full text-right text-[length:var(--text-h3)]"
             >
               {card.back}
             </bdi>
@@ -137,7 +138,7 @@ export function Flashcards({
               </p>
             ) : null}
             {card.exampleGloss && card.exampleGloss !== card.exampleEn ? (
-              <p lang={glossLang} className="text-on-surface-variant">
+              <p lang={glossLang} dir="rtl" className="text-on-surface-variant w-full text-right">
                 {card.exampleGloss}
               </p>
             ) : null}

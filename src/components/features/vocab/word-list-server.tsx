@@ -29,10 +29,14 @@ export function WordListSection({
   words,
   locale,
   gloss,
+  bookId,
+  plain = false,
 }: {
   words: Word[];
   locale: Locale;
   gloss: GlossLang;
+  bookId?: number;
+  plain?: boolean;
 }) {
   const t = getTranslator(locale);
   const raw = getRawMessage(locale);
@@ -68,6 +72,8 @@ export function WordListSection({
       glossLang={gloss}
       types={types}
       locale={locale}
+      bookId={bookId}
+      plain={plain}
     />
   );
 }

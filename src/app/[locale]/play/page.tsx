@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { CardGrid, CardLink } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { glossOf } from '@/lib/api/normalize';
 import { getGameCategorySummaries } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
-import { localeHref } from '@/lib/nav';
+import { PLAY_SECTION_VISIBLE, localeHref } from '@/lib/nav';
 import { getGloss } from '@/lib/request-context';
 
 export async function generateMetadata({
@@ -28,6 +28,7 @@ export async function generateMetadata({
 export default async function PlayPage({ params }: PageProps<'/[locale]/play'>) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
+  if (!PLAY_SECTION_VISIBLE) redirect(localeHref(locale, ''));
   const t = getTranslator(locale);
 
   return (

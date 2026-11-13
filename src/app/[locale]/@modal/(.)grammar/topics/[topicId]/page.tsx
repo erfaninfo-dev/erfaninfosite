@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/states';
 import { getGrammarTopic } from '@/lib/api/queries';
 import { isLocale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
+import { localeHref } from '@/lib/nav';
 
 /**
  * Learn, intercepted into a sheet.
@@ -35,9 +36,9 @@ export default async function LearnSheet({
       label={`${t('grammarStudySheetEyebrow')} — ${topic.topic}`}
       eyebrow={t('grammarStudySheetEyebrow')}
       title={topic.topic}
-      quizLabel={t('grammarTopicsCardQuizTitle')}
-      quizHref={`/${locale}/grammar/quiz?topics=${id}&seed=${id * 7919}`}
       closeLabel={t('close')}
+      quizLabel={t('grammarTopicsCardQuizTitle')}
+      quizHref={localeHref(locale, `/grammar/quiz?topics=${id}&seed=${id * 7919}`)}
     >
       <Suspense
         fallback={<Skeleton className="h-40 w-full rounded-[var(--radius-card)]" />}
