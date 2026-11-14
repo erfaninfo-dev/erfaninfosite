@@ -7,11 +7,9 @@ import {
   type PickerLabels,
   type TopicRow,
 } from '@/components/features/grammar/topic-picker';
-import { CardLink } from '@/components/ui/card';
-import { IconChevron } from '@/components/ui/icons';
-import { Badge, Container, PageHeader, SectionHeading } from '@/components/ui/primitives';
+import { Container, PageHeader } from '@/components/ui/primitives';
 import { ListSkeleton } from '@/components/ui/states';
-import { getGrammarBooks, getGrammarTopics } from '@/lib/api/queries';
+import { getGrammarTopics } from '@/lib/api/queries';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
@@ -34,9 +32,8 @@ export async function generateMetadata({
  * cards, each showing attempted progress with **Quiz** and **Learn** actions,
  * and a checkbox so several topics can be combined into one session.
  *
- * Grammar *books* are a second, smaller thing in the API — three of them, all
- * reporting `question_count: 0`, reachable only for their lesson texts. They
- * sit below the topics rather than competing with them.
+ * Grammar *books* (Cambridge Basic / Intermediate / Advanced) stay in the API
+ * at `/grammar/books/…` but are not linked from this list until we need them.
  */
 export default async function GrammarPage({ params }: PageProps<'/[locale]/grammar'>) {
   const { locale } = await params;
@@ -52,10 +49,6 @@ export default async function GrammarPage({ params }: PageProps<'/[locale]/gramm
 
       <Suspense fallback={<ListSkeleton rows={6} />}>
         <Topics locale={locale} />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <GrammarBooks locale={locale} />
       </Suspense>
     </Container>
   );
@@ -74,11 +67,12 @@ async function Topics({ locale }: { locale: Locale }) {
     );
   }
 
-  const rows: TopicRow[] = topics.map((topic) => ({
+  const rows: TopicRow[] = topics.map((topic, index) => ({
     id: topic.id,
     topic: topic.topic,
     questionCount: topic.questionCount,
     isNew: topic.isNew,
+    listNumber: index + 1,
     learnHref: localeHref(locale, `/grammar/topics/${topic.id}`),
   }));
 
@@ -108,46 +102,5 @@ async function Topics({ locale }: { locale: Locale }) {
       locale={locale}
       quizHref={localeHref(locale, '/grammar/quiz')}
     />
-  );
-}
-
-/** The three grammar books, which hold lesson texts rather than questions. */
-async function GrammarBooks({ locale }: { locale: Locale }) {
-  const books = await getGrammarBooks();
-  if (books.length === 0) return null;
-
-  const t = getTranslator(locale);
-
-  return (
-    <section className="mt-12">
-      <SectionHeading>{t('grammarTopicsCardLearnDesc')}</SectionHeading>
-      <div
-        className="grid gap-4"
-        style={{
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(16rem, 100%), 1fr))',
-        }}
-      >
-        {books.map((book) => (
-          <CardLink key={book.id} href={localeHref(locale, `/grammar/books/${book.id}`)}>
-            <div className="flex items-start justify-between gap-2">
-              <h2 className="text-on-surface text-[length:var(--text-h4)]">
-                <bdi lang="en">{book.title}</bdi>
-              </h2>
-              <IconChevron className="text-on-surface-variant size-5 shrink-0" />
-            </div>
-            {book.description ? (
-              <p className="text-on-surface-variant mt-1.5 line-clamp-2 text-[length:var(--text-label)]">
-                <bdi lang="en">{book.description}</bdi>
-              </p>
-            ) : null}
-            {book.unitCount > 0 ? (
-              <div className="mt-auto pt-4">
-                <Badge>{t('unitCount', { count: book.unitCount })}</Badge>
-              </div>
-            ) : null}
-          </CardLink>
-        ))}
-      </div>
-    </section>
   );
 }

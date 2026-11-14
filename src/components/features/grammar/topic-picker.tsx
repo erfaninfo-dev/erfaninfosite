@@ -32,6 +32,8 @@ export type TopicRow = {
   topic: string;
   questionCount: number;
   isNew: boolean;
+  /** 1-based order from `grammar_topics.sort`, as in the app list. */
+  listNumber: number;
   learnHref: Route;
 };
 
@@ -148,7 +150,7 @@ export function TopicPicker({
         </p>
       ) : (
         <ul className="space-y-4 pb-28">
-          {filtered.map((topic, index) => {
+          {filtered.map((topic) => {
             const isSelected = selected.has(topic.id);
             const solved = progress[topic.topic.trim()] ?? 0;
             // 1–6, stable per topic, so a card keeps its colour.
@@ -175,7 +177,7 @@ export function TopicPicker({
                     </label>
 
                     <span className="accent-dot-text grid size-9 shrink-0 place-items-center rounded-full text-[length:var(--text-label)] font-bold">
-                      {formatClient('{n, number}', locale, { n: index + 1 })}
+                      {formatClient('{n, number}', locale, { n: topic.listNumber })}
                     </span>
 
                     <div className="min-w-0 flex-1 text-center">

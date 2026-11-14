@@ -174,8 +174,8 @@ export function Quiz({
 
   return (
     <div className="mx-auto w-full max-w-[var(--container-quiz)]">
-      <div className="mb-5">
-        <p className="text-on-surface-variant mb-2 text-[length:var(--text-label)] font-semibold">
+      <div className="mb-4">
+        <p className="text-on-surface-variant mb-2 text-center text-[length:var(--text-label)] font-semibold">
           {progressLabel}
         </p>
         <div
@@ -184,7 +184,7 @@ export function Quiz({
           aria-valuemin={1}
           aria-valuemax={total}
           aria-label={progressLabel}
-          className="bg-surface-4 h-1.5 overflow-hidden rounded-full"
+          className="bg-surface-4 h-2 overflow-hidden rounded-full"
         >
           <div
             className="bg-primary h-full rounded-full transition-[width] duration-[var(--duration-base)] ease-[var(--ease-enter)]"
@@ -193,13 +193,17 @@ export function Quiz({
         </div>
       </div>
 
-      <div className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 rounded-[var(--radius-card)] border p-6">
+      <div className="bg-surface-1 shadow-[var(--shadow-soft)] rounded-[1.25rem] p-5 sm:p-6">
         {/* Questions and options are always English. */}
-        <h2 lang="en" dir="ltr" className="text-[length:var(--text-h3)] leading-relaxed">
+        <h2
+          lang="en"
+          dir="ltr"
+          className="text-on-surface text-center text-[length:var(--text-h3)] leading-relaxed font-bold"
+        >
           {question.questionText}
         </h2>
 
-        <div className="mt-6 space-y-3" role="group">
+        <div className="mt-5 space-y-2.5" role="group">
           {question.options.map((option) => {
             const isChosen = selected === option.key;
             const isAnswer =
@@ -220,7 +224,7 @@ export function Quiz({
                 disabled={answered}
                 aria-pressed={isChosen}
                 className={cn(
-                  'flex min-h-14 w-full items-center gap-3 rounded-[var(--radius-input)] border-2 px-4 py-3 text-start',
+                  'flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl border-2 px-4 py-3 text-center',
                   'transition-colors duration-[var(--duration-fast)] ease-[var(--ease-enter)]',
                   !answered &&
                     'border-outline-variant bg-surface-2 hover:border-primary/60 hover:bg-surface-3 dark:bg-surface-3',
@@ -322,7 +326,7 @@ export function Quiz({
         </p>
 
         {answered ? (
-          <Button onClick={advance} fullWidth className="mt-6">
+          <Button onClick={advance} fullWidth className="mt-5 min-h-12 rounded-full">
             {index + 1 >= total ? labels.finish : labels.next}
           </Button>
         ) : null}

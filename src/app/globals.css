@@ -544,6 +544,21 @@
     }
   }
 
+  /* Grammar quiz: match the app’s full-screen session (no shell chrome). */
+  html[data-grammar-quiz] header,
+  html[data-grammar-quiz] nav.fixed {
+    display: none !important;
+  }
+
+  html[data-grammar-quiz] main {
+    padding-block: 0;
+  }
+
+  html[data-grammar-quiz] #main {
+    min-height: 100dvh;
+    background-color: var(--color-surface-2);
+  }
+
   /* Mirrors directional icons in RTL. Never applied to logos. */
   .rtl-flip:where(:dir(rtl)) {
     transform: scaleX(-1);

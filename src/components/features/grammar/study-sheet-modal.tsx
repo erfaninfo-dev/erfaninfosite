@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 
@@ -20,16 +18,12 @@ export function StudySheetModal({
   label,
   eyebrow,
   title,
-  quizLabel,
-  quizHref,
   closeLabel,
   children,
 }: {
   label: string;
   eyebrow: string;
   title: string;
-  quizLabel: string;
-  quizHref: string;
   closeLabel: string;
   children: ReactNode;
 }) {
@@ -69,14 +63,6 @@ export function StudySheetModal({
         </div>
 
         {children}
-
-        <Link
-          href={quizHref as Route}
-          className="bg-primary text-on-primary mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 font-bold no-underline"
-        >
-          <IconGrammar className="size-5" />
-          {quizLabel}
-        </Link>
       </div>
     </Sheet>
   );

@@ -219,10 +219,14 @@ export const getGrammarTopics = cache(async (): Promise<N.GrammarTopic[]> => {
     ...CATALOG,
     tags: [TAGS.grammar],
   });
-  return raw
-    .map(N.normalizeGrammarTopic)
-    .filter((t) => t.questionCount > 0)
-    .sort((a, b) => a.topic.localeCompare(b.topic));
+  const topics = raw.map(N.normalizeGrammarTopic).filter((t) => t.questionCount > 0);
+  const hasSortField = raw.some((row) => row.sort_order != null || row.sort != null);
+  // The app follows `grammar_topics.sort`. The API usually returns rows already
+  // ordered; reshuffle only when the endpoint exposes sort values.
+  if (hasSortField) {
+    topics.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+  }
+  return topics;
 });
 
 export async function getGrammarTopic(topicId: number): Promise<N.GrammarTopic | null> {

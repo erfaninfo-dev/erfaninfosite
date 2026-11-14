@@ -358,16 +358,19 @@ export type GrammarTopic = {
   id: number;
   topic: string;
   questionCount: number;
+  sortOrder: number;
   createdAt: string | null;
   isNew: boolean;
 };
 
 export function normalizeGrammarTopic(raw: RawGrammarTopic): GrammarTopic {
   const created = (raw.topic_created_at ?? '').trim();
+  const sortOrder = raw.sort_order ?? raw.sort ?? 0;
   return {
     id: raw.topic_id,
     topic: raw.topic.trim(),
     questionCount: raw.question_count,
+    sortOrder,
     // The MySQL zero date means "unknown", not a real timestamp.
     createdAt: created && !created.startsWith('0000-00-00') ? created : null,
     isNew: raw.is_new,

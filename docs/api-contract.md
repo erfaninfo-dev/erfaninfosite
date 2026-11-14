@@ -214,6 +214,7 @@ sort_order:int  is_active:bool  created_at:string
 
 ```
 topic:string  question_count:int  topic_created_at:string|null  is_new:bool  topic_id:int
+sort_order:int|null  (optional — when present, list order follows `grammar_topics.sort`)
 ```
 
 - **`topic_created_at` is literally `"0000-00-00 00:00:00"`** for at least some rows — MySQL's zero

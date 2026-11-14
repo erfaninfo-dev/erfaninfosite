@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
+import Link from 'next/link';
+
 import { QuizSession } from '@/components/features/grammar/quiz-session';
 import type { QuizQuestion } from '@/components/features/grammar/quiz';
 import { ButtonLink } from '@/components/ui/button';
 import { IconArrowBack } from '@/components/ui/icons';
-import { Container, PageHeader } from '@/components/ui/primitives';
+import { Container } from '@/components/ui/primitives';
 import { EmptyState, Skeleton } from '@/components/ui/states';
 import { getGrammarQuestions, getGrammarTopics } from '@/lib/api/queries';
 import { SESSION_SIZE, resolveQuestionCount } from '@/lib/quiz/session';
@@ -74,17 +76,29 @@ export default async function GrammarQuizPage({
   // Every id was deleted, or none was real.
   if (chosen.length === 0) notFound();
 
-  return (
-    <Container size="quiz">
-      <ButtonLink href={backHref} variant="ghost" size="md" className="mb-5">
-        <IconArrowBack className="size-5" />
-        {t('grammarPracticeTitle')}
-      </ButtonLink>
+  const topicLine = chosen.map((topic) => topic.topic).join(' · ');
 
-      <PageHeader
-        title={t('grammarTopicsCardQuizTitle')}
-        description={chosen.map((topic) => topic.topic).join(' · ')}
-      />
+  return (
+    <Container size="quiz" className="grammar-quiz-page pb-6 pt-4 sm:pt-6">
+      <div className="mb-5 flex items-center gap-3">
+        <Link
+          href={backHref}
+          aria-label={t('grammarPracticeTitle')}
+          className="bg-surface-1 text-on-surface-variant shadow-[var(--shadow-soft)] grid size-11 shrink-0 place-items-center rounded-full"
+        >
+          <IconArrowBack className="size-5" />
+        </Link>
+        <div className="min-w-0 flex-1 text-center">
+          <h1 className="text-on-surface text-[length:var(--text-h2)] font-extrabold">
+            {t('grammarTopicsCardQuizTitle')}
+          </h1>
+          <p className="text-on-surface-variant mt-0.5 truncate text-[length:var(--text-label)]">
+            <bdi lang="en">{topicLine}</bdi>
+          </p>
+        </div>
+        {/* balance the back button so the title stays centred */}
+        <span className="size-11 shrink-0" aria-hidden />
+      </div>
 
       <Suspense
         fallback={<Skeleton className="h-96 w-full rounded-[var(--radius-card)]" />}

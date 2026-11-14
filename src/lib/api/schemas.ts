@@ -163,6 +163,9 @@ export const grammarTopicSchema = z.object({
   topic: z.string(),
   topic_id: z.number(),
   question_count: z.number(),
+  /** Matches `grammar_topics.sort` / `sort_order` in MySQL when the API exposes it. */
+  sort_order: z.number().nullish(),
+  sort: z.number().nullish(),
   /** Can be the MySQL zero date `"0000-00-00 00:00:00"`. Kept as a string. */
   topic_created_at: z.string().nullish(),
   is_new: flexibleBool,

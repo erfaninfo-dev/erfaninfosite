@@ -1,11 +1,13 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { DownloadMenu } from '@/components/layout/download-menu';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { MainNav } from '@/components/layout/main-nav';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
-import { IconSearch, IconSettings } from '@/components/ui/icons';
+import { IconSettings } from '@/components/ui/icons';
 import { fetchAccount } from '@/lib/auth/api';
+import { getAppUpdate } from '@/lib/api/queries';
 import { getAuthToken } from '@/lib/auth/session';
 import type { Locale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
@@ -29,11 +31,12 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
   const gloss = await getGloss(locale);
   const t = getTranslator(locale);
   const token = await getAuthToken();
-  let signedIn = false;
-  if (token) {
-    const me = await fetchAccount(token);
-    signedIn = me !== 'unauthorized' && me !== 'unavailable';
-  }
+  const [update, signedIn] = await Promise.all([
+    getAppUpdate(),
+    token
+      ? fetchAccount(token).then((me) => me !== 'unauthorized' && me !== 'unavailable')
+      : Promise.resolve(false),
+  ]);
 
   const navLabels: Record<string, string> = {
     navPrimary: t('primaryNavigation'),
@@ -47,8 +50,8 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
           href={localeHref(locale)}
           // The logo image is decorative and the wordmark is hidden below sm,
           // so without this the link has no accessible name on a phone.
-          aria-label="Erfan Academy"
-          className="flex shrink-0 items-center gap-2.5 no-underline"
+          aria-label="Erfan Info"
+          className="flex min-w-0 shrink items-center gap-2 no-underline md:shrink-0 md:gap-2.5"
         >
           <Image
             src="/brand/logo.png"
@@ -58,10 +61,15 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
             priority
             className="rounded-[var(--radius-logo)]"
           />
-          {/*
-            The wordmark appears only from lg. At md the section pills plus
-            the controls already fill the bar.
-          */}
+          {/* Phone: app-style wordmark. Desktop: full site name from lg. */}
+          <span
+            lang="en"
+            dir="ltr"
+            className="font-[family-name:var(--font-display)] text-[1.0625rem] leading-none font-extrabold tracking-tight whitespace-nowrap md:hidden"
+          >
+            <span className="text-on-surface">Erfan </span>
+            <span className="text-primary">Info</span>
+          </span>
           <span className="text-on-surface hidden text-[length:var(--text-h4)] font-bold lg:inline">
             Erfan Academy
           </span>
@@ -73,14 +81,11 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
         </div>
 
         <div className="ms-auto flex min-w-0 items-center gap-1 md:ms-0">
-          <Link
-            href={localeHref(locale, '/search')}
-            aria-label={t('search')}
-            title={t('search')}
-            className="text-on-surface-variant hover:bg-surface-2 hover:text-on-surface inline-flex size-11 items-center justify-center rounded-full no-underline transition-colors duration-[var(--duration-fast)]"
-          >
-            <IconSearch className="size-5" />
-          </Link>
+          <DownloadMenu
+            androidUrl={update.android.url}
+            windowsUrl={update.windows.url}
+            label={t('downloadTitle')}
+          />
 
           <LocaleSwitcher
             locale={locale}

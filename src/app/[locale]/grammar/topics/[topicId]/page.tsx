@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 
 import { StudyBody } from '@/components/features/grammar/study-body';
 import { ButtonLink } from '@/components/ui/button';
-import { IconArrowBack, IconGrammar } from '@/components/ui/icons';
+import { IconArrowBack } from '@/components/ui/icons';
 import { Badge, Container, PageHeader } from '@/components/ui/primitives';
 import { Skeleton } from '@/components/ui/states';
 import { getGrammarTopic } from '@/lib/api/queries';
@@ -76,16 +76,6 @@ export default async function GrammarTopicPage({
       <PageHeader
         title={topic.topic}
         meta={<Badge tone="primary">{t('grammarStudySheetEyebrow')}</Badge>}
-        actions={
-          <ButtonLink
-            href={localeHref(locale, `/grammar/quiz?topics=${id}&seed=${id * 7919}`)}
-            variant="secondary"
-            size="md"
-          >
-            <IconGrammar className="size-5" />
-            {t('grammarTopicsCardQuizTitle')}
-          </ButtonLink>
-        }
       />
 
       <Suspense
