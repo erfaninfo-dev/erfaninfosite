@@ -571,6 +571,31 @@
   }
 
   /*
+   * Word Builder session: keep shell chrome, but reclaim vertical space so
+   * level header → slots → banner → tray (+ buttons) fit without scrolling.
+   */
+  html[data-word-builder-session] main {
+    padding-block-start: 0.5rem;
+  }
+
+  html[data-word-builder-session] .pb-nav {
+    padding-block-end: calc(var(--size-bottom-nav) + env(safe-area-inset-bottom) + 0.25rem);
+  }
+
+  @media (min-width: 768px) {
+    html[data-word-builder-session] .pb-nav {
+      padding-block-end: 1.25rem;
+    }
+  }
+
+  /* Short viewports: hide the site header so the tray isn't clipped. */
+  @media (max-height: 820px) {
+    html[data-word-builder-session] body > header {
+      display: none !important;
+    }
+  }
+
+  /*
    * Mirrors directional icons in RTL. Never applied to logos.
    *
    * Use [dir] attributes, not :dir(): Tailwind polyfills :dir(rtl) into a

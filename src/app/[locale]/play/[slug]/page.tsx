@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { WordBuilderGame } from '@/components/features/games/word-builder-game';
 import { ButtonLink } from '@/components/ui/button';
 import { CategoryIcon, IconArrowBack } from '@/components/ui/icons';
-import { Badge, Container, PageHeader } from '@/components/ui/primitives';
+import { Badge, Container } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/ui/states';
 import { glossOf } from '@/lib/api/normalize';
 import { getGameCategory } from '@/lib/api/queries';
@@ -78,28 +78,29 @@ export default async function PlayCategoryPage({
   });
 
   return (
-    <Container>
-      <ButtonLink
-        href={localeHref(locale, '/play')}
-        variant="ghost"
-        size="md"
-        className="mb-5"
-      >
-        <IconArrowBack className="size-5" />
-        {t('wordBuilderTitle')}
-      </ButtonLink>
-
-      <PageHeader
-        title={name || category.name.en}
-        meta={
-          <>
-            <Badge>{t('wordCount', { count: usable.length })}</Badge>
-            <span className="bg-secondary-container text-on-secondary-container inline-flex size-8 items-center justify-center rounded-[var(--radius-sm)]">
-              <CategoryIcon name={category.icon} className="size-5" />
-            </span>
-          </>
-        }
-      />
+    <Container className="pb-1">
+      {/* Compact session chrome — one row instead of back + large PageHeader. */}
+      <div className="mb-2 flex items-center gap-2 sm:mb-3">
+        <ButtonLink
+          href={localeHref(locale, '/play')}
+          variant="ghost"
+          size="md"
+          className="shrink-0 !min-h-10 px-2.5 py-2"
+          aria-label={t('wordBuilderTitle')}
+        >
+          <IconArrowBack className="size-5" />
+          <span className="sr-only sm:not-sr-only sm:ms-1">{t('wordBuilderTitle')}</span>
+        </ButtonLink>
+        <h1 className="text-on-surface min-w-0 flex-1 truncate text-base font-extrabold sm:text-lg">
+          {name || category.name.en}
+        </h1>
+        <Badge className="hidden shrink-0 sm:inline-flex">
+          {t('wordCount', { count: usable.length })}
+        </Badge>
+        <span className="bg-secondary-container text-on-secondary-container hidden size-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] sm:inline-flex">
+          <CategoryIcon name={category.icon} className="size-4" />
+        </span>
+      </div>
 
       {usable.length === 0 ? (
         <EmptyState title={t('wordBuilderCategoryNoWordsYet')} />

@@ -28,8 +28,8 @@ function computeTrayLayout(width: number, height: number, n: number): TrayLayout
   }
   const m = Math.min(width, height);
   const maxR = m * 0.5 - 6;
-  let tile = 54;
-  const gap = n <= 3 ? 34 : n <= 4 ? 30 : 28;
+  let tile = Math.min(48, Math.max(28, m * 0.16));
+  const gap = n <= 3 ? 28 : n <= 4 ? 24 : 22;
   const ringFill = 0.84;
   const sinHalf = Math.sin(Math.PI / n);
   const minRadiusForTile = (t: number) => (t + gap) / (2 * sinHalf);
@@ -215,8 +215,12 @@ export function CircularLetterTray({
     onRelease();
   }
 
+  // Cap by width and viewport height so the tray + corner buttons fit on short screens.
+  const trayBoxClass =
+    'relative mx-auto aspect-square w-full max-w-[min(100%,18.5rem,min(52vw,38dvh))] touch-none select-none';
+
   if (letters.length === 0) {
-    return <div ref={rootRef} className="relative mx-auto aspect-square w-full max-w-[22rem]" />;
+    return <div ref={rootRef} className={trayBoxClass} />;
   }
 
   const pathColor = pathWrong
@@ -228,10 +232,7 @@ export function CircularLetterTray({
       ref={rootRef}
       dir="ltr"
       lang="en"
-      className={cn(
-        'relative mx-auto aspect-square w-full max-w-[22rem] touch-none select-none',
-        blocked && 'pointer-events-none opacity-60'
-      )}
+      className={cn(trayBoxClass, blocked && 'pointer-events-none opacity-60')}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={(e) => finishPointer(false, e.pointerId)}
@@ -312,7 +313,7 @@ export function CircularLetterTray({
                 height: layout.tile,
                 left: c.x - half,
                 top: c.y - half,
-                fontSize: Math.max(18, Math.min(32, layout.tile * 0.42)),
+                fontSize: Math.max(14, Math.min(26, layout.tile * 0.42)),
               }}
             >
               {letter.char}

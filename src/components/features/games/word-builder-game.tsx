@@ -431,6 +431,9 @@ export function WordBuilderGame({
     }
   })();
 
+  const trayBtnClass =
+    'bg-surface-1 text-on-surface border-outline-variant pointer-events-auto absolute grid size-[clamp(2.25rem,5.5dvh,2.75rem)] place-items-center rounded-full border-2 shadow-[var(--shadow-soft)] disabled:opacity-40';
+
   return (
     <div className="mx-auto w-full max-w-[var(--container-quiz)]">
       <div className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 relative overflow-hidden rounded-[var(--radius-card)] border">
@@ -439,7 +442,7 @@ export function WordBuilderGame({
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_55%),radial-gradient(ellipse_at_bottom,color-mix(in_oklab,var(--color-secondary)_10%,transparent),transparent_50%)]"
         />
 
-        <div className="relative flex flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-6">
+        <div className="relative flex flex-wrap items-center justify-between gap-2 px-3 pt-2.5 sm:px-4 sm:pt-3">
           <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
             {formatClient(labels.levelOfTemplate, locale, {
               current: levelIndex + 1,
@@ -453,13 +456,13 @@ export function WordBuilderGame({
               </bdi>
             </span>
           </p>
-          <div className="bg-tertiary-container text-on-tertiary-container inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold">
-            <IconSparkle className="size-4" />
+          <div className="bg-tertiary-container text-on-tertiary-container inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-bold">
+            <IconSparkle className="size-3.5" />
             <bdi dir="ltr">{formatCoins(coins.coins, locale)}</bdi>
           </div>
         </div>
 
-        <div className="relative space-y-5 px-4 py-5 sm:px-6">
+        <div className="relative flex flex-col gap-[clamp(0.4rem,1.4dvh,0.9rem)] px-3 py-2.5 sm:px-4 sm:py-3">
           <p className="sr-only">{labels.targetsHeading}</p>
           <AnswerSlots
             level={level}
@@ -471,7 +474,7 @@ export function WordBuilderGame({
           <div
             dir="ltr"
             className={cn(
-              'rounded-[var(--radius-input)] border-2 px-4 py-3 text-center transition-[border-color,background-color] duration-[var(--duration-fast)]',
+              'rounded-[var(--radius-input)] border-2 px-3 py-[clamp(0.35rem,1dvh,0.65rem)] text-center transition-[border-color,background-color] duration-[var(--duration-fast)]',
               state.pathWrong
                 ? 'border-error bg-error-container'
                 : 'border-primary/40 bg-surface-2 dark:bg-surface-3'
@@ -480,7 +483,7 @@ export function WordBuilderGame({
             <p
               lang="en"
               className={cn(
-                'min-h-[1.5em] text-2xl font-extrabold tracking-[0.2em] uppercase sm:text-3xl',
+                'min-h-[1.25em] text-[length:clamp(1.1rem,3.2dvh,1.65rem)] font-extrabold tracking-[0.18em] uppercase',
                 state.pathWrong ? 'text-on-error-container' : 'text-on-surface'
               )}
             >
@@ -490,12 +493,12 @@ export function WordBuilderGame({
               <div
                 dir="rtl"
                 lang={glossLang}
-                className="border-outline-variant/50 mt-3 border-t pt-3 text-right"
+                className="border-outline-variant/50 mt-2 border-t pt-2 text-right"
               >
                 <p className="text-primary text-[length:var(--text-caption)] font-semibold">
                   {labels.translation}
                 </p>
-                <p className="text-on-surface mt-1 text-base font-bold">
+                <p className="text-on-surface mt-0.5 text-sm font-bold sm:text-base">
                   {meaningFromFeedback}
                 </p>
               </div>
@@ -515,17 +518,17 @@ export function WordBuilderGame({
           ) : null}
 
           {levelDone ? (
-            <div className="py-6 text-center">
-              <IconCheck className="text-correct mx-auto size-10" />
-              <p className="mt-3 text-[length:var(--text-h3)] font-bold">
+            <div className="py-4 text-center">
+              <IconCheck className="text-correct mx-auto size-8" />
+              <p className="mt-2 text-[length:var(--text-h3)] font-bold">
                 {allDone ? labels.allLevelsDone : labels.levelCompleteTitle}
               </p>
               {!allDone ? (
-                <p className="text-on-surface-variant mt-1">
+                <p className="text-on-surface-variant mt-1 text-sm">
                   {labels.levelCompleteBody}
                 </p>
               ) : null}
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <div className="mt-4 flex flex-wrap justify-center gap-3">
                 {!allDone ? (
                   <Button type="button" onClick={() => resetLevel(levelIndex + 1)}>
                     {labels.nextLevel}
@@ -542,7 +545,7 @@ export function WordBuilderGame({
               </div>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative mx-auto w-full max-w-[min(100%,18.5rem,min(52vw,38dvh))]">
               <div className="pointer-events-none absolute inset-0 z-10">
                 <button
                   type="button"
@@ -550,9 +553,9 @@ export function WordBuilderGame({
                   onClick={hintLetter}
                   title={`${labels.hintReveal} — ${costLabel(letterCost)}`}
                   aria-label={labels.hintReveal}
-                  className="bg-surface-1 text-on-surface border-outline-variant pointer-events-auto absolute start-1 top-1 grid size-12 place-items-center rounded-full border-2 shadow-[var(--shadow-soft)] disabled:opacity-40"
+                  className={cn(trayBtnClass, 'start-0 top-0')}
                 >
-                  <IconLightbulb className="size-5" />
+                  <IconLightbulb className="size-[1.05rem]" />
                 </button>
                 <button
                   type="button"
@@ -560,9 +563,9 @@ export function WordBuilderGame({
                   onClick={shuffleCircle}
                   title={labels.shuffle}
                   aria-label={labels.shuffle}
-                  className="bg-surface-1 text-on-surface border-outline-variant pointer-events-auto absolute start-1 bottom-1 grid size-12 place-items-center rounded-full border-2 shadow-[var(--shadow-soft)] disabled:opacity-40"
+                  className={cn(trayBtnClass, 'start-0 bottom-0')}
                 >
-                  <IconLoop className="size-5" />
+                  <IconLoop className="size-[1.05rem]" />
                 </button>
                 <button
                   type="button"
@@ -570,9 +573,9 @@ export function WordBuilderGame({
                   onClick={hintMeaning}
                   title={`${labels.hintMeaning} — ${costLabel(meaningCost)}`}
                   aria-label={labels.hintMeaning}
-                  className="bg-surface-1 text-on-surface border-outline-variant pointer-events-auto absolute end-1 bottom-1 grid size-12 place-items-center rounded-full border-2 shadow-[var(--shadow-soft)] disabled:opacity-40"
+                  className={cn(trayBtnClass, 'end-0 bottom-0')}
                 >
-                  <IconSparkle className="size-5" />
+                  <IconSparkle className="size-[1.05rem]" />
                 </button>
               </div>
 

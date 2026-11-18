@@ -378,4 +378,54 @@ test.describe('Word Builder — Classic tray', () => {
       .toBe(0);
     await expect(tray.locator('svg polyline')).toHaveCount(0);
   });
+
+  const fitViewports = [
+    { width: 1366, height: 768 },
+    { width: 1280, height: 720 },
+    { width: 1024, height: 768 },
+    { width: 1015, height: 850 },
+    { width: 390, height: 844 },
+    { width: 360, height: 740 },
+  ] as const;
+
+  for (const vp of fitViewports) {
+    test(`en: session fits ${vp.width}x${vp.height} without scrolling tray buttons`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(vp);
+      await page.goto('/en/play/animals', { waitUntil: 'domcontentloaded' });
+      await page.waitForLoadState('networkidle');
+
+      // Wait for session focus attribute (tightens chrome) + tray layout.
+      await page.waitForFunction(
+        () => document.documentElement.dataset.wordBuilderSession !== undefined
+      );
+      const shuffle = page.getByRole('button', { name: /shuffle/i });
+      const hint = page.getByRole('button', { name: /reveal a letter/i });
+      const meaning = page.getByRole('button', { name: /show a meaning/i });
+      await expect(shuffle).toBeVisible();
+      await expect(hint).toBeVisible();
+
+      const assertInViewport = async (locator: ReturnType<typeof page.getByRole>) => {
+        const box = await locator.boundingBox();
+        expect(box, 'control should have a box').toBeTruthy();
+        if (!box) return;
+        expect(box.y).toBeGreaterThanOrEqual(-1);
+        expect(box.y + box.height).toBeLessThanOrEqual(vp.height + 1);
+        expect(box.x).toBeGreaterThanOrEqual(-1);
+        expect(box.x + box.width).toBeLessThanOrEqual(vp.width + 1);
+      };
+
+      await assertInViewport(shuffle);
+      await assertInViewport(hint);
+      await assertInViewport(meaning);
+
+      // Page should not require scrolling to reach the tray controls.
+      const overflow = await page.evaluate(() => {
+        const doc = document.documentElement;
+        return doc.scrollHeight - window.innerHeight;
+      });
+      expect(overflow).toBeLessThanOrEqual(8);
+    });
+  }
 });
