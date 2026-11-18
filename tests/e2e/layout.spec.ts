@@ -69,6 +69,35 @@ test.describe('direction and script', () => {
     });
   }
 
+  /*
+   * Grammar topic names and list numbers are English LTR content. The section
+   * must stay LTR under fa/ckb while the document (header/nav) remains RTL.
+   */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar stays LTR under ${locale} while html stays RTL`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar`, { waitUntil: 'domcontentloaded' });
+      await settle(page);
+
+      await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+      await expect(page.locator('main [dir="ltr"]').first()).toBeVisible();
+
+      const order = await page.evaluate(() => {
+        const card = document.querySelector('main ul li .accent-card');
+        if (!card) return null;
+        const number = card.querySelector('.accent-dot-text');
+        const title = card.querySelector('h2');
+        if (!number || !title) return null;
+        return {
+          numberLeft: number.getBoundingClientRect().left,
+          titleLeft: title.getBoundingClientRect().left,
+        };
+      });
+
+      expect(order, 'expected a grammar topic card with number and title').not.toBeNull();
+      expect(order!.numberLeft).toBeLessThan(order!.titleLeft);
+    });
+  }
+
   for (const locale of ['fa', 'ckb'] as const) {
     test(`${locale} applies no letter-spacing to Arabic script`, async ({ page }) => {
       await page.goto(`/${locale}`, { waitUntil: 'domcontentloaded' });
