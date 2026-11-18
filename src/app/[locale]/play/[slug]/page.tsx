@@ -5,17 +5,19 @@ import {
   Flashcards,
   type FlashcardData,
 } from '@/components/features/flashcards/flashcards';
-import { MatchingGame, type MatchPair } from '@/components/features/games/matching-game';
+import { WordBuilderGame } from '@/components/features/games/word-builder-game';
 import { ButtonLink } from '@/components/ui/button';
 import { CategoryIcon, IconArrowBack } from '@/components/ui/icons';
 import { Badge, Container, PageHeader, SectionHeading } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/ui/states';
 import { glossOf } from '@/lib/api/normalize';
 import { getGameCategory } from '@/lib/api/queries';
+import { buildWordBuilderLevels, mulberry32 } from '@/lib/game/word-builder/levels';
+import { gameLemma } from '@/lib/game/word-builder/logic';
+import type { WordBuilderSourceWord } from '@/lib/game/word-builder/types';
 import { isLocale } from '@/lib/i18n/config';
-import { getTranslator } from '@/lib/i18n/messages';
+import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { PLAY_SECTION_VISIBLE, localeHref } from '@/lib/nav';
-import { seededShuffle } from '@/lib/shuffle';
 import { getGloss } from '@/lib/request-context';
 
 /** Slugs are lowercase identifiers from the API; reject anything else. */
@@ -52,6 +54,7 @@ export default async function PlayCategoryPage({
   if (!category) notFound();
 
   const t = getTranslator(locale);
+  const raw = getRawMessage(locale);
   const name = locale === 'en' ? category.name.en : glossOf(category.name, gloss);
 
   /*
@@ -77,24 +80,14 @@ export default async function PlayCategoryPage({
   }));
 
   /*
-   * Meanings must be distinct within a round, or two options would both be
-   * right and the game would mark a correct answer wrong.
+   * Classic Word Builder levels are built on the server with a seed from the
+   * category id — same first session for every visitor of a cached page, and
+   * hydration-safe. Only a–z lemmas of length 2–7 are playable (app rule).
    */
-  const seen = new Set<string>();
-  const pairs: MatchPair[] = [];
-  for (const [i, w] of usable.entries()) {
-    if (seen.has(w.meaning)) continue;
-    seen.add(w.meaning);
-    pairs.push({ id: `${category.id}-${i}`, word: w.word, meaning: w.meaning });
-  }
-
-  /*
-   * Ordered here rather than in the component, and seeded rather than random:
-   * the game derives its first round deterministically from these props, so
-   * hydration matches and the cached page is identical for every visitor.
-   * The seed is the category id, so each category opens on a different set.
-   */
-  const shuffledPairs = seededShuffle(pairs, category.id);
+  const sourceWords: WordBuilderSourceWord[] = usable.filter((w) => gameLemma(w.word));
+  const levels = buildWordBuilderLevels(sourceWords, mulberry32(category.id), {
+    categoryLabel: category.name.en || category.slug,
+  });
 
   return (
     <Container>
@@ -124,6 +117,40 @@ export default async function PlayCategoryPage({
         <EmptyState title={t('wordBuilderCategoryNoWordsYet')} />
       ) : (
         <div className="space-y-12">
+          {levels.length > 0 ? (
+            <section>
+              <SectionHeading>{t('tabPlay')}</SectionHeading>
+              <WordBuilderGame
+                levels={levels}
+                locale={locale}
+                glossLang={gloss}
+                labels={{
+                  levelOfTemplate: raw('wordBuilderLevelOf'),
+                  shuffle: t('wordBuilderShuffle'),
+                  hintReveal: t('wordBuilderHintReveal'),
+                  hintMeaning: t('wordBuilderHintMeaning'),
+                  coinsCostTemplate: raw('wordBuilderCoinsCost'),
+                  translation: t('wordBuilderTranslation'),
+                  correct: t('wordBuilderCorrectNice'),
+                  alreadyFound: t('wordBuilderAlreadyFound'),
+                  notEnoughCoins: t('wordBuilderNotEnoughCoins'),
+                  hintLetter: t('wordBuilderHintLetter'),
+                  levelCompleteTitle: t('wordBuilderLevelCompleteTitle'),
+                  levelCompleteBody: t('wordBuilderLevelCompleteBody'),
+                  nextLevel: t('wordBuilderNextLevel'),
+                  allLevelsDone: t('wordBuilderAllLevelsDone'),
+                  replay: t('wordBuilderReplayLevel'),
+                  targetsHeading: t('wordBuilderTargetsHeading'),
+                  meaning: t('wordBuilderMeaning'),
+                  example: t('wordBuilderExample'),
+                  close: t('close'),
+                }}
+              />
+            </section>
+          ) : (
+            <EmptyState title={t('wordBuilderNoWordsBody')} />
+          )}
+
           <section>
             <SectionHeading>{t('tabReview')}</SectionHeading>
             <Flashcards
@@ -140,24 +167,6 @@ export default async function PlayCategoryPage({
               }}
             />
           </section>
-
-          {shuffledPairs.length >= 4 ? (
-            <section>
-              <SectionHeading>{t('tabPlay')}</SectionHeading>
-              <MatchingGame
-                pairs={shuffledPairs}
-                glossLang={gloss}
-                locale={locale}
-                labels={{
-                  prompt: t('wordBuilderTranslation'),
-                  correct: t('answerCorrect'),
-                  wrong: t('answerWrong'),
-                  newRound: t('practiseAgain'),
-                  finished: t('allCardsReviewed'),
-                }}
-              />
-            </section>
-          ) : null}
         </div>
       )}
     </Container>

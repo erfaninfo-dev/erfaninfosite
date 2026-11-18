@@ -33,7 +33,10 @@ export default async function PlayPage({ params }: PageProps<'/[locale]/play'>) 
 
   return (
     <Container>
-      <PageHeader title={t('wordBuilderTitle')} description={t('siteTagline')} />
+      <PageHeader
+        title={t('wordBuilderTitle')}
+        description={t('wordBuilderHomeSubtitle')}
+      />
       <Suspense fallback={<CardGridSkeleton count={12} />}>
         <CategoryGrid locale={locale} />
       </Suspense>

@@ -1,0 +1,660 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { AnswerSlots } from '@/components/features/games/answer-slots';
+import { CircularLetterTray } from '@/components/features/games/circular-letter-tray';
+import { useWordBuilderCoins } from '@/components/features/games/use-word-builder-coins';
+import { Button } from '@/components/ui/button';
+import {
+  IconCheck,
+  IconLightbulb,
+  IconLoop,
+  IconRefresh,
+  IconSparkle,
+} from '@/components/ui/icons';
+import { cn } from '@/lib/cn';
+import {
+  coinsCostHintLetter,
+  coinsCostHintMeaning,
+  coinsLevelCompleteBonus,
+  coinsPerCorrectWord,
+  MEANING_FEEDBACK_PREFIX,
+} from '@/lib/game/word-builder/constants';
+import { mulberry32 } from '@/lib/game/word-builder/levels';
+import {
+  anyUnsolvedTargetHasLength,
+  buildLetterInstances,
+  findUnsolvedTargetMatchingBuilt,
+  firstUnsolvedTarget,
+  isLevelComplete,
+  maxUnsolvedTargetLength,
+  normalizeWord,
+  pathCanExtendToLongerUnsolvedTarget,
+  pickHiddenIndexForReveal,
+  shuffleInstances,
+  solvedTargetCount,
+  unsolvedTargets,
+} from '@/lib/game/word-builder/logic';
+import type {
+  LetterInstance,
+  WordBuilderLevel,
+  WordBuilderTargetWord,
+} from '@/lib/game/word-builder/types';
+import { formatClient } from '@/lib/i18n/client-format';
+import { NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
+
+export type WordBuilderLabels = {
+  /** Raw ICU: `Level {current} of {total}`. */
+  levelOfTemplate: string;
+  shuffle: string;
+  hintReveal: string;
+  hintMeaning: string;
+  /** Raw ICU: `Costs {coins} coins`. */
+  coinsCostTemplate: string;
+  translation: string;
+  correct: string;
+  alreadyFound: string;
+  notEnoughCoins: string;
+  hintLetter: string;
+  levelCompleteTitle: string;
+  levelCompleteBody: string;
+  nextLevel: string;
+  allLevelsDone: string;
+  replay: string;
+  targetsHeading: string;
+  meaning: string;
+  example: string;
+  close: string;
+};
+
+type GameState = {
+  circleLetters: LetterInstance[];
+  path: LetterInstance[];
+  solvedLower: Set<string>;
+  revealedPositions: Map<string, Set<number>>;
+  hintTargetCycleIndex: number;
+  pathWrong: boolean;
+  feedback: string | null;
+};
+
+type GameSnapshot = {
+  state: GameState;
+  level: WordBuilderLevel;
+  levelIndex: number;
+};
+
+function formatCoins(n: number, locale: Locale): string {
+  return new Intl.NumberFormat(NUMBER_LOCALE[locale]).format(n);
+}
+
+function createLevelState(level: WordBuilderLevel, seed: number): GameState {
+  return {
+    circleLetters: shuffleInstances(
+      buildLetterInstances(level.letters),
+      mulberry32(seed)
+    ),
+    path: [],
+    solvedLower: new Set(),
+    revealedPositions: new Map(),
+    hintTargetCycleIndex: 0,
+    pathWrong: false,
+    feedback: null,
+  };
+}
+
+/**
+ * Classic Word Builder — circular letter tray, answer slots, hints, coins,
+ * and level progression. No tray-center scenes (water / train / prison).
+ */
+export function WordBuilderGame({
+  levels,
+  locale,
+  glossLang,
+  labels,
+}: {
+  levels: WordBuilderLevel[];
+  locale: Locale;
+  glossLang: 'fa' | 'ckb';
+  labels: WordBuilderLabels;
+}) {
+  const [levelIndex, setLevelIndex] = useState(0);
+  const [state, setState] = useState<GameState | null>(() =>
+    levels[0] ? createLevelState(levels[0], levels[0].levelId * 9973) : null
+  );
+
+  const pathRef = useRef<LetterInstance[]>([]);
+  const snapRef = useRef<GameSnapshot | null>(null);
+  const wrongClearTimer = useRef<number | null>(null);
+  const [sheetTarget, setSheetTarget] = useState<WordBuilderTargetWord | null>(null);
+  const coins = useWordBuilderCoins();
+
+  const level = levels[levelIndex] ?? null;
+
+  useEffect(() => {
+    if (state && level) {
+      snapRef.current = { state, level, levelIndex };
+    }
+  }, [state, level, levelIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (wrongClearTimer.current !== null) {
+        window.clearTimeout(wrongClearTimer.current);
+      }
+    };
+  }, []);
+
+  const syncPath = useCallback((path: LetterInstance[], extra?: Partial<GameState>) => {
+    pathRef.current = path;
+    setState((s) => (s ? { ...s, path, ...extra } : s));
+  }, []);
+
+  const resetLevel = useCallback(
+    (index: number) => {
+      const next = levels[index];
+      if (!next) return;
+      if (wrongClearTimer.current !== null) {
+        window.clearTimeout(wrongClearTimer.current);
+        wrongClearTimer.current = null;
+      }
+      pathRef.current = [];
+      setLevelIndex(index);
+      setState(createLevelState(next, next.levelId * 9973 + index));
+      setSheetTarget(null);
+    },
+    [levels]
+  );
+
+  const commitWrong = useCallback(() => {
+    setState((s) => (s ? { ...s, pathWrong: true, feedback: null } : s));
+    if (wrongClearTimer.current !== null) window.clearTimeout(wrongClearTimer.current);
+    wrongClearTimer.current = window.setTimeout(() => {
+      pathRef.current = [];
+      setState((s) =>
+        s ? { ...s, path: [], pathWrong: false, feedback: null } : s
+      );
+    }, 700);
+  }, []);
+
+  const applyCorrect = useCallback(
+    (matched: WordBuilderTargetWord, current: GameState, currentLevel: WordBuilderLevel) => {
+      const norm = normalizeWord(matched.word);
+      const newSolved = new Set(current.solvedLower);
+      newSolved.add(norm);
+      const complete = isLevelComplete(currentLevel, newSolved);
+      const newCircle = complete
+        ? []
+        : shuffleInstances(
+            buildLetterInstances(currentLevel.letters),
+            () => Math.random()
+          );
+
+      let reward = coinsPerCorrectWord();
+      if (complete) reward += coinsLevelCompleteBonus();
+      coins.addCoins(reward);
+
+      pathRef.current = [];
+      setState({
+        ...current,
+        path: [],
+        pathWrong: false,
+        solvedLower: newSolved,
+        circleLetters: newCircle,
+        feedback: '__correct',
+      });
+    },
+    [coins]
+  );
+
+  const evaluatePath = useCallback(() => {
+    const snap = snapRef.current;
+    if (!snap || snap.state.pathWrong) return;
+    const { state: current, level: currentLevel } = snap;
+
+    const path = pathRef.current;
+    if (path.length <= 1) {
+      pathRef.current = [];
+      setState({ ...current, path: [], feedback: null, pathWrong: false });
+      return;
+    }
+    if (unsolvedTargets(currentLevel, current.solvedLower).length === 0) {
+      pathRef.current = [];
+      setState({ ...current, path: [], feedback: null });
+      return;
+    }
+
+    const builtLower = normalizeWord(path.map((e) => e.char).join(''));
+    const matched = findUnsolvedTargetMatchingBuilt(
+      currentLevel,
+      current.solvedLower,
+      builtLower
+    );
+    if (matched) {
+      applyCorrect(matched, current, currentLevel);
+      return;
+    }
+
+    if (
+      current.solvedLower.has(builtLower) &&
+      currentLevel.targetWords.some((t) => normalizeWord(t.word) === builtLower)
+    ) {
+      pathRef.current = [];
+      setState({
+        ...current,
+        path: [],
+        pathWrong: false,
+        feedback: '__already_found',
+      });
+      return;
+    }
+
+    const plen = path.length;
+    const maxLen = maxUnsolvedTargetLength(currentLevel, current.solvedLower);
+
+    if (
+      plen > maxLen &&
+      !pathCanExtendToLongerUnsolvedTarget(
+        currentLevel,
+        current.solvedLower,
+        builtLower
+      )
+    ) {
+      setState({ ...current, path, pathWrong: false });
+      commitWrong();
+      return;
+    }
+
+    if (
+      pathCanExtendToLongerUnsolvedTarget(
+        currentLevel,
+        current.solvedLower,
+        builtLower
+      )
+    ) {
+      pathRef.current = [];
+      setState({ ...current, path: [], feedback: null, pathWrong: false });
+      return;
+    }
+
+    if (anyUnsolvedTargetHasLength(currentLevel, current.solvedLower, plen)) {
+      setState({ ...current, path, pathWrong: false });
+      commitWrong();
+      return;
+    }
+
+    pathRef.current = [];
+    setState({ ...current, path: [], feedback: null, pathWrong: false });
+  }, [applyCorrect, commitWrong]);
+
+  const appendLetter = useCallback(
+    (letter: LetterInstance) => {
+      const snap = snapRef.current;
+      if (!snap || snap.state.pathWrong) return;
+      if (pathRef.current.some((p) => p.id === letter.id)) return;
+      syncPath([...pathRef.current, letter], { feedback: null });
+    },
+    [syncPath]
+  );
+
+  const clearPath = useCallback(() => {
+    if (pathRef.current.length === 0) return;
+    pathRef.current = [];
+    setState((s) =>
+      s ? { ...s, path: [], pathWrong: false, feedback: null } : s
+    );
+  }, []);
+
+  const shuffleCircle = useCallback(() => {
+    setState((s) => {
+      if (!s) return s;
+      pathRef.current = [];
+      return {
+        ...s,
+        circleLetters: shuffleInstances([...s.circleLetters], () => Math.random()),
+        path: [],
+        pathWrong: false,
+        feedback: null,
+      };
+    });
+  }, []);
+
+  const hintLetter = useCallback(() => {
+    const snap = snapRef.current;
+    if (!snap || snap.state.pathWrong) return;
+    const { state: current, level: currentLevel } = snap;
+    if (isLevelComplete(currentLevel, current.solvedLower)) return;
+
+    const targets = currentLevel.targetWords;
+    if (targets.length === 0) return;
+    const n = targets.length;
+    const start = current.hintTargetCycleIndex % n;
+    const revealed = new Map(current.revealedPositions);
+
+    let chosenSlot: number | null = null;
+    let chosenLw: string | null = null;
+    let chosenIdx: number | null = null;
+    let baseSet: Set<number> | null = null;
+
+    for (let i = 0; i < n; i += 1) {
+      const slot = (start + i) % n;
+      const target = targets[slot]!;
+      const lw = normalizeWord(target.word);
+      if (current.solvedLower.has(lw)) continue;
+      const setFor = new Set(revealed.get(lw) ?? []);
+      const idx = pickHiddenIndexForReveal(lw, setFor, () => Math.random());
+      if (idx === null) continue;
+      chosenSlot = slot;
+      chosenLw = lw;
+      chosenIdx = idx;
+      baseSet = setFor;
+      break;
+    }
+
+    if (
+      chosenSlot === null ||
+      chosenLw === null ||
+      chosenIdx === null ||
+      baseSet === null
+    ) {
+      return;
+    }
+
+    const cost = coinsCostHintLetter();
+    if (!coins.trySpend(cost)) {
+      setState({ ...current, feedback: '__not_enough_coins' });
+      return;
+    }
+
+    baseSet.add(chosenIdx);
+    revealed.set(chosenLw, baseSet);
+    setState({
+      ...current,
+      revealedPositions: revealed,
+      hintTargetCycleIndex: (chosenSlot + 1) % n,
+      feedback: '__hint_letter',
+    });
+  }, [coins]);
+
+  const hintMeaning = useCallback(() => {
+    const snap = snapRef.current;
+    if (!snap || snap.state.pathWrong) return;
+    const { state: current, level: currentLevel } = snap;
+    if (isLevelComplete(currentLevel, current.solvedLower)) return;
+    const target = firstUnsolvedTarget(currentLevel, current.solvedLower);
+    if (!target) return;
+    if (!coins.trySpend(coinsCostHintMeaning())) {
+      setState({ ...current, feedback: '__not_enough_coins' });
+      return;
+    }
+    setState({
+      ...current,
+      feedback: `${MEANING_FEEDBACK_PREFIX}${target.meaning}`,
+    });
+  }, [coins]);
+
+  if (!level || !state || levels.length === 0) return null;
+
+  const built = state.path.map((p) => p.char).join('');
+  const meaningFromFeedback = state.feedback?.startsWith(MEANING_FEEDBACK_PREFIX)
+    ? state.feedback.slice(MEANING_FEEDBACK_PREFIX.length)
+    : null;
+
+  const levelDone = isLevelComplete(level, state.solvedLower);
+  const allDone = levelDone && levelIndex >= levels.length - 1;
+  const solvedCount = solvedTargetCount(level, state.solvedLower);
+
+  const letterCost = coinsCostHintLetter();
+  const meaningCost = coinsCostHintMeaning();
+  const canHint = coins.coins >= letterCost && !state.pathWrong && !levelDone;
+  const canMeaning = coins.coins >= meaningCost && !state.pathWrong && !levelDone;
+  const costLabel = (n: number) =>
+    formatClient(labels.coinsCostTemplate, locale, { coins: n });
+
+  const liveMessage = (() => {
+    if (meaningFromFeedback) return null;
+    switch (state.feedback) {
+      case '__correct':
+        return labels.correct;
+      case '__already_found':
+        return labels.alreadyFound;
+      case '__not_enough_coins':
+        return labels.notEnoughCoins;
+      case '__hint_letter':
+        return labels.hintLetter;
+      default:
+        return null;
+    }
+  })();
+
+  return (
+    <div className="mx-auto w-full max-w-[var(--container-quiz)]">
+      <div className="border-outline-variant/60 bg-surface-1 dark:bg-surface-2 relative overflow-hidden rounded-[var(--radius-card)] border">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_55%),radial-gradient(ellipse_at_bottom,color-mix(in_oklab,var(--color-secondary)_10%,transparent),transparent_50%)]"
+        />
+
+        <div className="relative flex flex-wrap items-center justify-between gap-3 px-4 pt-4 sm:px-6">
+          <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
+            {formatClient(labels.levelOfTemplate, locale, {
+              current: levelIndex + 1,
+              total: levels.length,
+            })}
+            <span className="text-on-surface-variant/80 ms-2">
+              ·{' '}
+              <bdi dir="ltr">
+                {formatCoins(solvedCount, locale)}/
+                {formatCoins(level.targetWords.length, locale)}
+              </bdi>
+            </span>
+          </p>
+          <div className="bg-tertiary-container text-on-tertiary-container inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold">
+            <IconSparkle className="size-4" />
+            <bdi dir="ltr">{formatCoins(coins.coins, locale)}</bdi>
+          </div>
+        </div>
+
+        <div className="relative space-y-5 px-4 py-5 sm:px-6">
+          <p className="sr-only">{labels.targetsHeading}</p>
+          <AnswerSlots
+            level={level}
+            solvedLower={state.solvedLower}
+            revealedPositions={state.revealedPositions}
+            onSolvedWordTap={setSheetTarget}
+          />
+
+          <div
+            dir="ltr"
+            className={cn(
+              'rounded-[var(--radius-input)] border-2 px-4 py-3 text-center transition-[border-color,background-color] duration-[var(--duration-fast)]',
+              state.pathWrong
+                ? 'border-error bg-error-container'
+                : 'border-primary/40 bg-surface-2 dark:bg-surface-3'
+            )}
+          >
+            <p
+              lang="en"
+              className={cn(
+                'min-h-[1.5em] text-2xl font-extrabold tracking-[0.2em] uppercase sm:text-3xl',
+                state.pathWrong ? 'text-on-error-container' : 'text-on-surface'
+              )}
+            >
+              {built ? built.toUpperCase() : '\u00a0'}
+            </p>
+            {meaningFromFeedback ? (
+              <div
+                dir="rtl"
+                lang={glossLang}
+                className="border-outline-variant/50 mt-3 border-t pt-3 text-right"
+              >
+                <p className="text-primary text-[length:var(--text-caption)] font-semibold">
+                  {labels.translation}
+                </p>
+                <p className="text-on-surface mt-1 text-base font-bold">
+                  {meaningFromFeedback}
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <p aria-live="polite" className="sr-only">
+            {liveMessage ?? ''}
+          </p>
+          {liveMessage ? (
+            <p
+              aria-hidden
+              className="text-on-surface-variant text-center text-[length:var(--text-caption)] font-semibold"
+            >
+              {liveMessage}
+            </p>
+          ) : null}
+
+          {levelDone ? (
+            <div className="py-6 text-center">
+              <IconCheck className="text-correct mx-auto size-10" />
+              <p className="mt-3 text-[length:var(--text-h3)] font-bold">
+                {allDone ? labels.allLevelsDone : labels.levelCompleteTitle}
+              </p>
+              {!allDone ? (
+                <p className="text-on-surface-variant mt-1">
+                  {labels.levelCompleteBody}
+                </p>
+              ) : null}
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {!allDone ? (
+                  <Button type="button" onClick={() => resetLevel(levelIndex + 1)}>
+                    {labels.nextLevel}
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  variant={allDone ? 'primary' : 'ghost'}
+                  onClick={() => resetLevel(allDone ? 0 : levelIndex)}
+                >
+                  <IconRefresh className="size-5" />
+                  {labels.replay}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-0 z-10">
+                <button
+                  type="button"
+                  disabled={!canHint}
+                  onClick={hintLetter}
+                  title={`${labels.hintReveal} — ${costLabel(letterCost)}`}
+                  aria-label={labels.hintReveal}
+                  className="bg-surface-1 text-on-surface border-outline-variant pointer-events-auto absolute start-1 top-1 grid size-12 place-items-center rounded-full border-2 shadow-[var(--shadow-soft)] disabled:opacity-40"
+                >
+                  <IconLightbulb className="size-5" />
+                </button>
+                <button
+                  type="button"
+                  disabled={state.pathWrong}
+                  onClick={shuffleCircle}
+                  title={labels.shuffle}
+                  aria-label={labels.shuffle}
+                  className="bg-surface-1 text-on-surface border-outline-variant pointer-events-auto absolute start-1 bottom-1 grid size-12 place-items-center rounded-full border-2 shadow-[var(--shadow-soft)] disabled:opacity-40"
+                >
+                  <IconLoop className="size-5" />
+                </button>
+                <button
+                  type="button"
+                  disabled={!canMeaning}
+                  onClick={hintMeaning}
+                  title={`${labels.hintMeaning} — ${costLabel(meaningCost)}`}
+                  aria-label={labels.hintMeaning}
+                  className="bg-surface-1 text-on-surface border-outline-variant pointer-events-auto absolute end-1 bottom-1 grid size-12 place-items-center rounded-full border-2 shadow-[var(--shadow-soft)] disabled:opacity-40"
+                >
+                  <IconSparkle className="size-5" />
+                </button>
+              </div>
+
+              <CircularLetterTray
+                letters={state.circleLetters}
+                path={state.path}
+                pathWrong={state.pathWrong}
+                onAppend={appendLetter}
+                onRelease={evaluatePath}
+                onCancel={clearPath}
+                onClearTap={clearPath}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {sheetTarget ? (
+        <WordInfoOverlay
+          target={sheetTarget}
+          glossLang={glossLang}
+          labels={labels}
+          onClose={() => setSheetTarget(null)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function WordInfoOverlay({
+  target,
+  glossLang,
+  labels,
+  onClose,
+}: {
+  target: WordBuilderTargetWord;
+  glossLang: 'fa' | 'ckb';
+  labels: WordBuilderLabels;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      role="dialog"
+      aria-modal
+      aria-label={labels.meaning}
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onClose();
+      }}
+    >
+      <div
+        className="bg-surface-1 border-outline-variant w-full max-w-md rounded-[var(--radius-card)] border p-5 shadow-[var(--shadow-soft)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p lang="en" dir="ltr" className="text-[length:var(--text-h3)] font-extrabold">
+          {target.word}
+        </p>
+        {target.meaning ? (
+          <p lang={glossLang} dir="rtl" className="text-primary mt-2 text-right font-bold">
+            {target.meaning}
+          </p>
+        ) : null}
+        {target.exampleEn ? (
+          <div className="mt-4">
+            <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
+              {labels.example}
+            </p>
+            <p lang="en" dir="ltr" className="text-on-surface-variant mt-1 italic">
+              {target.exampleEn}
+            </p>
+            {target.exampleGloss && target.exampleGloss !== target.exampleEn ? (
+              <p
+                lang={glossLang}
+                dir="rtl"
+                className="text-primary mt-1 text-right text-sm font-bold"
+              >
+                {target.exampleGloss}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        <Button type="button" className="mt-5 w-full" onClick={onClose}>
+          {labels.close}
+        </Button>
+      </div>
+    </div>
+  );
+}

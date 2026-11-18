@@ -415,6 +415,17 @@
   }
 }
 
+/* Wrong-path letters hold, then fade before the path clears. */
+@keyframes wb-path-fade {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 @layer utilities {
   /*
    * ── Card accents ────────────────────────────────────────────────────────

@@ -115,7 +115,7 @@ async function UnitBrowser({
         layout={idioms ? 'idioms' : 'units'}
         labels={{
           search: t('searchUnitsHint'),
-          hintTemplate: raw('unitsGridHint'),
+          hintTemplate: idioms ? raw('idiomsUnitsLearnHint') : raw('unitsGridHint'),
           unitLabelTemplate: raw('unitLabel'),
           tapToOpen: t('tapToOpen'),
           noMatch: t('noMatchingUnits'),
@@ -124,7 +124,8 @@ async function UnitBrowser({
           clear: t('close'),
         }}
       />
-      {units.length > 0 && !idioms ? (
+      {/* App shows the book quiz FAB for every book with units, including Idioms. */}
+      {units.length > 0 ? (
         <QuizFab href={localeHref(locale, `/books/${bookId}/quiz`)} label={t('tooltipQuiz')} />
       ) : null}
     </>
