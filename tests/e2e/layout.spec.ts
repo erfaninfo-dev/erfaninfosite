@@ -125,6 +125,29 @@ test.describe('direction and script', () => {
     }
   });
 
+  /*
+   * Tailwind rewrites :dir(rtl) to :lang(ckb|fa|…); icons must still respect
+   * the grammar LTR island, so the quiz back arrow is not mirrored.
+   */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar quiz back arrow is not mirrored under ${locale}`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await settle(page);
+
+      const flip = await page.evaluate(() => {
+        const icon = document.querySelector('.grammar-quiz-page svg.rtl-flip');
+        if (!icon) return null;
+        const t = getComputedStyle(icon).transform;
+        return { transform: t, mirrored: t.includes('-1') };
+      });
+
+      expect(flip, 'expected the quiz back icon').not.toBeNull();
+      expect(flip!.mirrored).toBe(false);
+    });
+  }
+
   for (const locale of ['fa', 'ckb'] as const) {
     test(`${locale} applies no letter-spacing to Arabic script`, async ({ page }) => {
       await page.goto(`/${locale}`, { waitUntil: 'domcontentloaded' });
