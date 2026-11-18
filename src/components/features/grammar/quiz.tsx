@@ -264,7 +264,7 @@ export function Quiz({
                 : 'bg-error-container text-on-error-container'
             )}
           >
-            <p className="flex flex-row items-center gap-2 font-bold">
+            <p className="flex w-full items-center justify-start gap-2 font-bold">
               {correct ? (
                 <IconCheck className="size-5 shrink-0" />
               ) : (
@@ -296,7 +296,7 @@ export function Quiz({
             lang={locale === 'en' ? undefined : locale}
             className="jelly-card mt-4 rounded-[var(--radius-card)] p-4 text-start"
           >
-            <div className="text-primary mb-3 flex items-center gap-2 font-extrabold">
+            <div className="text-primary mb-3 flex w-full items-center justify-start gap-2 font-extrabold">
               <IconLightbulb className="size-5 shrink-0" />
               <span>{labels.explanationHeading}</span>
             </div>

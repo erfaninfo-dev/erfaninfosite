@@ -168,14 +168,20 @@ test.describe('direction and script', () => {
         const icon = row?.querySelector('svg');
         const title = row?.querySelector('span');
         if (!icon || !title) return null;
+        const cardBox = el.getBoundingClientRect();
+        const iconBox = icon.getBoundingClientRect();
+        const titleBox = title.getBoundingClientRect();
         return {
-          iconLeft: icon.getBoundingClientRect().left,
-          titleLeft: title.getBoundingClientRect().left,
+          iconLeft: iconBox.left,
+          titleLeft: titleBox.left,
+          // Heading cluster should sit on the physical right half of the card.
+          titleOnRightHalf: titleBox.left > cardBox.left + cardBox.width / 2,
         };
       });
 
       expect(order, 'expected explanation heading with icon + title').not.toBeNull();
       expect(order!.iconLeft).toBeGreaterThan(order!.titleLeft);
+      expect(order!.titleOnRightHalf).toBe(true);
     });
   }
 
@@ -196,14 +202,18 @@ test.describe('direction and script', () => {
         const icon = row?.querySelector('svg');
         const label = row?.querySelector('span');
         if (!icon || !label) return null;
+        const cardBox = el.getBoundingClientRect();
+        const labelBox = label.getBoundingClientRect();
         return {
           iconLeft: icon.getBoundingClientRect().left,
-          labelLeft: label.getBoundingClientRect().left,
+          labelLeft: labelBox.left,
+          labelOnRightHalf: labelBox.left > cardBox.left + cardBox.width / 2,
         };
       });
 
       expect(order, 'expected feedback row with icon + label').not.toBeNull();
       expect(order!.iconLeft).toBeGreaterThan(order!.labelLeft);
+      expect(order!.labelOnRightHalf).toBe(true);
     });
   }
 
