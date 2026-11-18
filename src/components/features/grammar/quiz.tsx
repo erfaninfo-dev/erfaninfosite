@@ -250,8 +250,10 @@ export function Quiz({
 
         {answered ? (
           <div
+            dir={locale === 'en' ? 'ltr' : 'rtl'}
+            lang={locale === 'en' ? undefined : locale}
             className={cn(
-              'mt-6 rounded-[var(--radius-input)] p-4',
+              'mt-6 rounded-[var(--radius-input)] p-4 text-start',
               correct
                 ? 'bg-correct-container text-on-correct-container'
                 : 'bg-error-container text-on-error-container'
@@ -278,7 +280,16 @@ export function Quiz({
         ) : null}
 
         {answered && resolvedExplanation ? (
-          <div className="jelly-card mt-4 rounded-[var(--radius-card)] p-4">
+          /*
+           * Grammar pages are an LTR island, but this card is translated UI +
+           * Arabic-script copy — keep it RTL under fa/ckb (title, tabs, body).
+           * English UI stays LTR; tab labels are still forced RTL below.
+           */
+          <div
+            dir={locale === 'en' ? 'ltr' : 'rtl'}
+            lang={locale === 'en' ? undefined : locale}
+            className="jelly-card mt-4 rounded-[var(--radius-card)] p-4 text-start"
+          >
             <div className="text-primary mb-3 flex items-center gap-2 font-extrabold">
               <IconLightbulb className="size-5 shrink-0" />
               <span>{labels.explanationHeading}</span>
@@ -314,7 +325,7 @@ export function Quiz({
               dir={resolvedExplanation.lang === 'en' ? 'ltr' : 'rtl'}
               className={cn(
                 'text-on-surface mt-1 text-base leading-relaxed',
-                resolvedExplanation.lang !== 'en' && 'text-right'
+                resolvedExplanation.lang === 'en' ? 'text-left' : 'text-right'
               )}
             >
               {resolvedExplanation.text || '—'}

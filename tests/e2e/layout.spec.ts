@@ -148,6 +148,37 @@ test.describe('direction and script', () => {
     });
   }
 
+  /*
+   * Explanation card is translated Arabic-script UI: under fa/ckb it must be
+   * an RTL island (icon to the right of the heading) inside the LTR grammar page.
+   */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar explanation card is RTL under ${locale}`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await settle(page);
+
+      await page.locator('main button[aria-pressed]').first().click();
+      const card = page.locator('main .jelly-card').first();
+      await expect(card).toHaveAttribute('dir', 'rtl');
+
+      const order = await card.evaluate((el) => {
+        const row = el.querySelector('.text-primary');
+        const icon = row?.querySelector('svg');
+        const title = row?.querySelector('span');
+        if (!icon || !title) return null;
+        return {
+          iconLeft: icon.getBoundingClientRect().left,
+          titleLeft: title.getBoundingClientRect().left,
+        };
+      });
+
+      expect(order, 'expected explanation heading with icon + title').not.toBeNull();
+      expect(order!.iconLeft).toBeGreaterThan(order!.titleLeft);
+    });
+  }
+
   for (const locale of ['fa', 'ckb'] as const) {
     test(`${locale} applies no letter-spacing to Arabic script`, async ({ page }) => {
       await page.goto(`/${locale}`, { waitUntil: 'domcontentloaded' });

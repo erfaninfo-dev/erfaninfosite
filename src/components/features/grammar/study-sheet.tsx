@@ -52,45 +52,53 @@ export function StudySheet({
 
   const available = parts.filter((part) => part[language].length > 0);
 
+  /*
+   * Language-picker chrome is translated; keep it RTL under fa/ckb while the
+   * surrounding grammar page (and the English PDF title list) stays LTR.
+   */
+  const uiDir = locale === 'en' ? 'ltr' : 'rtl';
+
   return (
     <div>
-      <p className="text-on-surface-variant mb-4">{labels.chooseLevel}</p>
+      <div dir={uiDir} lang={locale === 'en' ? undefined : locale}>
+        <p className="text-on-surface-variant mb-4 text-start">{labels.chooseLevel}</p>
 
-      <div
-        role="group"
-        aria-label={labels.chooseLevel}
-        className="border-outline-strong bg-surface-1 mb-5 flex overflow-hidden rounded-2xl border"
-      >
-        {labels.languages.map((option, index) => {
-          const active = language === option.id;
-          // How many parts exist in that language, so a reader can see before
-          // switching that one of them is empty.
-          const count = parts.filter((part) => part[option.id].length > 0).length;
+        <div
+          role="group"
+          aria-label={labels.chooseLevel}
+          className="border-outline-strong bg-surface-1 mb-5 flex overflow-hidden rounded-2xl border"
+        >
+          {labels.languages.map((option, index) => {
+            const active = language === option.id;
+            // How many parts exist in that language, so a reader can see before
+            // switching that one of them is empty.
+            const count = parts.filter((part) => part[option.id].length > 0).length;
 
-          return (
-            <button
-              key={option.id}
-              type="button"
-              lang={option.id}
-              onClick={() => setLanguage(option.id)}
-              aria-pressed={active}
-              className={cn(
-                'flex min-h-13 flex-1 items-center justify-center gap-2 px-3 py-3',
-                'text-[length:var(--text-label)] font-semibold',
-                'transition-colors duration-[var(--duration-fast)]',
-                index > 0 && 'border-outline-strong border-s',
-                active
-                  ? 'bg-secondary-container text-on-secondary-container'
-                  : 'text-on-surface-variant hover:bg-surface-2'
-              )}
-            >
-              <span className="truncate">{option.label}</span>
-              <span className="text-[length:var(--text-caption)] opacity-70">
-                {formatClient('{n, number}', locale, { n: count })}
-              </span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={option.id}
+                type="button"
+                lang={option.id}
+                onClick={() => setLanguage(option.id)}
+                aria-pressed={active}
+                className={cn(
+                  'flex min-h-13 flex-1 items-center justify-center gap-2 px-3 py-3',
+                  'text-[length:var(--text-label)] font-semibold',
+                  'transition-colors duration-[var(--duration-fast)]',
+                  index > 0 && 'border-outline-strong border-s',
+                  active
+                    ? 'bg-secondary-container text-on-secondary-container'
+                    : 'text-on-surface-variant hover:bg-surface-2'
+                )}
+              >
+                <span className="truncate">{option.label}</span>
+                <span className="text-[length:var(--text-caption)] opacity-70">
+                  {formatClient('{n, number}', locale, { n: count })}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {available.length === 0 ? (
