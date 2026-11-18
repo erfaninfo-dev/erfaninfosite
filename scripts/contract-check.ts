@@ -79,6 +79,30 @@ const CHECKS: Check[] = [
     note: 'the heaviest call: 176 KB–864 KB depending on the book',
   },
   {
+    name: 'words_null_section',
+    endpoint: 'words.php',
+    params: { book_id: 36 },
+    schema: S.wordsSchema,
+    minItems: 1,
+    note: 'Speaking (book 36) sends section:null on some units — schema must accept it',
+    assert: (data: S.RawWord[]) =>
+      data.some((w) => w.section == null)
+        ? null
+        : 'expected at least one null section on book 36 (Speaking)',
+  },
+  {
+    name: 'unit_samples_null_section',
+    endpoint: 'unit_samples.php',
+    params: { book_id: 36, unit: 1 },
+    schema: S.unitSamplesSchema,
+    minItems: 1,
+    note: 'Speaking samples use section:null and \\n line endings',
+    assert: (data: S.RawUnitSample[]) =>
+      data.some((s) => s.section == null)
+        ? null
+        : 'expected a null section on book 36 unit 1 samples',
+  },
+  {
     name: 'sections',
     endpoint: 'sections.php',
     params: { book_id: SAMPLE.sectionedBookId, unit: SAMPLE.bookUnit },
