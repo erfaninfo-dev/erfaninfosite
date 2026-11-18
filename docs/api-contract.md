@@ -108,7 +108,7 @@ So 176 KB to 864 KB, and 2.2 s to **10.4 s**. The 10.4 s was a real observation 
 not a fluke to design away — the strategy is sized for the worst book, not the median.
 
 ```
-id:int  book_id:int  unit:int  section:int  section_details:string|null
+id:int  book_id:int  unit:int  section:int|null  section_details:string|null
 word:string  type:string  important:int
 meaning_en:string  meaning_fa:string  meaning_kur:string
 example_en:string  example_fa:string  example_kur:string
@@ -117,6 +117,10 @@ example_en:string  example_fa:string  example_kur:string
 - **`important` is `int` 0/1, not bool.** All 1,888 were 0 in this book.
 - `section` was 0 for every word in book 2 — this book is not sectioned. Book 1 _does_ have
   sections (1, 2, 3). Both shapes must render.
+- Book 36 ("Speaking") sends `section: null` for some units' words (e.g. unit 1). The web
+  client accepts null and normalizes it to `0`, matching unsectioned books. Rejecting null
+  used to fail the whole `words.php?book_id=36` payload and blank the unit page (words and
+  samples, because they load together).
 - `section_details` null for 1,724 of 1,888.
 - The six language fields are **never null**, but they can be **empty strings**: `example_fa` empty
   once, `example_kur` empty twice in this book. The app's fallback chain exists for exactly this.

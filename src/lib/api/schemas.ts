@@ -69,7 +69,12 @@ export const wordSchema = z.object({
   id: z.number(),
   book_id: z.number(),
   unit: z.number(),
-  section: z.number(),
+  /**
+   * Usually an int (0 for unsectioned units, 1+ when sectioned). Book 36
+   * ("Speaking") sends JSON `null` for some units' words; treat that like the
+   * unit_samples.php null section rather than rejecting the whole book.
+   */
+  section: z.number().nullish(),
   section_details: z.string().nullish(),
   word: z.string(),
   type: nullableText,

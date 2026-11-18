@@ -202,7 +202,8 @@ export function normalizeWord(raw: RawWord): Word {
     id: raw.id,
     bookId: raw.book_id,
     unit: raw.unit,
-    section: raw.section,
+    // Null means "no section", same display path as section 0 on unsectioned books.
+    section: raw.section ?? 0,
     sectionDetails: (raw.section_details ?? '').trim(),
     word: raw.word.trim(),
     type: raw.type.trim(),

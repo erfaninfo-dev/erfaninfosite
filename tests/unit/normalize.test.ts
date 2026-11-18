@@ -16,7 +16,7 @@ import {
   secureUrl,
   type Trilingual,
 } from '@/lib/api/normalize';
-import { appUpdateSchema, wordSchema } from '@/lib/api/schemas';
+import { appUpdateSchema, unitSampleSchema, wordSchema } from '@/lib/api/schemas';
 
 /** Small synthetic fixtures. Nothing is copied from the live API. */
 
@@ -126,6 +126,32 @@ describe('normalizeWord — the _kur convention', () => {
     expect(word.example.ckb).toBe('نموونەیەک');
   });
 
+  it('accepts null section and normalizes it to 0', () => {
+    // Book 36 ("Speaking") sends section:null for some units. Rejecting that
+    // used to fail the whole words.php payload and blank the unit page.
+    const word = normalizeWord(
+      wordSchema.parse({
+        id: 11430,
+        book_id: 36,
+        unit: 1,
+        section: null,
+        section_details: null,
+        word: 'introduction',
+        type: 'word',
+        important: 0,
+        meaning_en: 'beginning part',
+        meaning_fa: 'مقدمه',
+        meaning_kur: 'پێشەکی',
+        example_en: 'an example',
+        example_fa: 'یک مثال',
+        example_kur: 'نموونەیەک',
+      })
+    );
+
+    expect(word.section).toBe(0);
+    expect(word.word).toBe('introduction');
+  });
+
   it('reads `important` as an int 0/1 through the schema, not as a boolean', () => {
     // The API sends `important` as an int. The conversion happens in the zod
     // schema, so this goes through the real pipeline: parse, then normalize.
@@ -218,6 +244,24 @@ describe('normalizeUnitSample — the quoted-numbers endpoint', () => {
     expect(sample.id).toBe(36);
     expect(typeof sample.id).toBe('number');
     expect(sample.text.ckb).toBe('');
+  });
+
+  it('keeps a null section as null', () => {
+    // Book 36 samples use section:null (and \\n line endings). Samples already
+    // accepted null; this locks that so a later schema tighten cannot regress.
+    const sample = normalizeUnitSample(
+      unitSampleSchema.parse({
+        id: '1',
+        book_id: '36',
+        unit: '1',
+        section: null,
+        title: 'Sample 1',
+        text_en_fa: 'English:\nHello\n\nفارسی:\nسلام',
+        text_en_kur: '',
+      })
+    );
+    expect(sample.section).toBeNull();
+    expect(sample.bookId).toBe(36);
   });
 });
 
