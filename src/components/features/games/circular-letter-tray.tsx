@@ -101,6 +101,9 @@ export function CircularLetterTray({
   const tapOrigin = useRef<{ x: number; y: number } | null>(null);
   const tapOutside = useRef(false);
   const tapMaxMove = useRef(0);
+  /** Letters appended during the current gesture — not the (possibly stale) path prop. */
+  const gestureAppends = useRef(0);
+  const activePointerId = useRef<number | null>(null);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -133,10 +136,21 @@ export function CircularLetterTray({
     [layout.center.x, layout.center.y, layout.trayRadius]
   );
 
+  function resetGestureTracking() {
+    tapOrigin.current = null;
+    tapOutside.current = false;
+    tapMaxMove.current = 0;
+    dragLastId.current = null;
+    gestureAppends.current = 0;
+    activePointerId.current = null;
+  }
+
   function onPointerDown(e: ReactPointerEvent) {
     if (blocked || pathWrong) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    activePointerId.current = e.pointerId;
     dragLastId.current = null;
+    gestureAppends.current = 0;
     const p = localPoint(e);
     tapOrigin.current = p;
     tapOutside.current = outsideTray(p);
@@ -145,12 +159,16 @@ export function CircularLetterTray({
     if (hit !== null) {
       const letter = letters[hit]!;
       dragLastId.current = letter.id;
+      gestureAppends.current = 1;
       onAppend(letter);
     }
   }
 
   function onPointerMove(e: ReactPointerEvent) {
     if (blocked || pathWrong) return;
+    if (activePointerId.current !== null && e.pointerId !== activePointerId.current) {
+      return;
+    }
     const p = localPoint(e);
     const o = tapOrigin.current;
     if (o) {
@@ -161,30 +179,39 @@ export function CircularLetterTray({
     const letter = letters[hit]!;
     if (dragLastId.current === letter.id) return;
     dragLastId.current = letter.id;
+    gestureAppends.current += 1;
     onAppend(letter);
   }
 
-  function finishPointer(cancelled: boolean) {
+  /**
+   * End the gesture. Never trust the `path` prop here — React may not have
+   * re-rendered yet after fast appends. Parent evaluate/clear uses pathRef.
+   * Always clears selection on release/cancel (validate first when releasing).
+   */
+  function finishPointer(cancelled: boolean, pointerId?: number) {
+    if (activePointerId.current === null && gestureAppends.current === 0 && !tapOrigin.current) {
+      return;
+    }
+    if (pointerId !== undefined && activePointerId.current !== null && pointerId !== activePointerId.current) {
+      return;
+    }
+
     const startedOutside = tapOutside.current;
     const maxMove = tapMaxMove.current;
-    tapOrigin.current = null;
-    tapOutside.current = false;
-    tapMaxMove.current = 0;
-    dragLastId.current = null;
+    const appends = gestureAppends.current;
+    resetGestureTracking();
 
     if (pathWrong) return;
     if (cancelled) {
-      if (path.length > 0) onCancel();
+      onCancel();
       return;
     }
-    if (startedOutside && path.length > 0 && maxMove < 18) {
+    // Tap outside the saucer (no real drag) clears like the Flutter tray.
+    if (startedOutside && appends === 0 && maxMove < 18) {
       onClearTap?.();
       return;
     }
-    if (path.length <= 1) {
-      if (path.length > 0) onClearTap?.();
-      return;
-    }
+    // Always evaluate on release — parent clears the path afterwards (right or wrong).
     onRelease();
   }
 
@@ -207,8 +234,18 @@ export function CircularLetterTray({
       )}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onPointerUp={() => finishPointer(false)}
-      onPointerCancel={() => finishPointer(true)}
+      onPointerUp={(e) => finishPointer(false, e.pointerId)}
+      onPointerCancel={(e) => finishPointer(true, e.pointerId)}
+      onLostPointerCapture={(e) => finishPointer(true, e.pointerId)}
+      onPointerLeave={(e) => {
+        // Leaving the tray mid-gesture cancels (Flutter pointer-cancel path).
+        // With capture, leave alone is not enough to end — lost capture / up still win.
+        if (activePointerId.current === null) return;
+        if (e.pointerId !== activePointerId.current) return;
+        if (!rootRef.current?.hasPointerCapture(e.pointerId)) {
+          finishPointer(true, e.pointerId);
+        }
+      }}
       role="application"
       aria-label="Letter tray"
     >

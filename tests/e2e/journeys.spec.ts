@@ -323,7 +323,8 @@ test.describe('Word Builder — Classic tray', () => {
     const tray = page.getByRole('application', { name: 'Letter tray' });
     await expect(tray).toBeVisible();
 
-    const letter = tray.locator('div.rounded-full').first();
+    // Letter tiles — not the saucer (also a rounded-full div).
+    const letter = tray.locator('div.rounded-full.font-extrabold').first();
     await expect(letter).toBeVisible();
     const box = await letter.boundingBox();
     expect(box).toBeTruthy();
@@ -339,5 +340,40 @@ test.describe('Word Builder — Classic tray', () => {
     // Either a built word appears in the banner, or the path cleared as a
     // single-letter tap — both prove the tray is interactive.
     await expect(tray).toBeVisible();
+  });
+
+  test('en: releasing the pointer clears the letter selection', async ({ page }) => {
+    await page.goto('/en/play/animals', { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
+
+    const tray = page.getByRole('application', { name: 'Letter tray' });
+    await tray.scrollIntoViewIfNeeded();
+    await expect(tray).toBeVisible();
+
+    // Letter tiles only (saucer is also rounded-full).
+    const letters = tray.locator('div.rounded-full.font-extrabold');
+    expect(await letters.count()).toBeGreaterThanOrEqual(2);
+
+    const first = await letters.nth(0).boundingBox();
+    const second = await letters.nth(1).boundingBox();
+    expect(first && second).toBeTruthy();
+    if (!first || !second) return;
+
+    await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(second.x + second.width / 2, second.y + second.height / 2, {
+      steps: 10,
+    });
+    // Brief hold so the path paints, then release — selection must not stick.
+    await page.waitForTimeout(100);
+    await page.mouse.up();
+
+    // Allow wrong-path fade (~700ms) then assert clear (Flutter parity).
+    await expect
+      .poll(async () => tray.locator('div.rounded-full.font-extrabold[class*="scale-105"]').count(), {
+        timeout: 2500,
+      })
+      .toBe(0);
+    await expect(tray.locator('svg polyline')).toHaveCount(0);
   });
 });

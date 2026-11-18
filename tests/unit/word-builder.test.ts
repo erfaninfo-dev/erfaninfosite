@@ -199,3 +199,32 @@ describe('coin economy — matches Flutter constants', () => {
     expect(coinsCostHintMeaning()).toBe(12);
   });
 });
+
+describe('release clears selection (Flutter parity)', () => {
+  /**
+   * On pointer-up the tray always calls evaluate/clear. Prefixes of longer
+   * unsolved words are discarded without marking wrong — same as the app's
+   * clearPathOnly path — so a held selection never survives a release.
+   */
+  it('treats a short prefix as extendable (release should discard, not sticky-select)', () => {
+    const longLevel = {
+      levelId: 1,
+      difficulty: 'beginner' as const,
+      category: 'test',
+      letters: ['c', 'a', 't', 't', 'l', 'e'],
+      targetWords: [
+        { word: 'cat', meaning: '', exampleEn: '', exampleGloss: '' },
+        { word: 'cattle', meaning: '', exampleEn: '', exampleGloss: '' },
+        { word: 'late', meaning: '', exampleEn: '', exampleGloss: '' },
+      ],
+    };
+    // "ca" is a prefix of "cat" / "cattle" — release clears without wrong flash.
+    expect(pathCanExtendToLongerUnsolvedTarget(longLevel, new Set(), 'ca')).toBe(
+      true
+    );
+    // Exact match is not "extendable" — release validates as correct and clears.
+    expect(
+      findUnsolvedTargetMatchingBuilt(longLevel, new Set(), 'cat')?.word
+    ).toBe('cat');
+  });
+});

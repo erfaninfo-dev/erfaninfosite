@@ -207,11 +207,17 @@ export function WordBuilderGame({
     [coins]
   );
 
+  /**
+   * Validate the swipe on release (Flutter evaluatePathOnDragRelease). Always
+   * clears the selection afterwards — immediately on match / discard, or after
+   * the brief wrong-path flash via commitWrong.
+   */
   const evaluatePath = useCallback(() => {
     const snap = snapRef.current;
     if (!snap || snap.state.pathWrong) return;
     const { state: current, level: currentLevel } = snap;
 
+    // Use pathRef — the tray may release before React re-renders the path prop.
     const path = pathRef.current;
     if (path.length <= 1) {
       pathRef.current = [];
@@ -220,7 +226,7 @@ export function WordBuilderGame({
     }
     if (unsolvedTargets(currentLevel, current.solvedLower).length === 0) {
       pathRef.current = [];
-      setState({ ...current, path: [], feedback: null });
+      setState({ ...current, path: [], feedback: null, pathWrong: false });
       return;
     }
 
@@ -260,7 +266,6 @@ export function WordBuilderGame({
         builtLower
       )
     ) {
-      setState({ ...current, path, pathWrong: false });
       commitWrong();
       return;
     }
@@ -278,7 +283,6 @@ export function WordBuilderGame({
     }
 
     if (anyUnsolvedTargetHasLength(currentLevel, current.solvedLower, plen)) {
-      setState({ ...current, path, pathWrong: false });
       commitWrong();
       return;
     }
