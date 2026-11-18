@@ -98,6 +98,33 @@ test.describe('direction and script', () => {
     });
   }
 
+  test('ckb quiz defaults the explanation tab to Kurdish; fa defaults to Persian', async ({
+    page,
+  }) => {
+    for (const { locale, expected } of [
+      { locale: 'ckb', expected: 'ckb' },
+      { locale: 'fa', expected: 'fa' },
+    ] as const) {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await settle(page);
+
+      await page.locator('main button[aria-pressed]').first().click();
+      const tabs = page.locator('main [role="tablist"] [role="tab"]');
+      await expect(tabs).toHaveCount(2);
+
+      const selected = page.locator('main [role="tablist"] [role="tab"][aria-selected="true"]');
+      await expect(selected).toBeVisible();
+      // Tab order is fa then ckb; index 0 = Persian, index 1 = Kurdish.
+      const index = await tabs.evaluateAll(
+        (els, active) => els.findIndex((el) => el === active),
+        await selected.elementHandle()
+      );
+      expect(index).toBe(expected === 'fa' ? 0 : 1);
+    }
+  });
+
   for (const locale of ['fa', 'ckb'] as const) {
     test(`${locale} applies no letter-spacing to Arabic script`, async ({ page }) => {
       await page.goto(`/${locale}`, { waitUntil: 'domcontentloaded' });

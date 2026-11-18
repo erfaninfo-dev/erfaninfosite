@@ -1,13 +1,13 @@
 'use client';
 
 import type { Route } from 'next';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { Button, ButtonLink } from '@/components/ui/button';
 import { IconCheck, IconCross, IconLightbulb, IconRefresh } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { formatClient } from '@/lib/i18n/client-format';
-import { NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
+import { defaultGlossFor, NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
 
 /**
  * The grammar quiz.
@@ -98,12 +98,12 @@ export function Quiz({
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [done, setDone] = useState(false);
-  const [explanationTab, setExplanationTab] = useState<ExplanationTab>('fa');
+  // Kurdish UI opens on the Kurdish explanation; fa/en open on Persian —
+  // same default as Learn / gloss (defaultGlossFor).
+  const defaultExplanationTab = defaultGlossFor(locale);
+  const [explanationTab, setExplanationTab] =
+    useState<ExplanationTab>(defaultExplanationTab);
   const liveRef = useRef<HTMLParagraphElement>(null);
-
-  useEffect(() => {
-    setExplanationTab('fa');
-  }, [index]);
 
   const total = pool.length;
   const question = pool[index];
@@ -131,6 +131,7 @@ export function Quiz({
       setDone(true);
     } else {
       setIndex((i) => i + 1);
+      setExplanationTab(defaultExplanationTab);
     }
   }
 
@@ -139,6 +140,7 @@ export function Quiz({
     setIndex(0);
     setAnswers({});
     setDone(false);
+    setExplanationTab(defaultExplanationTab);
   }
 
   if (done) {
