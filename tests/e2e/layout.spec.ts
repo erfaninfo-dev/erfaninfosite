@@ -179,6 +179,34 @@ test.describe('direction and script', () => {
     });
   }
 
+  /* Red/green verdict card — same RTL rule as the explanation block. */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar quiz feedback card is RTL under ${locale}`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await settle(page);
+
+      await page.locator('main button[aria-pressed]').first().click();
+      const card = page.locator('main [data-quiz-feedback]').first();
+      await expect(card).toHaveAttribute('dir', 'rtl');
+
+      const order = await card.evaluate((el) => {
+        const row = el.querySelector('p.flex');
+        const icon = row?.querySelector('svg');
+        const label = row?.querySelector('span');
+        if (!icon || !label) return null;
+        return {
+          iconLeft: icon.getBoundingClientRect().left,
+          labelLeft: label.getBoundingClientRect().left,
+        };
+      });
+
+      expect(order, 'expected feedback row with icon + label').not.toBeNull();
+      expect(order!.iconLeft).toBeGreaterThan(order!.labelLeft);
+    });
+  }
+
   for (const locale of ['fa', 'ckb'] as const) {
     test(`${locale} applies no letter-spacing to Arabic script`, async ({ page }) => {
       await page.goto(`/${locale}`, { waitUntil: 'domcontentloaded' });

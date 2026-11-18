@@ -249,7 +249,12 @@ export function Quiz({
         </div>
 
         {answered ? (
+          /*
+           * Translated verdict card (هەڵە / نادرست, …). Must be RTL under
+           * fa/ckb even though the grammar page is an LTR island.
+           */
           <div
+            data-quiz-feedback=""
             dir={locale === 'en' ? 'ltr' : 'rtl'}
             lang={locale === 'en' ? undefined : locale}
             className={cn(
@@ -259,18 +264,18 @@ export function Quiz({
                 : 'bg-error-container text-on-error-container'
             )}
           >
-            <p className="flex items-center gap-2 font-bold">
+            <p className="flex flex-row items-center gap-2 font-bold">
               {correct ? (
-                <IconCheck className="size-5" />
+                <IconCheck className="size-5 shrink-0" />
               ) : (
-                <IconCross className="size-5" />
+                <IconCross className="size-5 shrink-0" />
               )}
-              {correct ? labels.correct : labels.wrong}
+              <span>{correct ? labels.correct : labels.wrong}</span>
             </p>
 
             {!correct && correctText ? (
               <p className="mt-1">
-                {labels.correctAnswerLabel}{' '}
+                <span>{labels.correctAnswerLabel}</span>{' '}
                 <bdi lang="en" dir="ltr" className="font-semibold">
                   {correctText}
                 </bdi>
@@ -286,6 +291,7 @@ export function Quiz({
            * English UI stays LTR; tab labels are still forced RTL below.
            */
           <div
+            data-quiz-explanation=""
             dir={locale === 'en' ? 'ltr' : 'rtl'}
             lang={locale === 'en' ? undefined : locale}
             className="jelly-card mt-4 rounded-[var(--radius-card)] p-4 text-start"
