@@ -559,8 +559,21 @@
     background-color: var(--color-surface-2);
   }
 
-  /* Mirrors directional icons in RTL. Never applied to logos. */
-  .rtl-flip:where(:dir(rtl)) {
+  /*
+   * Mirrors directional icons in RTL. Never applied to logos.
+   *
+   * Use [dir] attributes, not :dir(): Tailwind polyfills :dir(rtl) into a
+   * :lang(ckb|fa|…) list, so icons kept flipping inside LTR islands
+   * (grammar, speaking) while html lang stayed Kurdish/Persian. Nested
+   * [dir=rtl] inside an LTR island can still flip (third rule).
+   */
+  [dir='rtl'] :where(.rtl-flip) {
+    transform: scaleX(-1);
+  }
+  [dir='ltr'] :where(.rtl-flip) {
+    transform: none;
+  }
+  [dir='ltr'] [dir='rtl'] :where(.rtl-flip) {
     transform: scaleX(-1);
   }
 

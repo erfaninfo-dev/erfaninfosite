@@ -37,7 +37,11 @@ export function StudySheetModal({
 
   return (
     <Sheet open={open} onClose={close} label={label}>
-      <div className="p-6 pt-2 sm:pt-6">
+      {/*
+        Grammar content is LTR even under fa/ckb (see grammar/layout.tsx). The
+        intercepted Learn sheet is outside that layout tree, so it sets dir here.
+      */}
+      <div dir="ltr" className="p-6 pt-2 sm:pt-6">
         <div className="mb-5 flex items-start gap-3">
           <span className="bg-secondary-container text-on-secondary-container grid size-12 shrink-0 place-items-center rounded-[var(--radius-logo)]">
             <IconGrammar className="size-6" />

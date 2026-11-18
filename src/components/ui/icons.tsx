@@ -7,7 +7,8 @@ import { cn } from '@/lib/cn';
  * bytes each, tree-shake cleanly, and inherit `currentColor` so they work in
  * both themes without a second definition.
  *
- * Directional icons carry `rtl-flip`, which mirrors them under `:dir(rtl)`.
+ * Directional icons carry `rtl-flip`, which mirrors them under `[dir=rtl]`
+ * (see globals.css — not `:dir()`, so LTR islands are respected).
  * Logos and real-world objects never do (ui-ux-spec.md §3).
  */
 

@@ -1,13 +1,13 @@
 'use client';
 
 import type { Route } from 'next';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { Button, ButtonLink } from '@/components/ui/button';
 import { IconCheck, IconCross, IconLightbulb, IconRefresh } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { formatClient } from '@/lib/i18n/client-format';
-import { NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
+import { defaultGlossFor, NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
 
 /**
  * The grammar quiz.
@@ -98,12 +98,12 @@ export function Quiz({
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [done, setDone] = useState(false);
-  const [explanationTab, setExplanationTab] = useState<ExplanationTab>('fa');
+  // Kurdish UI opens on the Kurdish explanation; fa/en open on Persian —
+  // same default as Learn / gloss (defaultGlossFor).
+  const defaultExplanationTab = defaultGlossFor(locale);
+  const [explanationTab, setExplanationTab] =
+    useState<ExplanationTab>(defaultExplanationTab);
   const liveRef = useRef<HTMLParagraphElement>(null);
-
-  useEffect(() => {
-    setExplanationTab('fa');
-  }, [index]);
 
   const total = pool.length;
   const question = pool[index];
@@ -131,6 +131,7 @@ export function Quiz({
       setDone(true);
     } else {
       setIndex((i) => i + 1);
+      setExplanationTab(defaultExplanationTab);
     }
   }
 
@@ -139,6 +140,7 @@ export function Quiz({
     setIndex(0);
     setAnswers({});
     setDone(false);
+    setExplanationTab(defaultExplanationTab);
   }
 
   if (done) {
@@ -247,26 +249,33 @@ export function Quiz({
         </div>
 
         {answered ? (
+          /*
+           * Translated verdict card (هەڵە / نادرست, …). Must be RTL under
+           * fa/ckb even though the grammar page is an LTR island.
+           */
           <div
+            data-quiz-feedback=""
+            dir={locale === 'en' ? 'ltr' : 'rtl'}
+            lang={locale === 'en' ? undefined : locale}
             className={cn(
-              'mt-6 rounded-[var(--radius-input)] p-4',
+              'mt-6 rounded-[var(--radius-input)] p-4 text-start',
               correct
                 ? 'bg-correct-container text-on-correct-container'
                 : 'bg-error-container text-on-error-container'
             )}
           >
-            <p className="flex items-center gap-2 font-bold">
+            <p className="flex w-full items-center justify-start gap-2 font-bold">
               {correct ? (
-                <IconCheck className="size-5" />
+                <IconCheck className="size-5 shrink-0" />
               ) : (
-                <IconCross className="size-5" />
+                <IconCross className="size-5 shrink-0" />
               )}
-              {correct ? labels.correct : labels.wrong}
+              <span>{correct ? labels.correct : labels.wrong}</span>
             </p>
 
             {!correct && correctText ? (
               <p className="mt-1">
-                {labels.correctAnswerLabel}{' '}
+                <span>{labels.correctAnswerLabel}</span>{' '}
                 <bdi lang="en" dir="ltr" className="font-semibold">
                   {correctText}
                 </bdi>
@@ -276,8 +285,18 @@ export function Quiz({
         ) : null}
 
         {answered && resolvedExplanation ? (
-          <div className="jelly-card mt-4 rounded-[var(--radius-card)] p-4">
-            <div className="text-primary mb-3 flex items-center gap-2 font-extrabold">
+          /*
+           * Grammar pages are an LTR island, but this card is translated UI +
+           * Arabic-script copy — keep it RTL under fa/ckb (title, tabs, body).
+           * English UI stays LTR; tab labels are still forced RTL below.
+           */
+          <div
+            data-quiz-explanation=""
+            dir={locale === 'en' ? 'ltr' : 'rtl'}
+            lang={locale === 'en' ? undefined : locale}
+            className="jelly-card mt-4 rounded-[var(--radius-card)] p-4 text-start"
+          >
+            <div className="text-primary mb-3 flex w-full items-center justify-start gap-2 font-extrabold">
               <IconLightbulb className="size-5 shrink-0" />
               <span>{labels.explanationHeading}</span>
             </div>
@@ -312,7 +331,7 @@ export function Quiz({
               dir={resolvedExplanation.lang === 'en' ? 'ltr' : 'rtl'}
               className={cn(
                 'text-on-surface mt-1 text-base leading-relaxed',
-                resolvedExplanation.lang !== 'en' && 'text-right'
+                resolvedExplanation.lang === 'en' ? 'text-left' : 'text-right'
               )}
             >
               {resolvedExplanation.text || '—'}

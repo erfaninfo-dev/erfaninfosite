@@ -69,6 +69,183 @@ test.describe('direction and script', () => {
     });
   }
 
+  /*
+   * Grammar topic names and list numbers are English LTR content. The section
+   * must stay LTR under fa/ckb while the document (header/nav) remains RTL.
+   */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar stays LTR under ${locale} while html stays RTL`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar`, { waitUntil: 'domcontentloaded' });
+      await settle(page);
+
+      await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+      await expect(page.locator('main [dir="ltr"]').first()).toBeVisible();
+
+      const order = await page.evaluate(() => {
+        const card = document.querySelector('main ul li .accent-card');
+        if (!card) return null;
+        const number = card.querySelector('.accent-dot-text');
+        const title = card.querySelector('h2');
+        if (!number || !title) return null;
+        return {
+          numberLeft: number.getBoundingClientRect().left,
+          titleLeft: title.getBoundingClientRect().left,
+        };
+      });
+
+      expect(order, 'expected a grammar topic card with number and title').not.toBeNull();
+      expect(order!.numberLeft).toBeLessThan(order!.titleLeft);
+    });
+  }
+
+  test('ckb quiz defaults the explanation tab to Kurdish; fa defaults to Persian', async ({
+    page,
+  }) => {
+    for (const { locale, expected } of [
+      { locale: 'ckb', expected: 'ckb' },
+      { locale: 'fa', expected: 'fa' },
+    ] as const) {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await settle(page);
+
+      await page.locator('main button[aria-pressed]').first().click();
+      const tabs = page.locator('main [role="tablist"] [role="tab"]');
+      await expect(tabs).toHaveCount(2);
+
+      const selected = page.locator('main [role="tablist"] [role="tab"][aria-selected="true"]');
+      await expect(selected).toBeVisible();
+      // Tab order is fa then ckb; index 0 = Persian, index 1 = Kurdish.
+      const index = await tabs.evaluateAll(
+        (els, active) => els.findIndex((el) => el === active),
+        await selected.elementHandle()
+      );
+      expect(index).toBe(expected === 'fa' ? 0 : 1);
+    }
+  });
+
+  /*
+   * Tailwind rewrites :dir(rtl) to :lang(ckb|fa|…); icons must still respect
+   * the grammar LTR island, so the quiz back arrow is not mirrored.
+   */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar quiz back arrow is not mirrored under ${locale}`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await settle(page);
+
+      const flip = await page.evaluate(() => {
+        const icon = document.querySelector('.grammar-quiz-page svg.rtl-flip');
+        if (!icon) return null;
+        const t = getComputedStyle(icon).transform;
+        return { transform: t, mirrored: t.includes('-1') };
+      });
+
+      expect(flip, 'expected the quiz back icon').not.toBeNull();
+      expect(flip!.mirrored).toBe(false);
+    });
+  }
+
+  /*
+   * Explanation card is translated Arabic-script UI: under fa/ckb it must be
+   * an RTL island (icon to the right of the heading) inside the LTR grammar page.
+   */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar explanation card is RTL under ${locale}`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await settle(page);
+
+      await page.locator('main button[aria-pressed]').first().click();
+      const card = page.locator('main .jelly-card').first();
+      await expect(card).toHaveAttribute('dir', 'rtl');
+
+      const order = await card.evaluate((el) => {
+        const row = el.querySelector('.text-primary');
+        const icon = row?.querySelector('svg');
+        const title = row?.querySelector('span');
+        if (!icon || !title) return null;
+        const cardBox = el.getBoundingClientRect();
+        const iconBox = icon.getBoundingClientRect();
+        const titleBox = title.getBoundingClientRect();
+        return {
+          iconLeft: iconBox.left,
+          titleLeft: titleBox.left,
+          // Heading cluster should sit on the physical right half of the card.
+          titleOnRightHalf: titleBox.left > cardBox.left + cardBox.width / 2,
+        };
+      });
+
+      expect(order, 'expected explanation heading with icon + title').not.toBeNull();
+      expect(order!.iconLeft).toBeGreaterThan(order!.titleLeft);
+      expect(order!.titleOnRightHalf).toBe(true);
+    });
+  }
+
+  /*
+   * Grammar search hint is translated; under fa/ckb the icon must sit on the
+   * right while topic cards stay LTR.
+   */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar search field is RTL under ${locale}`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar`, { waitUntil: 'domcontentloaded' });
+      await settle(page);
+
+      const search = page.locator('main input[type="search"]').first();
+      await expect(search).toHaveAttribute('dir', 'rtl');
+
+      const order = await page.evaluate(() => {
+        const input = document.querySelector('main input[type="search"]');
+        const icon = input?.parentElement?.querySelector('svg');
+        if (!input || !icon) return null;
+        const inputBox = input.getBoundingClientRect();
+        const iconBox = icon.getBoundingClientRect();
+        return {
+          iconLeft: iconBox.left,
+          inputMid: inputBox.left + inputBox.width / 2,
+        };
+      });
+
+      expect(order, 'expected search input with icon').not.toBeNull();
+      expect(order!.iconLeft).toBeGreaterThan(order!.inputMid);
+    });
+  }
+
+  /* Red/green verdict card — same RTL rule as the explanation block. */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar quiz feedback card is RTL under ${locale}`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar/quiz?topics=1&n=10&seed=7`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await settle(page);
+
+      await page.locator('main button[aria-pressed]').first().click();
+      const card = page.locator('main [data-quiz-feedback]').first();
+      await expect(card).toHaveAttribute('dir', 'rtl');
+
+      const order = await card.evaluate((el) => {
+        const row = el.querySelector('p.flex');
+        const icon = row?.querySelector('svg');
+        const label = row?.querySelector('span');
+        if (!icon || !label) return null;
+        const cardBox = el.getBoundingClientRect();
+        const labelBox = label.getBoundingClientRect();
+        return {
+          iconLeft: icon.getBoundingClientRect().left,
+          labelLeft: labelBox.left,
+          labelOnRightHalf: labelBox.left > cardBox.left + cardBox.width / 2,
+        };
+      });
+
+      expect(order, 'expected feedback row with icon + label').not.toBeNull();
+      expect(order!.iconLeft).toBeGreaterThan(order!.labelLeft);
+      expect(order!.labelOnRightHalf).toBe(true);
+    });
+  }
+
   for (const locale of ['fa', 'ckb'] as const) {
     test(`${locale} applies no letter-spacing to Arabic script`, async ({ page }) => {
       await page.goto(`/${locale}`, { waitUntil: 'domcontentloaded' });
