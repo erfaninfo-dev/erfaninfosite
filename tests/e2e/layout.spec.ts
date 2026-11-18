@@ -185,6 +185,35 @@ test.describe('direction and script', () => {
     });
   }
 
+  /*
+   * Grammar search hint is translated; under fa/ckb the icon must sit on the
+   * right while topic cards stay LTR.
+   */
+  for (const locale of ['fa', 'ckb'] as const) {
+    test(`grammar search field is RTL under ${locale}`, async ({ page }) => {
+      await page.goto(`/${locale}/grammar`, { waitUntil: 'domcontentloaded' });
+      await settle(page);
+
+      const search = page.locator('main input[type="search"]').first();
+      await expect(search).toHaveAttribute('dir', 'rtl');
+
+      const order = await page.evaluate(() => {
+        const input = document.querySelector('main input[type="search"]');
+        const icon = input?.parentElement?.querySelector('svg');
+        if (!input || !icon) return null;
+        const inputBox = input.getBoundingClientRect();
+        const iconBox = icon.getBoundingClientRect();
+        return {
+          iconLeft: iconBox.left,
+          inputMid: inputBox.left + inputBox.width / 2,
+        };
+      });
+
+      expect(order, 'expected search input with icon').not.toBeNull();
+      expect(order!.iconLeft).toBeGreaterThan(order!.inputMid);
+    });
+  }
+
   /* Red/green verdict card — same RTL rule as the explanation block. */
   for (const locale of ['fa', 'ckb'] as const) {
     test(`grammar quiz feedback card is RTL under ${locale}`, async ({ page }) => {
