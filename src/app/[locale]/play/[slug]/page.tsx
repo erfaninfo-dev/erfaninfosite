@@ -1,14 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 
-import {
-  Flashcards,
-  type FlashcardData,
-} from '@/components/features/flashcards/flashcards';
 import { WordBuilderGame } from '@/components/features/games/word-builder-game';
 import { ButtonLink } from '@/components/ui/button';
 import { CategoryIcon, IconArrowBack } from '@/components/ui/icons';
-import { Badge, Container, PageHeader, SectionHeading } from '@/components/ui/primitives';
+import { Badge, Container, PageHeader } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/ui/states';
 import { glossOf } from '@/lib/api/normalize';
 import { getGameCategory } from '@/lib/api/queries';
@@ -71,14 +67,6 @@ export default async function PlayCategoryPage({
     }))
     .filter((w) => w.word && w.meaning);
 
-  const cards: FlashcardData[] = usable.map((w, i) => ({
-    id: `${category.id}-${i}`,
-    front: w.word,
-    back: w.meaning,
-    exampleEn: w.exampleEn,
-    exampleGloss: w.exampleGloss,
-  }));
-
   /*
    * Classic Word Builder levels are built on the server with a seed from the
    * category id — same first session for every visitor of a cached page, and
@@ -115,59 +103,35 @@ export default async function PlayCategoryPage({
 
       {usable.length === 0 ? (
         <EmptyState title={t('wordBuilderCategoryNoWordsYet')} />
+      ) : levels.length > 0 ? (
+        <WordBuilderGame
+          levels={levels}
+          locale={locale}
+          glossLang={gloss}
+          labels={{
+            levelOfTemplate: raw('wordBuilderLevelOf'),
+            shuffle: t('wordBuilderShuffle'),
+            hintReveal: t('wordBuilderHintReveal'),
+            hintMeaning: t('wordBuilderHintMeaning'),
+            coinsCostTemplate: raw('wordBuilderCoinsCost'),
+            translation: t('wordBuilderTranslation'),
+            correct: t('wordBuilderCorrectNice'),
+            alreadyFound: t('wordBuilderAlreadyFound'),
+            notEnoughCoins: t('wordBuilderNotEnoughCoins'),
+            hintLetter: t('wordBuilderHintLetter'),
+            levelCompleteTitle: t('wordBuilderLevelCompleteTitle'),
+            levelCompleteBody: t('wordBuilderLevelCompleteBody'),
+            nextLevel: t('wordBuilderNextLevel'),
+            allLevelsDone: t('wordBuilderAllLevelsDone'),
+            replay: t('wordBuilderReplayLevel'),
+            targetsHeading: t('wordBuilderTargetsHeading'),
+            meaning: t('wordBuilderMeaning'),
+            example: t('wordBuilderExample'),
+            close: t('close'),
+          }}
+        />
       ) : (
-        <div className="space-y-12">
-          {levels.length > 0 ? (
-            <section>
-              <SectionHeading>{t('tabPlay')}</SectionHeading>
-              <WordBuilderGame
-                levels={levels}
-                locale={locale}
-                glossLang={gloss}
-                labels={{
-                  levelOfTemplate: raw('wordBuilderLevelOf'),
-                  shuffle: t('wordBuilderShuffle'),
-                  hintReveal: t('wordBuilderHintReveal'),
-                  hintMeaning: t('wordBuilderHintMeaning'),
-                  coinsCostTemplate: raw('wordBuilderCoinsCost'),
-                  translation: t('wordBuilderTranslation'),
-                  correct: t('wordBuilderCorrectNice'),
-                  alreadyFound: t('wordBuilderAlreadyFound'),
-                  notEnoughCoins: t('wordBuilderNotEnoughCoins'),
-                  hintLetter: t('wordBuilderHintLetter'),
-                  levelCompleteTitle: t('wordBuilderLevelCompleteTitle'),
-                  levelCompleteBody: t('wordBuilderLevelCompleteBody'),
-                  nextLevel: t('wordBuilderNextLevel'),
-                  allLevelsDone: t('wordBuilderAllLevelsDone'),
-                  replay: t('wordBuilderReplayLevel'),
-                  targetsHeading: t('wordBuilderTargetsHeading'),
-                  meaning: t('wordBuilderMeaning'),
-                  example: t('wordBuilderExample'),
-                  close: t('close'),
-                }}
-              />
-            </section>
-          ) : (
-            <EmptyState title={t('wordBuilderNoWordsBody')} />
-          )}
-
-          <section>
-            <SectionHeading>{t('tabReview')}</SectionHeading>
-            <Flashcards
-              cards={cards}
-              glossLang={gloss}
-              labels={{
-                progress: t('wordCount', { count: cards.length }),
-                reveal: t('tapCardToReveal'),
-                next: t('next'),
-                previous: t('previous'),
-                restart: t('practiseAgain'),
-                finished: t('allCardsReviewed'),
-                notSynced: t('progressNotSynced'),
-              }}
-            />
-          </section>
-        </div>
+        <EmptyState title={t('wordBuilderNoWordsBody')} />
       )}
     </Container>
   );

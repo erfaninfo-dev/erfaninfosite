@@ -313,6 +313,8 @@ test.describe('Word Builder — Classic tray', () => {
       await expect(tray).toHaveAttribute('dir', 'ltr');
 
       await expect(page.getByRole('button', { name: /shuffle|تێکەڵ/i })).toBeVisible();
+      // Play category pages are Word Builder only — no Review flashcards.
+      await expect(page.getByText(/tap card to reveal|کارتەکە بکەرەوە|روی کارت بزنید/i)).toHaveCount(0);
     });
   }
 
