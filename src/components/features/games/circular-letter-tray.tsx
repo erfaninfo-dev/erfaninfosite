@@ -282,7 +282,7 @@ export function CircularLetterTray({
               })
               .join(' ')}
             opacity={0.9}
-            className={pathWrong ? 'animate-[wb-path-fade_0.7s_ease_forwards]' : undefined}
+            className={pathWrong ? 'animate-[wb-path-fade_0.66s_ease_forwards]' : undefined}
           />
         ) : null}
       </svg>
@@ -291,7 +291,7 @@ export function CircularLetterTray({
       <div
         className={cn(
           'contents',
-          pathWrong && 'animate-[wb-path-fade_0.7s_ease_forwards]'
+          pathWrong && 'animate-[wb-path-fade_0.66s_ease_forwards]'
         )}
       >
         {letters.map((letter, i) => {

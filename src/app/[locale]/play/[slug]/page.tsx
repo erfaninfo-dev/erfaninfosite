@@ -107,6 +107,7 @@ export default async function PlayCategoryPage({
       ) : levels.length > 0 ? (
         <WordBuilderGame
           levels={levels}
+          catalogWords={sourceWords}
           locale={locale}
           glossLang={gloss}
           labels={{

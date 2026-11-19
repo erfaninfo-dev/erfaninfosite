@@ -11,15 +11,21 @@ import {
 import { buildWordBuilderLevels, mulberry32 } from '@/lib/game/word-builder/levels';
 import {
   buildLetterInstances,
+  buildTargetCatalog,
   canSpellFromPool,
+  catalogCanExtendBuilt,
   expandPoolLetters,
+  findCatalogMatch,
   findUnsolvedTargetMatchingBuilt,
+  firstReplaceableTargetIndex,
   gameLemma,
+  isKnownDuplicateBuilt,
   isLevelComplete,
   letterCounts,
   normalizeWord,
   pathCanExtendToLongerUnsolvedTarget,
   poolMaxPerLetterAcrossWords,
+  replaceUnsolvedTargetWithCatalogWord,
   shuffleInstances,
 } from '@/lib/game/word-builder/logic';
 import type { WordBuilderSourceWord } from '@/lib/game/word-builder/types';
@@ -226,5 +232,131 @@ describe('release clears selection (Flutter parity)', () => {
     expect(
       findUnsolvedTargetMatchingBuilt(longLevel, new Set(), 'cat')?.word
     ).toBe('cat');
+  });
+});
+
+describe('bonus / catalog words (Flutter classic parity)', () => {
+  const level = {
+    levelId: 1,
+    difficulty: 'beginner' as const,
+    category: 'test',
+    letters: ['c', 'a', 't', 'b', 'o', 'x'],
+    targetWords: [
+      { word: 'cat', meaning: 'گربه', exampleEn: '', exampleGloss: '' },
+      { word: 'box', meaning: 'جعبه', exampleEn: '', exampleGloss: '' },
+      { word: 'bat', meaning: 'خفاش', exampleEn: '', exampleGloss: '' },
+    ],
+  };
+
+  const catalog = buildTargetCatalog([
+    ...level.targetWords,
+    { word: 'cab', meaning: 'تاکسی', exampleEn: '', exampleGloss: '' },
+    { word: 'tax', meaning: 'مالیات', exampleEn: '', exampleGloss: '' },
+    { word: 'coat', meaning: 'کت', exampleEn: '', exampleGloss: '' },
+  ]);
+
+  it('builds a lemma catalog and finds a same-length bonus word', () => {
+    expect(catalog.get('cab')?.word).toBe('cab');
+    expect(
+      findCatalogMatch({
+        level,
+        solvedLower: new Set(),
+        builtLower: 'cab',
+        catalog,
+      })?.word
+    ).toBe('cab');
+  });
+
+  it('rejects catalog matches that are current targets or already solved', () => {
+    expect(
+      findCatalogMatch({
+        level,
+        solvedLower: new Set(),
+        builtLower: 'cat',
+        catalog,
+      })
+    ).toBeNull();
+    expect(
+      findCatalogMatch({
+        level,
+        solvedLower: new Set(),
+        solvedAnywhere: new Set(['cab']),
+        builtLower: 'cab',
+        catalog,
+      })
+    ).toBeNull();
+  });
+
+  it('treats a catalog prefix as extendable (clear, not wrong)', () => {
+    // "ca" prefixes catalog "cab" / "coat" — release should clearPathOnly.
+    expect(
+      catalogCanExtendBuilt({
+        level,
+        solvedLower: new Set(),
+        builtLower: 'ca',
+        catalog,
+      })
+    ).toBe(true);
+  });
+
+  it('flags already-found for solved targets and catalog lemmas', () => {
+    expect(
+      isKnownDuplicateBuilt({
+        level,
+        solvedAnywhere: new Set(['cat']),
+        builtLower: 'cat',
+        catalog,
+      })
+    ).toBe(true);
+    expect(
+      isKnownDuplicateBuilt({
+        level,
+        solvedAnywhere: new Set(['cab']),
+        builtLower: 'cab',
+        catalog,
+      })
+    ).toBe(true);
+    expect(
+      isKnownDuplicateBuilt({
+        level,
+        solvedAnywhere: new Set(),
+        builtLower: 'cab',
+        catalog,
+      })
+    ).toBe(false);
+  });
+
+  it('replaces an unsolved same-length target and carries the displaced word', () => {
+    expect(firstReplaceableTargetIndex(level, new Set(), 3)).toBe(0);
+    const levels = [
+      level,
+      {
+        levelId: 2,
+        difficulty: 'beginner' as const,
+        category: 'test',
+        letters: ['d', 'o', 'g', 'r', 'a', 't'],
+        targetWords: [
+          { word: 'dog', meaning: '', exampleEn: '', exampleGloss: '' },
+          { word: 'rat', meaning: '', exampleEn: '', exampleGloss: '' },
+          { word: 'dot', meaning: '', exampleEn: '', exampleGloss: '' },
+        ],
+      },
+    ];
+    const bonus = catalog.get('cab')!;
+    const replaced = replaceUnsolvedTargetWithCatalogWord({
+      levels,
+      levelIndex: 0,
+      level,
+      solvedLower: new Set(),
+      sessionSolved: new Set(),
+      accepted: bonus,
+      revealedPositions: new Map([['cat', new Set([0])]]),
+    });
+    expect(replaced).not.toBeNull();
+    expect(replaced!.level.targetWords[0]!.word).toBe('cab');
+    expect(replaced!.revealedPositions.has('cat')).toBe(false);
+    // Displaced "cat" should land in a later level same-length slot.
+    const later = replaced!.levels[1]!.targetWords.map((t) => t.word);
+    expect(later).toContain('cat');
   });
 });

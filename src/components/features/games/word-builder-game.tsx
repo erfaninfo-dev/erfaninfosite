@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AnswerSlots } from '@/components/features/games/answer-slots';
 import { CircularLetterTray } from '@/components/features/games/circular-letter-tray';
@@ -25,13 +25,18 @@ import { mulberry32 } from '@/lib/game/word-builder/levels';
 import {
   anyUnsolvedTargetHasLength,
   buildLetterInstances,
+  buildTargetCatalog,
+  catalogCanExtendBuilt,
+  findCatalogMatch,
   findUnsolvedTargetMatchingBuilt,
   firstUnsolvedTarget,
+  isKnownDuplicateBuilt,
   isLevelComplete,
   maxUnsolvedTargetLength,
   normalizeWord,
   pathCanExtendToLongerUnsolvedTarget,
   pickHiddenIndexForReveal,
+  replaceUnsolvedTargetWithCatalogWord,
   shuffleInstances,
   solvedTargetCount,
   unsolvedTargets,
@@ -39,10 +44,14 @@ import {
 import type {
   LetterInstance,
   WordBuilderLevel,
+  WordBuilderSourceWord,
   WordBuilderTargetWord,
 } from '@/lib/game/word-builder/types';
 import { formatClient } from '@/lib/i18n/client-format';
 import { NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
+
+/** Hold ~400ms then fade ~260ms — Flutter tray wrong-path timing. */
+const WRONG_PATH_CLEAR_MS = 660;
 
 export type WordBuilderLabels = {
   /** Raw ICU: `Level {current} of {total}`. */
@@ -82,6 +91,8 @@ type GameSnapshot = {
   state: GameState;
   level: WordBuilderLevel;
   levelIndex: number;
+  sessionLevels: WordBuilderLevel[];
+  sessionSolved: Set<string>;
 };
 
 function formatCoins(n: number, locale: Locale): string {
@@ -108,34 +119,64 @@ function createLevelState(level: WordBuilderLevel, seed: number): GameState {
  * and level progression. No tray-center scenes (water / train / prison).
  */
 export function WordBuilderGame({
-  levels,
+  levels: initialLevels,
+  catalogWords,
   locale,
   glossLang,
   labels,
 }: {
   levels: WordBuilderLevel[];
+  /** Category lemmas for bonus/catalog matches (Flutter global catalog subset). */
+  catalogWords: WordBuilderSourceWord[];
   locale: Locale;
   glossLang: 'fa' | 'ckb';
   labels: WordBuilderLabels;
 }) {
+  const catalog = useMemo(
+    () => buildTargetCatalog(catalogWords),
+    [catalogWords]
+  );
+
+  const [sessionLevels, setSessionLevels] = useState(initialLevels);
   const [levelIndex, setLevelIndex] = useState(0);
+  const [sessionSolved, setSessionSolved] = useState(() => new Set<string>());
   const [state, setState] = useState<GameState | null>(() =>
-    levels[0] ? createLevelState(levels[0], levels[0].levelId * 9973) : null
+    initialLevels[0]
+      ? createLevelState(initialLevels[0], initialLevels[0].levelId * 9973)
+      : null
   );
 
   const pathRef = useRef<LetterInstance[]>([]);
   const snapRef = useRef<GameSnapshot | null>(null);
+  const catalogRef = useRef(catalog);
+  const sessionLevelsRef = useRef(sessionLevels);
+  const sessionSolvedRef = useRef(sessionSolved);
   const wrongClearTimer = useRef<number | null>(null);
-  const [sheetTarget, setSheetTarget] = useState<WordBuilderTargetWord | null>(null);
+  const [sheetTarget, setSheetTarget] = useState<WordBuilderTargetWord | null>(
+    null
+  );
   const coins = useWordBuilderCoins();
 
-  const level = levels[levelIndex] ?? null;
+  const level = sessionLevels[levelIndex] ?? null;
+
+  useEffect(() => {
+    catalogRef.current = catalog;
+  }, [catalog]);
+
+  sessionLevelsRef.current = sessionLevels;
+  sessionSolvedRef.current = sessionSolved;
 
   useEffect(() => {
     if (state && level) {
-      snapRef.current = { state, level, levelIndex };
+      snapRef.current = {
+        state,
+        level,
+        levelIndex,
+        sessionLevels: sessionLevelsRef.current,
+        sessionSolved: sessionSolvedRef.current,
+      };
     }
-  }, [state, level, levelIndex]);
+  }, [state, level, levelIndex, sessionLevels, sessionSolved]);
 
   useEffect(() => {
     return () => {
@@ -151,7 +192,8 @@ export function WordBuilderGame({
   }, []);
 
   const resetLevel = useCallback(
-    (index: number) => {
+    (index: number, levelsOverride?: WordBuilderLevel[]) => {
+      const levels = levelsOverride ?? sessionLevels;
       const next = levels[index];
       if (!next) return;
       if (wrongClearTimer.current !== null) {
@@ -159,34 +201,54 @@ export function WordBuilderGame({
         wrongClearTimer.current = null;
       }
       pathRef.current = [];
+      if (levelsOverride) setSessionLevels(levelsOverride);
       setLevelIndex(index);
       setState(createLevelState(next, next.levelId * 9973 + index));
       setSheetTarget(null);
     },
-    [levels]
+    [sessionLevels]
   );
 
+  const replayFromStart = useCallback(() => {
+    setSessionSolved(new Set());
+    setSessionLevels(initialLevels);
+    resetLevel(0, initialLevels);
+  }, [initialLevels, resetLevel]);
+
+  /**
+   * Flutter `_commitWrongWithTray` (classic, no water): keep the path visible,
+   * mark wrong, then clear after hold+fade.
+   */
   const commitWrong = useCallback(() => {
-    setState((s) => (s ? { ...s, pathWrong: true, feedback: null } : s));
+    const path = pathRef.current;
+    setState((s) => (s ? { ...s, path, pathWrong: true, feedback: null } : s));
     if (wrongClearTimer.current !== null) window.clearTimeout(wrongClearTimer.current);
     wrongClearTimer.current = window.setTimeout(() => {
       pathRef.current = [];
       setState((s) =>
         s ? { ...s, path: [], pathWrong: false, feedback: null } : s
       );
-    }, 700);
+    }, WRONG_PATH_CLEAR_MS);
   }, []);
 
   const applyCorrect = useCallback(
-    (matched: WordBuilderTargetWord, current: GameState, currentLevel: WordBuilderLevel) => {
+    (
+      matched: WordBuilderTargetWord,
+      current: GameState,
+      currentLevel: WordBuilderLevel,
+      nextLevels?: WordBuilderLevel[]
+    ) => {
       const norm = normalizeWord(matched.word);
       const newSolved = new Set(current.solvedLower);
       newSolved.add(norm);
-      const complete = isLevelComplete(currentLevel, newSolved);
+      const levelForComplete = nextLevels
+        ? (nextLevels[snapRef.current?.levelIndex ?? 0] ?? currentLevel)
+        : currentLevel;
+      const complete = isLevelComplete(levelForComplete, newSolved);
       const newCircle = complete
         ? []
         : shuffleInstances(
-            buildLetterInstances(currentLevel.letters),
+            buildLetterInstances(levelForComplete.letters),
             () => Math.random()
           );
 
@@ -194,15 +256,37 @@ export function WordBuilderGame({
       if (complete) reward += coinsLevelCompleteBonus();
       coins.addCoins(reward);
 
+      const nextSessionSolved = new Set(sessionSolvedRef.current);
+      nextSessionSolved.add(norm);
+      sessionSolvedRef.current = nextSessionSolved;
+      setSessionSolved(nextSessionSolved);
+      if (nextLevels) {
+        sessionLevelsRef.current = nextLevels;
+        setSessionLevels(nextLevels);
+      }
+
       pathRef.current = [];
-      setState({
+      const nextState: GameState = {
         ...current,
         path: [],
         pathWrong: false,
         solvedLower: newSolved,
         circleLetters: newCircle,
-        feedback: '__correct',
-      });
+        // Flutter localizeWordBuilderFeedback returns null for __correct.
+        feedback: null,
+        revealedPositions: current.revealedPositions,
+      };
+      // Keep snap current for any same-tick evaluate (path already cleared).
+      if (snapRef.current) {
+        snapRef.current = {
+          ...snapRef.current,
+          state: nextState,
+          level: levelForComplete,
+          sessionLevels: sessionLevelsRef.current,
+          sessionSolved: nextSessionSolved,
+        };
+      }
+      setState(nextState);
     },
     [coins]
   );
@@ -215,9 +299,15 @@ export function WordBuilderGame({
   const evaluatePath = useCallback(() => {
     const snap = snapRef.current;
     if (!snap || snap.state.pathWrong) return;
-    const { state: current, level: currentLevel } = snap;
+    const {
+      state: current,
+      level: currentLevel,
+      sessionLevels: levels,
+      sessionSolved: solvedAnywhere,
+      levelIndex: idx,
+    } = snap;
+    const cat = catalogRef.current;
 
-    // Use pathRef — the tray may release before React re-renders the path prop.
     const path = pathRef.current;
     if (path.length <= 1) {
       pathRef.current = [];
@@ -242,8 +332,12 @@ export function WordBuilderGame({
     }
 
     if (
-      current.solvedLower.has(builtLower) &&
-      currentLevel.targetWords.some((t) => normalizeWord(t.word) === builtLower)
+      isKnownDuplicateBuilt({
+        level: currentLevel,
+        solvedAnywhere,
+        builtLower,
+        catalog: cat,
+      })
     ) {
       pathRef.current = [];
       setState({
@@ -255,17 +349,45 @@ export function WordBuilderGame({
       return;
     }
 
+    const catalogMatch = findCatalogMatch({
+      level: currentLevel,
+      solvedLower: current.solvedLower,
+      solvedAnywhere,
+      builtLower,
+      catalog: cat,
+    });
+    if (catalogMatch) {
+      const replaced = replaceUnsolvedTargetWithCatalogWord({
+        levels,
+        levelIndex: idx,
+        level: currentLevel,
+        solvedLower: current.solvedLower,
+        sessionSolved: solvedAnywhere,
+        accepted: catalogMatch,
+        revealedPositions: current.revealedPositions,
+      });
+      if (replaced) {
+        applyCorrect(
+          catalogMatch,
+          { ...current, revealedPositions: replaced.revealedPositions },
+          replaced.level,
+          replaced.levels
+        );
+        return;
+      }
+    }
+
     const plen = path.length;
     const maxLen = maxUnsolvedTargetLength(currentLevel, current.solvedLower);
+    const canExtendCatalog = catalogCanExtendBuilt({
+      level: currentLevel,
+      solvedLower: current.solvedLower,
+      solvedAnywhere,
+      builtLower,
+      catalog: cat,
+    });
 
-    if (
-      plen > maxLen &&
-      !pathCanExtendToLongerUnsolvedTarget(
-        currentLevel,
-        current.solvedLower,
-        builtLower
-      )
-    ) {
+    if (plen > maxLen && !canExtendCatalog) {
       commitWrong();
       return;
     }
@@ -275,7 +397,8 @@ export function WordBuilderGame({
         currentLevel,
         current.solvedLower,
         builtLower
-      )
+      ) ||
+      canExtendCatalog
     ) {
       pathRef.current = [];
       setState({ ...current, path: [], feedback: null, pathWrong: false });
@@ -295,6 +418,7 @@ export function WordBuilderGame({
     (letter: LetterInstance) => {
       const snap = snapRef.current;
       if (!snap || snap.state.pathWrong) return;
+      // Same tile id cannot appear twice in one path (Flutter drag rule).
       if (pathRef.current.some((p) => p.id === letter.id)) return;
       syncPath([...pathRef.current, letter], { feedback: null });
     },
@@ -397,7 +521,7 @@ export function WordBuilderGame({
     });
   }, [coins]);
 
-  if (!level || !state || levels.length === 0) return null;
+  if (!level || !state || sessionLevels.length === 0) return null;
 
   const built = state.path.map((p) => p.char).join('');
   const meaningFromFeedback = state.feedback?.startsWith(MEANING_FEEDBACK_PREFIX)
@@ -405,7 +529,7 @@ export function WordBuilderGame({
     : null;
 
   const levelDone = isLevelComplete(level, state.solvedLower);
-  const allDone = levelDone && levelIndex >= levels.length - 1;
+  const allDone = levelDone && levelIndex >= sessionLevels.length - 1;
   const solvedCount = solvedTargetCount(level, state.solvedLower);
 
   const letterCost = coinsCostHintLetter();
@@ -415,11 +539,12 @@ export function WordBuilderGame({
   const costLabel = (n: number) =>
     formatClient(labels.coinsCostTemplate, locale, { coins: n });
 
+  // Flutter: __correct → no snackbar text; meaning lives in the banner.
   const liveMessage = (() => {
     if (meaningFromFeedback) return null;
     switch (state.feedback) {
       case '__correct':
-        return labels.correct;
+        return null;
       case '__already_found':
         return labels.alreadyFound;
       case '__not_enough_coins':
@@ -446,7 +571,7 @@ export function WordBuilderGame({
           <p className="text-on-surface-variant text-[length:var(--text-caption)] font-semibold">
             {formatClient(labels.levelOfTemplate, locale, {
               current: levelIndex + 1,
-              total: levels.length,
+              total: sessionLevels.length,
             })}
             <span className="text-on-surface-variant/80 ms-2">
               ·{' '}
@@ -476,7 +601,7 @@ export function WordBuilderGame({
             className={cn(
               'rounded-[var(--radius-input)] border-2 px-3 py-[clamp(0.35rem,1dvh,0.65rem)] text-center transition-[border-color,background-color] duration-[var(--duration-fast)]',
               state.pathWrong
-                ? 'border-error bg-error-container'
+                ? 'border-error bg-error-container animate-[wb-shake_0.48s_ease-out]'
                 : 'border-primary/40 bg-surface-2 dark:bg-surface-3'
             )}
           >
@@ -537,7 +662,9 @@ export function WordBuilderGame({
                 <Button
                   type="button"
                   variant={allDone ? 'primary' : 'ghost'}
-                  onClick={() => resetLevel(allDone ? 0 : levelIndex)}
+                  onClick={() =>
+                    allDone ? replayFromStart() : resetLevel(levelIndex)
+                  }
                 >
                   <IconRefresh className="size-5" />
                   {labels.replay}
