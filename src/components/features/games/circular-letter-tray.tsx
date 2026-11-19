@@ -147,6 +147,8 @@ export function CircularLetterTray({
 
   function onPointerDown(e: ReactPointerEvent) {
     if (blocked || pathWrong) return;
+    // Primary press only — ignore right/middle click and non-contact hover.
+    if (e.button !== 0) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     activePointerId.current = e.pointerId;
     dragLastId.current = null;
@@ -166,9 +168,11 @@ export function CircularLetterTray({
 
   function onPointerMove(e: ReactPointerEvent) {
     if (blocked || pathWrong) return;
-    if (activePointerId.current !== null && e.pointerId !== activePointerId.current) {
-      return;
-    }
+    // Hover / move without a held press must never select or extend a path.
+    if (activePointerId.current === null) return;
+    if (e.pointerId !== activePointerId.current) return;
+    // Mouse: require primary button still down (hover has buttons === 0).
+    if (e.pointerType !== 'touch' && (e.buttons & 1) === 0) return;
     const p = localPoint(e);
     const o = tapOrigin.current;
     if (o) {

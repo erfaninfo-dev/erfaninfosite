@@ -344,6 +344,35 @@ test.describe('Word Builder — Classic tray', () => {
     await expect(tray).toBeVisible();
   });
 
+  test('en: hovering letters without pressing does not select them', async ({ page }) => {
+    await page.goto('/en/play/animals', { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
+
+    const tray = page.getByRole('application', { name: 'Letter tray' });
+    await tray.scrollIntoViewIfNeeded();
+    await expect(tray).toBeVisible();
+
+    const letters = tray.locator('div.rounded-full.font-extrabold');
+    expect(await letters.count()).toBeGreaterThanOrEqual(2);
+
+    const first = await letters.nth(0).boundingBox();
+    const second = await letters.nth(1).boundingBox();
+    expect(first && second).toBeTruthy();
+    if (!first || !second) return;
+
+    // Move across letters with no button down — must not highlight.
+    await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+    await page.mouse.move(second.x + second.width / 2, second.y + second.height / 2, {
+      steps: 10,
+    });
+    await page.waitForTimeout(100);
+
+    await expect(tray.locator('div.rounded-full.font-extrabold[class*="scale-105"]')).toHaveCount(
+      0
+    );
+    await expect(tray.locator('svg polyline')).toHaveCount(0);
+  });
+
   test('en: releasing the pointer clears the letter selection', async ({ page }) => {
     await page.goto('/en/play/animals', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle');
