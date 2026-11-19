@@ -18,7 +18,7 @@ import type { Locale } from '@/lib/i18n/config';
  */
 
 /** When false, Play is omitted from nav and play routes redirect home. */
-export const PLAY_SECTION_VISIBLE = false;
+export const PLAY_SECTION_VISIBLE = true;
 
 export type NavItem = {
   key: string;

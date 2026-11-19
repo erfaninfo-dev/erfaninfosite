@@ -415,6 +415,48 @@
   }
 }
 
+/* Wrong-path letters hold (~400ms), then fade — mirrors Flutter tray fade. */
+@keyframes wb-path-fade {
+  0%,
+  57% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Flutter ShakeWrapper: ~480ms decaying horizontal shake on wrong submit. */
+@keyframes wb-shake {
+  0% {
+    transform: translateX(0);
+  }
+  12% {
+    transform: translateX(7px);
+  }
+  24% {
+    transform: translateX(-7px);
+  }
+  36% {
+    transform: translateX(5px);
+  }
+  48% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(3px);
+  }
+  72% {
+    transform: translateX(-2px);
+  }
+  84% {
+    transform: translateX(1px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 @layer utilities {
   /*
    * ── Card accents ────────────────────────────────────────────────────────
@@ -557,6 +599,31 @@
   html[data-grammar-quiz] #main {
     min-height: 100dvh;
     background-color: var(--color-surface-2);
+  }
+
+  /*
+   * Word Builder session: keep shell chrome, but reclaim vertical space so
+   * level header → slots → banner → tray (+ buttons) fit without scrolling.
+   */
+  html[data-word-builder-session] main {
+    padding-block-start: 0.5rem;
+  }
+
+  html[data-word-builder-session] .pb-nav {
+    padding-block-end: calc(var(--size-bottom-nav) + env(safe-area-inset-bottom) + 0.25rem);
+  }
+
+  @media (min-width: 768px) {
+    html[data-word-builder-session] .pb-nav {
+      padding-block-end: 1.25rem;
+    }
+  }
+
+  /* Short viewports: hide the site header so the tray isn't clipped. */
+  @media (max-height: 820px) {
+    html[data-word-builder-session] body > header {
+      display: none !important;
+    }
   }
 
   /*

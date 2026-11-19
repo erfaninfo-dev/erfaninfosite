@@ -143,8 +143,9 @@ export function isCambridgeVolume15(book: Pick<Book, 'title'>): boolean {
 }
 
 /**
- * The app's `kIdiomsSpeakingBookId`. That book opens an illustrated unit
- * grid rather than the ordinary unit cards.
+ * Book 37 — "Idioms For Speaking". The site uses a denser topic-first unit
+ * grid and idiom cards; the Flutter app currently opens the ordinary unit
+ * grid and word cards for the same book_id.
  */
 export const IDIOMS_SPEAKING_BOOK_ID = 37;
 
