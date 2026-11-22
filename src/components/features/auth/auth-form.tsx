@@ -19,9 +19,6 @@ type Labels = {
   password: string;
   displayName: string;
   confirm: string;
-  registerAsStudent: string;
-  studentCode: string;
-  studentCodeHint: string;
   submit: string;
   switchLabel: string;
   enterEmail: string;
@@ -29,8 +26,6 @@ type Labels = {
   passwordMinLength: string;
   confirmYourPassword: string;
   passwordsNoMatch: string;
-  studentCodeRequired: string;
-  studentCodeInvalid: string;
   invalid: string;
   taken: string;
   failed: string;
@@ -67,7 +62,6 @@ export function AuthForm({
   reset?: ResetLabels;
 }) {
   const [state, formAction] = useActionState(action, {});
-  const [asStudent, setAsStudent] = useState(false);
   const [resetEmail, setResetEmail] = useState<string | null>(null);
   const [resetDone, setResetDone] = useState(false);
 
@@ -82,11 +76,7 @@ export function AuthForm({
             ? labels.confirmYourPassword
             : state.error === 'match'
               ? labels.passwordsNoMatch
-              : state.error === 'required'
-                ? labels.studentCodeRequired
-                : state.error === 'code'
-                  ? labels.studentCodeInvalid
-                  : state.error === 'invalid'
+              : state.error === 'invalid'
                     ? labels.invalid
                     : state.error === 'taken'
                       ? labels.taken
@@ -96,7 +86,7 @@ export function AuthForm({
 
   return (
     <>
-    <form action={formAction} className="flex flex-col gap-3" noValidate onReset={() => setAsStudent(false)}>
+    <form action={formAction} className="flex flex-col gap-3" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="next" value={nextPath} />
 
@@ -157,34 +147,6 @@ export function AuthForm({
             required
             minLength={8}
             maxLength={200}
-            className={FIELD}
-          />
-        </label>
-      ) : null}
-
-      {mode === 'register' ? (
-        <label className="text-on-surface flex min-h-11 items-center gap-3 text-sm font-bold">
-          <input
-            type="checkbox"
-            name="as_student"
-            value="1"
-            checked={asStudent}
-            onChange={(event) => setAsStudent(event.target.checked)}
-            className="size-4"
-          />
-          {labels.registerAsStudent}
-        </label>
-      ) : null}
-
-      {mode === 'register' && asStudent ? (
-        <label className="text-on-surface flex flex-col gap-1 text-sm font-bold">
-          {labels.studentCode}
-          <input
-            name="student_code"
-            inputMode="numeric"
-            autoComplete="off"
-            maxLength={5}
-            placeholder={labels.studentCodeHint}
             className={FIELD}
           />
         </label>

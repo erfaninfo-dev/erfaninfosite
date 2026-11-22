@@ -7,8 +7,7 @@ import { cn } from '@/lib/cn';
  * bytes each, tree-shake cleanly, and inherit `currentColor` so they work in
  * both themes without a second definition.
  *
- * Directional icons carry `rtl-flip`, which mirrors them under `[dir=rtl]`
- * (see globals.css — not `:dir()`, so LTR islands are respected).
+ * Directional icons carry `rtl-flip`, which mirrors them under `:dir(rtl)`.
  * Logos and real-world objects never do (ui-ux-spec.md §3).
  */
 
@@ -43,6 +42,28 @@ export const IconHome = (p: IconProps) => (
   <Svg {...p}>
     <path d="M3 10.5 12 3l9 7.5" />
     <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
+  </Svg>
+);
+
+export const IconCalendar = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M16 3v4M8 3v4M3 10h18" />
+  </Svg>
+);
+
+export const IconClock = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </Svg>
+);
+
+export const IconPhoto = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <circle cx="8.5" cy="9.5" r="1.5" />
+    <path d="m21 15-5-5L5 20" />
   </Svg>
 );
 
@@ -345,6 +366,92 @@ export const IconRefresh = (p: IconProps) => (
     <path d="M4 4v4.5h4.5" />
     <path d="M4 13a8 8 0 0 0 13.7 4.7L20 15.5" />
     <path d="M20 20v-4.5h-4.5" />
+  </Svg>
+);
+
+export const IconGrid = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="4" y="4" width="6" height="6" rx="1" />
+    <rect x="14" y="4" width="6" height="6" rx="1" />
+    <rect x="4" y="14" width="6" height="6" rx="1" />
+    <rect x="14" y="14" width="6" height="6" rx="1" />
+  </Svg>
+);
+
+export const IconLogout = (p: IconProps) => (
+  <Svg {...p} className={cn('rtl-flip', p.className)}>
+    <path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
+    <path d="M16 12H8m0 0 3-3m-3 3 3 3" />
+    <path d="M16 5h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3" />
+  </Svg>
+);
+
+export const IconMusic = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M9 18V6l10-2v12" />
+    <circle cx="6.5" cy="18" r="2.5" />
+    <circle cx="16.5" cy="16" r="2.5" />
+  </Svg>
+);
+
+export const IconShuffle = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M16 4h4v4" />
+    <path d="M4 8c4 0 6 8 12 8h4" />
+    <path d="M16 20h4v-4" />
+    <path d="M4 16c4 0 6-8 12-8h4" />
+  </Svg>
+);
+
+export const IconTranslate = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 5h8M8 5c0 6-2 9-6 11" />
+    <path d="M5 9c1.5 3 3.5 5 7 7" />
+    <path d="m13 19 4-9 4 9M14.5 16h5" />
+  </Svg>
+);
+
+export const IconCoin = (p: IconProps) => (
+  <Svg {...p}>
+    <ellipse cx="12" cy="7" rx="7" ry="3" />
+    <path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7" />
+    <path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5" />
+  </Svg>
+);
+
+export const IconLock = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="5" y="11" width="14" height="9" rx="2" />
+    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+  </Svg>
+);
+
+export const IconTrophy = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M7 4h10v5a5 5 0 0 1-10 0Z" />
+    <path d="M7 6H4v1a4 4 0 0 0 3 3.9M17 6h3v1a4 4 0 0 1-3 3.9" />
+    <path d="M10 14h4l-.5 3h-3ZM8 20h8" />
+  </Svg>
+);
+
+export const IconEdit = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+  </Svg>
+);
+
+export const IconSend = (p: IconProps) => (
+  <Svg {...p} className={cn('rtl-flip', p.className)}>
+    <path d="m4 12 16-8-6 16-2-6Z" />
+    <path d="M20 4 10 14" />
+  </Svg>
+);
+
+export const IconDoubleCheck = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m3 12 4 4 6-7" />
+    <path d="m11 12 4 4 6-7" />
   </Svg>
 );
 

@@ -1,17 +1,21 @@
-import type { Metadata } from 'next';
+import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { IconArrowBack, IconBook, IconPdf } from '@/components/ui/icons';
 import { Container } from '@/components/ui/primitives';
 import {
+  cambridgeVolumeNumber,
   compareSeriesVolumes,
-  isCambridgeVolume15,
   type Book,
 } from '@/lib/api/normalize';
 import { getBookPdfs, getBooks, getUnits } from '@/lib/api/queries';
+import {
+  getExtraLiveCambridgeVolumes,
+  getLiveCambridgeManifestCounts,
+} from '@/lib/cambridge/api';
 import { cn } from '@/lib/cn';
-import { isLocale, type Locale } from '@/lib/i18n/config';
+import { isLocale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
 
@@ -23,7 +27,20 @@ function parseId(value: string): number | null {
 
 async function seriesVolumes(seriesId: number): Promise<Book[]> {
   const books = await getBooks();
-  return books.filter((book) => book.seriesId === seriesId).slice().sort(compareSeriesVolumes);
+  const sorted = books
+    .filter((book) => book.seriesId === seriesId)
+    .slice()
+    .sort(compareSeriesVolumes);
+
+  // Deduplicate legacy duplicate Cambridge rows (e.g. duplicate 17/18 at bottom of series).
+  const seenCamVols = new Set<number>();
+  return sorted.filter((book) => {
+    const vol = cambridgeVolumeNumber(book);
+    if (vol === null) return true;
+    if (seenCamVols.has(vol)) return false;
+    seenCamVols.add(vol);
+    return true;
+  });
 }
 
 export async function generateMetadata({
@@ -43,8 +60,9 @@ export async function generateMetadata({
  * One series, the screen the app opens from a series card on Home.
  *
  * The grid is left-to-right at the app's series breakpoints, so volume order
- * stays left-first in Persian and Kurdish. A volume with no units is "Soon"
- * and cannot be opened, except Cambridge 15, which stays tappable.
+ * stays left-first in Persian and Kurdish. Live Cambridge IELTS volumes
+ * (11–21, including volumes published directly on `cambridge_manifest.php`
+ * before DB rows exist) open the interactive test hub.
  */
 export default async function SeriesPage({
   params,
@@ -58,16 +76,25 @@ export default async function SeriesPage({
   const title = volumes[0]?.seriesTitle;
   if (!title) notFound();
 
+  const existingCamVols = volumes
+    .map((b) => cambridgeVolumeNumber(b))
+    .filter((v): v is number => v !== null);
+  const isCambridgeSeries = existingCamVols.length > 0;
+
   const t = getTranslator(locale);
-  const [unitCounts, pdfs] = await Promise.all([
+  const [unitCounts, pdfs, liveCambridgeCounts, extraCambridge] = await Promise.all([
     Promise.all(volumes.map(async (book) => [book.id, (await getUnits(book.id)).length] as const)),
     getBookPdfs(),
+    isCambridgeSeries ? getLiveCambridgeManifestCounts(existingCamVols) : Promise.resolve(new Map<number, number>()),
+    isCambridgeSeries ? getExtraLiveCambridgeVolumes(existingCamVols) : Promise.resolve([]),
   ]);
   const units = new Map(unitCounts);
   const pdfCounts = new Map<number, number>();
   for (const pdf of pdfs) {
     pdfCounts.set(pdf.bookId, (pdfCounts.get(pdf.bookId) ?? 0) + 1);
   }
+
+  const totalCount = extraCambridge.length + volumes.length;
 
   return (
     <Container>
@@ -85,7 +112,7 @@ export default async function SeriesPage({
       </div>
 
       <p className="text-on-surface-variant mb-3 text-sm">
-        {t('seriesBooksGridHint', { count: volumes.length })}
+        {t('seriesBooksGridHint', { count: totalCount })}
       </p>
 
       {/*
@@ -96,19 +123,51 @@ export default async function SeriesPage({
         dir="ltr"
         className="grid grid-cols-1 gap-3 min-[500px]:grid-cols-2 min-[760px]:grid-cols-3 min-[1000px]:grid-cols-4"
       >
-        {volumes.map((book, index) => (
+        {extraCambridge.map((vol, index) => (
           <VolumeCard
-            key={book.id}
-            book={book}
-            locale={locale}
+            key={vol.slug}
+            title={vol.title}
+            href={localeHref(locale, `/books/${vol.slug}/cambridge`)}
+            pdfHref={null}
             index={index}
-            unitCount={units.get(book.id) ?? 0}
-            unitCountLabel={t('unitCount', { count: units.get(book.id) ?? 0 })}
+            pill={`${vol.testsCount} tests`}
+            soon={false}
             pdfLabel={t('bookStudyPdfOpen')}
-            hasPdf={(pdfCounts.get(book.id) ?? 0) > 0}
             alignEnd={locale !== 'en'}
           />
         ))}
+        {volumes.map((book, idx) => {
+          const index = extraCambridge.length + idx;
+          const unitCount = units.get(book.id) ?? 0;
+          const camVol = cambridgeVolumeNumber(book);
+          const camTestCount = camVol !== null ? (liveCambridgeCounts.get(camVol) ?? 0) : 0;
+          const cambridge = camTestCount > 0;
+          const soon = unitCount === 0 && !cambridge;
+          const pill = cambridge
+            ? `${camTestCount} tests`
+            : soon
+              ? 'Soon...'
+              : t('unitCount', { count: unitCount });
+          const bookHref = localeHref(locale, `/books/${book.id}`);
+          const href = cambridge
+            ? localeHref(locale, `/books/${book.id}/cambridge`)
+            : bookHref;
+          const hasPdf = (pdfCounts.get(book.id) ?? 0) > 0;
+
+          return (
+            <VolumeCard
+              key={book.id}
+              title={book.title}
+              href={href}
+              pdfHref={hasPdf && !soon ? (`${bookHref}#study-pdfs` as Route) : null}
+              index={index}
+              pill={pill}
+              soon={soon}
+              pdfLabel={t('bookStudyPdfOpen')}
+              alignEnd={locale !== 'en'}
+            />
+          );
+        })}
       </div>
     </Container>
   );
@@ -118,37 +177,30 @@ export default async function SeriesPage({
 const VOLUME_ACCENTS = ['4', '1', '2', '6', 'error'] as const;
 
 function VolumeCard({
-  book,
-  locale,
+  title,
+  href,
+  pdfHref,
   index,
-  unitCount,
-  unitCountLabel,
+  pill,
+  soon,
   pdfLabel,
-  hasPdf,
   alignEnd,
 }: {
-  book: Book;
-  locale: Locale;
+  title: string;
+  href: Route;
+  pdfHref: Route | null;
   index: number;
-  unitCount: number;
-  unitCountLabel: string;
+  pill: string;
+  soon: boolean;
   pdfLabel: string;
-  hasPdf: boolean;
   alignEnd: boolean;
 }) {
-  const cambridge = isCambridgeVolume15(book);
-  const soon = unitCount === 0 && !cambridge;
   const accent = VOLUME_ACCENTS[index % VOLUME_ACCENTS.length] ?? '4';
-  const pill = cambridge ? '4 tests' : soon ? 'Soon...' : unitCountLabel;
-  const bookHref = localeHref(locale, `/books/${book.id}`);
-  const href = cambridge
-    ? localeHref(locale, `/books/${book.id}/cambridge`)
-    : bookHref;
 
   return (
     <article
       data-accent={accent}
-      aria-disabled={soon || undefined}
+      data-soon={soon || undefined}
       className={cn(
         'accent-card border-outline-variant/70 relative flex aspect-[2.15/1] flex-col overflow-hidden rounded-[var(--radius-card)] border p-3.5',
         'min-[500px]:aspect-[1.48/1]',
@@ -156,7 +208,7 @@ function VolumeCard({
       )}
     >
       {soon ? null : (
-        <Link href={href} aria-label={book.title} className="absolute inset-0 z-10 rounded-[inherit]" />
+        <Link href={href} aria-label={title} className="absolute inset-0 z-10 rounded-[inherit]" />
       )}
 
       <div className="pointer-events-none relative z-0 flex items-start justify-between gap-3">
@@ -167,7 +219,7 @@ function VolumeCard({
       </div>
 
       <h2 className="text-on-surface pointer-events-none relative z-0 mt-2.5 line-clamp-2 text-base leading-[1.15] font-extrabold">
-        <bdi lang="en">{book.title}</bdi>
+        <bdi lang="en">{title}</bdi>
       </h2>
       {soon ? (
         <p className="text-on-surface-variant pointer-events-none relative z-0 mt-1 truncate text-xs font-bold">
@@ -185,9 +237,9 @@ function VolumeCard({
         >
           {pill}
         </span>
-        {hasPdf && !soon ? (
+        {pdfHref ? (
           <Link
-            href={`${bookHref}#study-pdfs`}
+            href={pdfHref}
             className="text-[var(--accent)] relative inline-flex min-h-8 items-center gap-1 rounded-full border border-[color-mix(in_oklab,var(--accent)_45%,transparent)] px-2.5 text-xs font-bold"
           >
             <IconPdf className="size-4" />

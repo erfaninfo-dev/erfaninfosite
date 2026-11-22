@@ -32,6 +32,49 @@ export function cambridgeLabels(locale: Locale) {
     readingTime: pick(locale, 'About 60 minutes', 'حدود ۶۰ دقیقه', 'نزیکەی ٦٠ خولەک'),
     writingTime: pick(locale, 'About 60 minutes', 'حدود ۶۰ دقیقه', 'نزیکەی ٦٠ خولەک'),
     speakingTime: pick(locale, 'About 11–14 minutes', 'حدود ۱۱ تا ۱۴ دقیقه', 'نزیکەی ١١–١٤ خولەک'),
+    testPrefix: pick(locale, 'Test', 'تست', 'تێست'),
+    empty: pick(
+      locale,
+      'No tests are published for this skill yet.',
+      'هنوز تستی برای این مهارت منتشر نشده.',
+      'هێشتا تێستێک بۆ ئەم لێهاتوویییە بڵاونەکراوەتەوە.'
+    ),
+    start: pick(locale, 'Start', 'شروع', 'دەستپێبکە'),
+    partsUnit: pick(locale, 'parts', 'بخش', 'بەش'),
+    passagesUnit: pick(locale, 'passages', 'متن', 'دەق'),
+    tasksUnit: pick(locale, 'tasks', 'تسک', 'ئەرک'),
+    exitTest: pick(locale, 'Exit', 'خروج', 'دەرچوون'),
+    practiceMode: pick(locale, 'Practice mode', 'حالت تمرین', 'دۆخی مەشق'),
+    practiceModeDesc: pick(
+      locale,
+      'Unlimited time, Answer check, Dictionary, Translate, Highlight & Audio controls.',
+      'بدون محدودیت زمان، بررسی پاسخ هر سؤال، دیکشنری، ترجمه، هایلایت و کنترل کامل صوت.',
+      'بێ سنووری کات، پشکنینی وەڵام، فەرهەنگ، وەرگێڕان، هایلایت و کۆنترۆڵی تەواوی دەنگ.'
+    ),
+    startPracticeCta: pick(locale, 'Start (Practice mode)', 'شروع (حالت تمرین)', 'دەستپێکردن (مەشق)'),
+    examMode: pick(locale, 'Exam mode', 'حالت آزمون', 'دۆخی تاقیکردنەوە'),
+    examModeDesc: pick(
+      locale,
+      'Real IELTS exam conditions: countdown timer, restricted tools, Notes & Highlight only.',
+      'شرایط واقعی آزمون آیلتس: تایمر معکوس، ابزارهای محدود، فقط یادداشت و هایلایت، بدون کلید پاسخ.',
+      'مەرجی ڕاستەقینەی تاقیکردنەوەی ئایڵتس: کاتژمێری بەرەو خوار، ئامرازی سنووردار، تەنها تێبینی و هایلایت.'
+    ),
+    timePacingLabel: pick(locale, 'Time pacing', 'سرعت و زمان آزمون', 'خێرایی و کاتی تاقیکردنەوە'),
+    startExamCta: pick(locale, 'Start (Exam mode)', 'شروع (حالت آزمون)', 'دەستپێکردن (تاقیکردنەوە)'),
+    examPausedMsg: pick(
+      locale,
+      'Your answers have been stored. The time has been paused.',
+      'پاسخ‌های شما ذخیره شده و زمان آزمون متوقف شده است.',
+      'وەڵامەکانت پاشەکەوت کراون و کاتی تاقیکردنەوە وەستێنراوە.'
+    ),
+    saveAndQuit: pick(locale, 'Save & quit', 'ذخیره و خروج', 'پاشەکەوت و دەرچوون'),
+    resumeTest: pick(locale, 'Resume test', 'ادامه آزمون', 'بەردەوامبوون'),
+    switchToReview: pick(
+      locale,
+      'Review in Practice mode',
+      'بررسی پاسخ‌ها در حالت تمرین',
+      'پێداچوونەوە لە دۆخی مەشقدا'
+    ),
     couldNotLoad: pick(
       locale,
       'Could not load this test. Deploy the Cambridge API files, then try again.',
@@ -42,3 +85,5 @@ export function cambridgeLabels(locale: Locale) {
 }
 
 export const CAMBRIDGE_SKILLS: CambridgeSkill[] = [...SKILLS];
+
+export type CambridgeLabels = ReturnType<typeof cambridgeLabels>;

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { SpeakButton } from '@/components/features/speaking/speak-button';
 import { ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { IconArrowBack } from '@/components/ui/icons';
@@ -83,30 +84,36 @@ export default async function SpeakingIdeasPage({
               </SectionHeading>
               <Card className="divide-outline-variant/50 divide-y p-0">
                 {category.ideas.map((idea) => (
-                  <div key={idea.id} className="p-4">
-                    <div className="flex flex-wrap items-baseline gap-2">
-                      <bdi lang="en" dir="ltr" className="text-on-surface font-semibold">
-                        {idea.phrase}
-                      </bdi>
-                      {/*
-                        band_text is a string like "6.5". Never coerced to a
-                        number, or "6" would display as "6.0".
-                      */}
-                      {idea.band ? (
-                        <Badge tone="primary">
-                          {t('speakingBandAnswer', { band: idea.band })}
-                        </Badge>
+                  <div key={idea.id} className="flex items-start gap-3 p-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <bdi lang="en" dir="ltr" className="text-on-surface font-semibold">
+                          {idea.phrase}
+                        </bdi>
+                        {/*
+                          band_text is a string like "6.5". Never coerced to a
+                          number, or "6" would display as "6.0".
+                        */}
+                        {idea.band ? (
+                          <Badge tone="primary">
+                            {t('speakingBandAnswer', { band: idea.band })}
+                          </Badge>
+                        ) : null}
+                      </div>
+                      {idea.example ? (
+                        <p
+                          lang="en"
+                          dir="ltr"
+                          className="text-on-surface-variant mt-1.5 max-w-[var(--container-prose)]"
+                        >
+                          {idea.example}
+                        </p>
                       ) : null}
                     </div>
-                    {idea.example ? (
-                      <p
-                        lang="en"
-                        dir="ltr"
-                        className="text-on-surface-variant mt-1.5 max-w-[var(--container-prose)]"
-                      >
-                        {idea.example}
-                      </p>
-                    ) : null}
+                    <SpeakButton
+                      text={idea.example ? `${idea.phrase}. ${idea.example}` : idea.phrase}
+                      size="sm"
+                    />
                   </div>
                 ))}
               </Card>

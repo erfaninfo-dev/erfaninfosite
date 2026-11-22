@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { RedeemForm } from '@/components/features/auth/redeem-form';
 import { IconArrowBack } from '@/components/ui/icons';
 import { Container } from '@/components/ui/primitives';
 import { hasClassAccess, type Account } from '@/lib/auth/account';
@@ -126,21 +125,7 @@ export default async function MembershipPage({
                 </ul>
               ) : null}
             </section>
-          ) : (
-            <RedeemForm
-              locale={locale}
-              labels={{
-                title: t('redeemStudentCode'),
-                subtitle: t('redeemStudentCodeSubtitle'),
-                code: t('studentCodeLabel'),
-                hint: t('studentCodeFiveDigitsHint'),
-                submit: t('redeemStudentCode'),
-                required: t('studentCodeRequired'),
-                invalid: t('invalidStudentCode'),
-                failed: t('loginFailed'),
-              }}
-            />
-          )}
+          ) : null}
         </div>
       )}
     </Container>

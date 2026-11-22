@@ -197,6 +197,51 @@ export function buildWordBuilderLevels(
   return levels;
 }
 
+/**
+ * Build Theme Category stage levels — exact port of Flutter's
+ * `buildThemeCategoryStageLevels` (`word_builder_vocab.dart`):
+ * 3 target words per stage (`ceil(usable.length / 3)` stages; last stage may
+ * have 1–2 words) so every playable word in a topic appears in a stage.
+ */
+export function buildThemeStageLevels(
+  raw: WordBuilderSourceWord[],
+  { categoryLabel }: { categoryLabel: string }
+): WordBuilderLevel[] {
+  const usable: WordBuilderSourceWord[] = [];
+  const seen = new Set<string>();
+  for (const e of raw) {
+    const lemma = gameLemma(e.word);
+    if (!lemma || seen.has(lemma)) continue;
+    seen.add(lemma);
+    usable.push(e);
+  }
+  if (usable.length === 0) return [];
+
+  const WORDS_PER_STAGE = 3;
+  const stageCount = Math.ceil(usable.length / WORDS_PER_STAGE);
+  const levels: WordBuilderLevel[] = [];
+
+  for (let stage = 0; stage < stageCount; stage += 1) {
+    const start = stage * WORDS_PER_STAGE;
+    const chunk = usable
+      .slice(start, start + WORDS_PER_STAGE)
+      .sort((a, b) => gameLemma(a.word)!.length - gameLemma(b.word)!.length);
+    const targets = chunk.map(toTarget);
+    const letters = expandPoolLetters(
+      poolMaxPerLetterAcrossWords(targets.map((t) => normalizeWord(t.word)))
+    );
+    levels.push({
+      levelId: stage + 1,
+      difficulty: 'beginner',
+      category: categoryLabel,
+      letters,
+      targetWords: targets,
+    });
+  }
+
+  return levels;
+}
+
 /** mulberry32 — same family as `seededShuffle` for deterministic level builds. */
 export function mulberry32(seed: number): () => number {
   let state = seed >>> 0;

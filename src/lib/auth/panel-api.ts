@@ -39,12 +39,30 @@ function parseSessionBlock(value: unknown): SessionBlock {
         index: num(s.index) ?? num(s.session_index) ?? 0,
         recordedAt: typeof s.recorded_at === 'string' ? s.recorded_at : '',
         groupId: num(s.group_id),
+        termId: num(s.term_id),
       };
     })
     .filter((row): row is ClassSession => row != null);
+  const rawTerms = Array.isArray(map.terms) ? map.terms : [];
+  const terms = rawTerms
+    .map((row, idx) => {
+      if (!row || typeof row !== 'object') return null;
+      const t = row as Record<string, unknown>;
+      const id = num(t.id);
+      if (id == null) return null;
+      return {
+        id,
+        sortOrder: num(t.sort_order) ?? idx + 1,
+        isPaid: flag(t.is_paid),
+        sessionCount: num(t.session_count) ?? 0,
+        sessionCap: num(t.session_cap) ?? 10,
+      };
+    })
+    .filter((t): t is NonNullable<typeof t> => t != null);
   const note = typeof map.note === 'string' ? map.note.trim() : '';
   const count = sessions.length > 0 ? sessions.length : (num(map.session_count) ?? 0);
-  return { sessionCount: count, note: note || null, sessions };
+  const usesTermsTable = flag(map.uses_terms_table) || terms.length > 0;
+  return { sessionCount: count, note: note || null, sessions, usesTermsTable, terms };
 }
 
 export async function fetchAdminUsers(

@@ -137,15 +137,42 @@ export type Book = {
   volumeOrder: number;
 };
 
-/** Volume 15 is the only Cambridge practice pack the app opens as tests. */
+/**
+ * Cambridge IELTS volumes whose tests are served by `cambridge_manifest.php`
+ * (`11-academic` through `21-academic`).
+ */
+export const CAMBRIDGE_LIVE_VOLUMES = [21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11] as const;
+
+const CAMBRIDGE_LIVE_SET: ReadonlySet<number> = new Set(CAMBRIDGE_LIVE_VOLUMES);
+
+/** Numeric volume from a title such as `Cambridge IELTS 14 — Academic`. */
+export function cambridgeVolumeNumber(book: Pick<Book, 'title'>): number | null {
+  const m = book.title.match(/cambridge\s+ielts\s+(\d+)\b/i);
+  if (!m?.[1]) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** Live folder slug, e.g. `14-academic`, when this volume has interactive tests. */
+export function cambridgeSlugForBook(book: Pick<Book, 'title'>): string | null {
+  const vol = cambridgeVolumeNumber(book);
+  if (vol === null || !CAMBRIDGE_LIVE_SET.has(vol)) return null;
+  return `${vol}-academic`;
+}
+
+/** True when the book opens the Cambridge exam hub instead of the unit grid. */
+export function isCambridgePracticeBook(book: Pick<Book, 'title'>): boolean {
+  return cambridgeSlugForBook(book) !== null;
+}
+
+/** Backward-compatible check for Cambridge IELTS 15. */
 export function isCambridgeVolume15(book: Pick<Book, 'title'>): boolean {
-  return /cambridge\s+ielts\s+15\b/i.test(book.title);
+  return cambridgeVolumeNumber(book) === 15;
 }
 
 /**
- * Book 37 — "Idioms For Speaking". The site uses a denser topic-first unit
- * grid and idiom cards; the Flutter app currently opens the ordinary unit
- * grid and word cards for the same book_id.
+ * The app's `kIdiomsSpeakingBookId`. That book opens an illustrated unit
+ * grid rather than the ordinary unit cards.
  */
 export const IDIOMS_SPEAKING_BOOK_ID = 37;
 
@@ -203,8 +230,7 @@ export function normalizeWord(raw: RawWord): Word {
     id: raw.id,
     bookId: raw.book_id,
     unit: raw.unit,
-    // Null means "no section", same display path as section 0 on unsectioned books.
-    section: raw.section ?? 0,
+    section: raw.section,
     sectionDetails: (raw.section_details ?? '').trim(),
     word: raw.word.trim(),
     type: raw.type.trim(),

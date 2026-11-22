@@ -415,45 +415,54 @@
   }
 }
 
-/* Wrong-path letters hold (~400ms), then fade — mirrors Flutter tray fade. */
-@keyframes wb-path-fade {
+@keyframes wb-particle-drift {
   0%,
-  57% {
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate3d(8px, -22px, 0) scale(1.25);
+    opacity: 0.7;
+  }
+}
+
+@keyframes wb-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes wb-pop-in {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes wb-path-fade {
+  0% {
     opacity: 1;
   }
   100% {
     opacity: 0;
-  }
-}
-
-/* Flutter ShakeWrapper: ~480ms decaying horizontal shake on wrong submit. */
-@keyframes wb-shake {
-  0% {
-    transform: translateX(0);
-  }
-  12% {
-    transform: translateX(7px);
-  }
-  24% {
-    transform: translateX(-7px);
-  }
-  36% {
-    transform: translateX(5px);
-  }
-  48% {
-    transform: translateX(-5px);
-  }
-  60% {
-    transform: translateX(3px);
-  }
-  72% {
-    transform: translateX(-2px);
-  }
-  84% {
-    transform: translateX(1px);
-  }
-  100% {
-    transform: translateX(0);
   }
 }
 
@@ -601,46 +610,75 @@
     background-color: var(--color-surface-2);
   }
 
-  /*
-   * Word Builder session: keep shell chrome, but reclaim vertical space so
-   * level header → slots → banner → tray (+ buttons) fit without scrolling.
-   */
-  html[data-word-builder-session] main {
-    padding-block-start: 0.5rem;
+  /* Word Builder active stage session: full-screen MagicBackground (no site chrome). */
+  html[data-word-builder-session] body > header,
+  html[data-word-builder-session] body > nav.fixed {
+    display: none !important;
   }
 
-  html[data-word-builder-session] .pb-nav {
-    padding-block-end: calc(var(--size-bottom-nav) + env(safe-area-inset-bottom) + 0.25rem);
+  html[data-word-builder-session] #main {
+    padding: 0 !important;
+    min-height: 100dvh;
+    max-width: none !important;
   }
 
-  @media (min-width: 768px) {
-    html[data-word-builder-session] .pb-nav {
-      padding-block-end: 1.25rem;
-    }
+  /* Cambridge IELTS full-screen exam desk (hides site chrome, keeps exam header). */
+  html[data-cambridge-exam] body > header,
+  html[data-cambridge-exam] body > nav.fixed {
+    display: none !important;
   }
 
-  /* Short viewports: hide the site header so the tray isn't clipped. */
-  @media (max-height: 820px) {
-    html[data-word-builder-session] body > header {
-      display: none !important;
-    }
+  html[data-cambridge-exam] #main {
+    padding: 0 !important;
+    min-height: 100dvh;
+    max-width: none !important;
   }
 
-  /*
-   * Mirrors directional icons in RTL. Never applied to logos.
-   *
-   * Use [dir] attributes, not :dir(): Tailwind polyfills :dir(rtl) into a
-   * :lang(ckb|fa|…) list, so icons kept flipping inside LTR islands
-   * (grammar, speaking) while html lang stayed Kurdish/Persian. Nested
-   * [dir=rtl] inside an LTR island can still flip (third rule).
-   */
-  [dir='rtl'] :where(.rtl-flip) {
-    transform: scaleX(-1);
+  .ielts-exam[data-ielts-size='large'] .ielts-prose {
+    font-size: 1.125rem;
+    line-height: 1.65;
   }
-  [dir='ltr'] :where(.rtl-flip) {
-    transform: none;
+
+  .ielts-exam[data-ielts-size='large'] .ielts-prose p,
+  .ielts-exam[data-ielts-size='large'] .ielts-prose li,
+  .ielts-exam[data-ielts-size='large'] .ielts-prose td,
+  .ielts-exam[data-ielts-size='large'] .ielts-prose button {
+    font-size: 18px !important;
   }
-  [dir='ltr'] [dir='rtl'] :where(.rtl-flip) {
+
+  .ielts-exam[data-ielts-size='xlarge'] .ielts-prose {
+    font-size: 1.25rem;
+    line-height: 1.7;
+  }
+
+  .ielts-exam[data-ielts-size='xlarge'] .ielts-prose p,
+  .ielts-exam[data-ielts-size='xlarge'] .ielts-prose li,
+  .ielts-exam[data-ielts-size='xlarge'] .ielts-prose td,
+  .ielts-exam[data-ielts-size='xlarge'] .ielts-prose button {
+    font-size: 20px !important;
+  }
+
+  .ielts-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #9ca3af transparent;
+  }
+
+  .ielts-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .ielts-scroll::-webkit-scrollbar-thumb {
+    background-color: #9ca3af;
+    border-radius: 9999px;
+  }
+
+  .ielts-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Mirrors directional icons in RTL. Never applied to logos. */
+  .rtl-flip:where(:dir(rtl)) {
     transform: scaleX(-1);
   }
 

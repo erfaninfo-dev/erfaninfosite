@@ -37,12 +37,23 @@ export type ClassSession = {
   index: number;
   recordedAt: string;
   groupId: number | null;
+  termId: number | null;
+};
+
+export type SessionTerm = {
+  id: number;
+  sortOrder: number;
+  isPaid: boolean;
+  sessionCount: number;
+  sessionCap: number;
 };
 
 export type SessionBlock = {
   sessionCount: number;
   note: string | null;
   sessions: ClassSession[];
+  usesTermsTable: boolean;
+  terms: SessionTerm[];
 };
 
 export type StudentClassSessions = {
@@ -59,6 +70,23 @@ export type VocabQuizResultRow = {
   correct: number;
   wrong: number;
   createdAt: string | null;
+};
+
+export type VocabQuizDetailItem = {
+  word: string;
+  meaning: string | null;
+  correct: boolean;
+};
+
+export type VocabQuizResultDetail = {
+  id: number;
+  bookId: number;
+  bookTitle: string | null;
+  quizName: string | null;
+  correct: number;
+  wrong: number;
+  createdAt: string | null;
+  items: VocabQuizDetailItem[];
 };
 
 export type GrammarResultRow = {

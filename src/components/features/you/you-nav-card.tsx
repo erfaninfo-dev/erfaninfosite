@@ -12,6 +12,7 @@ export function YouNavCard({
   icon,
   tone = 'primary',
   badge,
+  badgeTone = 'primary',
 }: {
   href: Route;
   title: string;
@@ -19,7 +20,14 @@ export function YouNavCard({
   icon: React.ReactNode;
   tone?: 'primary' | 'secondary' | 'tertiary' | 'error';
   badge?: string;
+  badgeTone?: 'primary' | 'secondary' | 'tertiary' | 'error';
 }) {
+  const badgeClasses = {
+    primary: 'bg-primary-container text-on-primary-container',
+    secondary: 'bg-secondary-container text-on-secondary-container',
+    tertiary: 'bg-tertiary-container text-on-tertiary-container',
+    error: 'bg-error text-on-error',
+  } as const;
   return (
     <Link
       href={href}
@@ -34,7 +42,12 @@ export function YouNavCard({
         <span className="text-on-surface-variant mt-0.5 block text-sm leading-snug">{subtitle}</span>
       </span>
       {badge ? (
-        <span className="bg-primary-container text-on-primary-container min-w-8 rounded-full px-2 py-1 text-center text-xs font-extrabold tabular-nums">
+        <span
+          className={cn(
+            'min-w-8 rounded-full px-2 py-1 text-center text-xs font-extrabold tabular-nums',
+            badgeClasses[badgeTone]
+          )}
+        >
           {badge}
         </span>
       ) : null}

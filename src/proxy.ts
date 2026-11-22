@@ -65,6 +65,6 @@ export const config = {
    * locale. See docs/decisions.md D1.
    */
   matcher: [
-    '/((?!_next/|internal/|status|wordsapi/|api/|apk/|favicon\\.ico|robots\\.txt|sitemap\\.xml|brand/|fonts/).*)',
+    '/((?!_next/|internal/|status|wordsapi/|api/|apk/|favicon\\.ico|robots\\.txt|sitemap\\.xml|brand/|fonts/|audio/).*)',
   ],
 };

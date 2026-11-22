@@ -91,7 +91,9 @@ export async function registerAction(
     body,
     timeoutMs: 45_000,
   });
-  const token = result.status === 200 ? parseToken(result.json) : null;
+  // wordsapi answers a new account with 201 Created and a token, not 200.
+  const token =
+    result.status === 200 || result.status === 201 ? parseToken(result.json) : null;
   if (!token) {
     const message = apiErrorText(result.json).toLowerCase();
     if (

@@ -12,7 +12,7 @@ import {
   IconSearch,
   IconSpeaking,
 } from '@/components/ui/icons';
-import { isCambridgeVolume15, type Book } from '@/lib/api/normalize';
+import { isCambridgePracticeBook, type Book } from '@/lib/api/normalize';
 import { cn } from '@/lib/cn';
 import { HomePanelFab, type HomePanelFabProps } from '@/components/panel/home-panel-fab';
 import { homeEntries } from '@/lib/home/entries';
@@ -383,15 +383,23 @@ function toCard(
   }
 
   const count = unitCounts[entry.book.id] ?? 0;
-  const soon = count === 0 && !isCambridgeVolume15(entry.book);
+  const practice = isCambridgePracticeBook(entry.book);
+  const soon = count === 0 && !practice;
   const bookHref = localeHref(locale, `/books/${entry.book.id}`);
+  const openHref = practice
+    ? localeHref(locale, `/books/${entry.book.id}/cambridge`)
+    : bookHref;
   return {
     id: `book-${entry.book.id}`,
-    href: soon ? null : bookHref,
+    href: soon ? null : openHref,
     title: entry.book.title,
     subtitle: '',
     description: '',
-    badge: soon ? null : formatClient(labels.unitCountTemplate, locale, { count }),
+    badge: soon
+      ? null
+      : practice
+        ? '4 tests'
+        : formatClient(labels.unitCountTemplate, locale, { count }),
     accent,
     icon: 'book',
     track: entry.book.track,

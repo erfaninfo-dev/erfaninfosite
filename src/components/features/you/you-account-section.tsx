@@ -1,13 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
 
 import { ProfileAvatar } from '@/components/profile/profile-avatar';
-import { RedeemStudentSheet } from '@/components/features/you/redeem-student-sheet';
 import { SectionLabel } from '@/components/features/you/section-label';
 import { JellyIconBubble } from '@/components/features/you/jelly-icon-bubble';
-import { IconKey, IconLogin, IconPersonAdd, IconSchool } from '@/components/ui/icons';
+import { IconKey, IconLogin, IconPersonAdd } from '@/components/ui/icons';
 import { logoutAction } from '@/lib/auth/actions';
 import type { Account } from '@/lib/auth/account';
 import type { Locale } from '@/lib/i18n/config';
@@ -21,23 +19,10 @@ export type YouAccountLabels = {
   profile: string;
   createStudentCode: string;
   createStudentCodeSubtitle: string;
-  redeemStudentCode: string;
-  redeemStudentCodeSubtitle: string;
   signOut: string;
   signOutTitle: string;
   signOutBody: string;
   cancel: string;
-  redeem: {
-    title: string;
-    subtitle: string;
-    code: string;
-    hint: string;
-    submit: string;
-    required: string;
-    invalid: string;
-    failed: string;
-    close: string;
-  };
 };
 
 function IconEdit(p: { className?: string }) {
@@ -58,7 +43,6 @@ export function YouAccountSection({
   account: Account | null;
   labels: YouAccountLabels;
 }) {
-  const [redeemOpen, setRedeemOpen] = useState(false);
   const isTeacherPanel = account?.isTeacher || account?.isAdmin;
 
   return (
@@ -132,25 +116,6 @@ export function YouAccountSection({
                 </span>
               </Link>
             </>
-          ) : !account.studentAccess ? (
-            <>
-              <hr className="border-outline-variant/35 m-0 border-0 border-t" />
-              <button
-                type="button"
-                onClick={() => setRedeemOpen(true)}
-                className="text-on-surface flex w-full min-h-14 items-center gap-3 px-4 py-2 text-start"
-              >
-                <JellyIconBubble tone="primary" size={40}>
-                  <IconSchool className="size-5" />
-                </JellyIconBubble>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-extrabold">{labels.redeemStudentCode}</span>
-                  <span className="text-on-surface-variant block text-sm leading-snug">
-                    {labels.redeemStudentCodeSubtitle}
-                  </span>
-                </span>
-              </button>
-            </>
           ) : null}
 
           <hr className="border-outline-variant/35 m-0 border-0 border-t" />
@@ -165,18 +130,6 @@ export function YouAccountSection({
           </form>
         </div>
       )}
-
-      {redeemOpen ? (
-        <>
-          <button
-            type="button"
-            aria-label={labels.cancel}
-            className="fixed inset-0 z-40 bg-black/40"
-            onClick={() => setRedeemOpen(false)}
-          />
-          <RedeemStudentSheet locale={locale} labels={labels.redeem} onClose={() => setRedeemOpen(false)} />
-        </>
-      ) : null}
     </section>
   );
 }

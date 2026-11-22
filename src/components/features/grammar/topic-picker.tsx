@@ -129,16 +129,9 @@ export function TopicPicker({
 
   const lengths = SESSION_LENGTH_OPTIONS.filter((n) => n >= floor && n <= bank);
 
-  /*
-   * Search hint is translated Arabic-script UI. Keep the field RTL under
-   * fa/ckb (icon on the right, text from the right) while the topic cards
-   * stay LTR inside the grammar island.
-   */
-  const searchDir = locale === 'en' ? 'ltr' : 'rtl';
-
   return (
     <>
-      <div dir={searchDir} lang={locale === 'en' ? undefined : locale} className="relative mb-5">
+      <div className="relative mb-5">
         <IconSearch className="text-on-surface-variant pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2" />
         <input
           id={searchId}
@@ -147,8 +140,7 @@ export function TopicPicker({
           onChange={(e) => setQuery(e.target.value)}
           placeholder={labels.searchHint}
           aria-label={labels.searchHint}
-          dir={searchDir}
-          className="bg-surface-1 border-outline-strong text-on-surface placeholder:text-on-surface-variant h-13 w-full rounded-full border ps-12 pe-5 text-start text-[length:var(--text-body)]"
+          className="bg-surface-1 border-outline-strong text-on-surface placeholder:text-on-surface-variant h-13 w-full rounded-full border ps-12 pe-5 text-[length:var(--text-body)]"
         />
       </div>
 

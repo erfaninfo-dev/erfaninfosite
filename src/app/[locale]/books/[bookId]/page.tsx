@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { UnitGrid } from '@/components/features/books/unit-grid';
@@ -10,8 +10,9 @@ import { ExternalLink } from '@/components/ui/external-link';
 import { IconArrowBack, IconPdf } from '@/components/ui/icons';
 import { Container, SectionHeading } from '@/components/ui/primitives';
 import { CardGridSkeleton } from '@/components/ui/states';
-import { IDIOMS_SPEAKING_BOOK_ID } from '@/lib/api/normalize';
+import { IDIOMS_SPEAKING_BOOK_ID, cambridgeVolumeNumber } from '@/lib/api/normalize';
 import { getBook, getBookPdfs, getUnits } from '@/lib/api/queries';
+import { getCambridgeManifest } from '@/lib/cambridge/api';
 import { isLocale, type Locale } from '@/lib/i18n/config';
 import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { localeHref } from '@/lib/nav';
@@ -64,6 +65,16 @@ export default async function BookPage({
   const book = await getBook(id);
   if (!book) notFound();
 
+  // If this Cambridge volume has live tests on the server (e.g. volumes 1–25),
+  // redirect straight to its interactive Cambridge hub.
+  const camVol = cambridgeVolumeNumber(book);
+  if (camVol !== null) {
+    const manifest = await getCambridgeManifest(`${camVol}-academic`);
+    if (manifest && manifest.tests.length > 0) {
+      redirect(localeHref(locale, `/books/${id}/cambridge`));
+    }
+  }
+
   const t = getTranslator(locale);
   const backHref = book.seriesId
     ? localeHref(locale, `/books/series/${book.seriesId}`)
@@ -115,7 +126,7 @@ async function UnitBrowser({
         layout={idioms ? 'idioms' : 'units'}
         labels={{
           search: t('searchUnitsHint'),
-          hintTemplate: idioms ? raw('idiomsUnitsLearnHint') : raw('unitsGridHint'),
+          hintTemplate: raw('unitsGridHint'),
           unitLabelTemplate: raw('unitLabel'),
           tapToOpen: t('tapToOpen'),
           noMatch: t('noMatchingUnits'),
@@ -124,8 +135,7 @@ async function UnitBrowser({
           clear: t('close'),
         }}
       />
-      {/* App shows the book quiz FAB for every book with units, including Idioms. */}
-      {units.length > 0 ? (
+      {units.length > 0 && !idioms ? (
         <QuizFab href={localeHref(locale, `/books/${bookId}/quiz`)} label={t('tooltipQuiz')} />
       ) : null}
     </>

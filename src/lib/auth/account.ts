@@ -9,6 +9,7 @@ export type Account = {
   email: string;
   displayName: string;
   avatar: string;
+  bio: string;
   studentAccess: boolean;
   isTeacher: boolean;
   isAdmin: boolean;
@@ -54,6 +55,7 @@ export function parseAccount(json: unknown): Account | null {
 
   const name = typeof user.display_name === 'string' ? user.display_name.trim() : '';
   const avatarRaw = typeof user.avatar === 'string' ? user.avatar.trim() : '';
+  const bioRaw = typeof user.bio === 'string' ? user.bio.trim() : '';
   const teacherRaw = user.teacher_user_id;
   const teacherUserId =
     typeof teacherRaw === 'number' && Number.isFinite(teacherRaw)
@@ -66,6 +68,7 @@ export function parseAccount(json: unknown): Account | null {
     email,
     displayName: name || email,
     avatar: avatarRaw || 'm1',
+    bio: bioRaw,
     studentAccess: flag(user.student_access),
     isTeacher: flag(user.is_teacher),
     isAdmin: flag(user.is_admin),
