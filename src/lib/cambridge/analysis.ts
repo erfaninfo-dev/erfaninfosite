@@ -4,6 +4,11 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { cache } from 'react';
 
+import { buildUrl } from '@/lib/api/client';
+
+const USER_AGENT =
+  'ErfanAcademyWeb/1.0 (+https://erfaninfo.com; Next.js server; contact: erfaninfo.com)';
+
 export type CambridgeAnalysisLang = 'en' | 'fa' | 'ckb';
 
 export type CambridgeAnalysisCopy = {
@@ -125,17 +130,107 @@ function indexLocaleFile(
   return map;
 }
 
+function parseRemoteAnalysis(
+  slug: string,
+  test: number,
+  root: unknown
+): CambridgeAnalysisBundle | null {
+  if (!root || typeof root !== 'object' || Array.isArray(root)) return null;
+  const obj = root as Record<string, unknown>;
+  if (obj.available !== true || !Array.isArray(obj.questions)) return null;
+
+  const parseCopy = (raw: unknown): CambridgeAnalysisCopy => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      return { brief: '', comprehensive: '' };
+    }
+    const r = raw as Record<string, unknown>;
+    const brief = typeof r.brief === 'string' ? r.brief.trim() : '';
+    const comprehensive = typeof r.comprehensive === 'string' ? r.comprehensive.trim() : '';
+    return { brief, comprehensive: comprehensive || brief };
+  };
+
+  const questions: CambridgeAnalysisQuestion[] = [];
+  for (const raw of obj.questions) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) continue;
+    const m = raw as Record<string, unknown>;
+    if (typeof m.q !== 'number' || typeof m.part !== 'number') continue;
+    const en = parseCopy(m.en);
+    const fa = parseCopy(m.fa);
+    const ckb = parseCopy(m.ckb);
+
+    const entry: CambridgeAnalysisQuestion = {
+      q: Math.floor(m.q),
+      part: Math.floor(m.part),
+      questionInPart: typeof m.questionInPart === 'number' ? Math.floor(m.questionInPart) : Math.floor(m.q),
+      en,
+      fa: fa.brief || fa.comprehensive ? fa : en,
+      ckb: ckb.brief || ckb.comprehensive ? ckb : en,
+      locationHint: extractLocationHint(en.brief, en.comprehensive),
+    };
+    if (m.comprehensiveMissing === true) {
+      entry.comprehensiveMissing = true;
+    }
+    if (m.chooseTwoGroup && typeof m.chooseTwoGroup === 'object' && !Array.isArray(m.chooseTwoGroup)) {
+      const grp = m.chooseTwoGroup as Record<string, unknown>;
+      if (Array.isArray(grp.globalQuestions) && typeof grp.slot === 'string') {
+        const globals = grp.globalQuestions.filter(
+          (n): n is number => typeof n === 'number' && Number.isFinite(n)
+        );
+        if (globals.length > 0) {
+          entry.chooseTwoGroup = { globalQuestions: globals, slot: grp.slot };
+        }
+      }
+    }
+    questions.push(entry);
+  }
+
+  if (questions.length === 0) return null;
+  questions.sort((a, b) => a.q - b.q);
+
+  return {
+    slug,
+    test,
+    bookCode: typeof obj.bookCode === 'string' && obj.bookCode ? obj.bookCode : `C${volumeFromSlug(slug) ?? ''}`,
+    hasFa: obj.hasFa === true,
+    hasCkb: obj.hasCkb === true,
+    questions,
+  };
+}
+
+async function fetchRemoteReadingAnalysis(
+  slug: string,
+  test: number
+): Promise<CambridgeAnalysisBundle | null> {
+  try {
+    const res = await fetch(
+      buildUrl('cambridge_analysis.php', { slug, test, skill: 'reading' }),
+      {
+        headers: { Accept: 'application/json', 'User-Agent': USER_AGENT },
+        ...(process.env.NODE_ENV === 'development'
+          ? { cache: 'no-store' as const }
+          : { next: { revalidate: 60 } }),
+        signal: AbortSignal.timeout(8_000),
+      }
+    );
+    if (!res.ok) return null;
+    return parseRemoteAnalysis(slug, test, await res.json());
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Loads local Reading Analysis JSONs (EN + FA + CKB) from
- * `output/ielts-analysis/C{vol}_Reading_analysis/test{N}_analysis[.(fa|ckb)].json`.
- *
- * Returns `null` silently when the folder or test files do not exist (e.g. volumes
- * without local analysis yet or production builds before server upload).
+ * Loads Reading Analysis (EN + FA + CKB):
+ * 1. First fetches live `GET /cambridge_analysis.php` from `wordsapi` (production & live server).
+ * 2. Falls back to local `output/ielts-analysis/C{vol}_Reading_analysis/` during local dev.
  */
 export const getCambridgeReadingAnalysis = cache(
   async (slug: string, test: number): Promise<CambridgeAnalysisBundle | null> => {
     const vol = volumeFromSlug(slug);
     if (vol === null || test < 1 || test > 10) return null;
+
+    const remote = await fetchRemoteReadingAnalysis(slug, test);
+    if (remote) return remote;
 
     const bookCode = `C${vol}`;
     const dir = path.join(
