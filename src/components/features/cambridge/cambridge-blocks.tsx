@@ -27,6 +27,10 @@ export type BlockInteractionProps = {
   onArmChip: (chip: { letter: string; from?: string } | null) => void;
   /** True in Exam Mode: hides per-question `✓ Answer` and `Analysis` buttons (exact Testino behavior). */
   hideAnswerControls?: boolean;
+  /** Question numbers that have Reading Analysis available (Practice Mode only). */
+  analysisQuestions?: ReadonlySet<number>;
+  /** Opens the Reading Analysis dialog scrolled directly to `qNum`. */
+  onOpenAnalysis?: (qNum: number) => void;
 };
 
 type Obj = Record<string, unknown>;
@@ -320,12 +324,16 @@ function AnswerCheckBar({
   answerKey,
   labelOverride,
   correctOverride,
+  hasAnalysis = false,
+  onOpenAnalysis,
 }: {
   qNum: string;
   given: string;
   answerKey: KeyByNumber;
   labelOverride?: string | null;
   correctOverride?: boolean | null;
+  hasAnalysis?: boolean;
+  onOpenAnalysis?: (qNum: number) => void;
 }) {
   const [open, setOpen] = useState(false);
   const key = answerKey[qNum];
@@ -333,6 +341,8 @@ function AnswerCheckBar({
   const label = formatAnswerBadge(rawLabel);
   const correct = correctOverride ?? answerMatchesKey(key, given);
   const hasKey = Boolean(key || labelOverride);
+  const qInt = Number(qNum);
+  const canAnalyze = hasAnalysis && Boolean(onOpenAnalysis) && Number.isFinite(qInt) && qInt > 0;
 
   return (
     <div className="mt-2 flex flex-col items-start">
@@ -350,10 +360,21 @@ function AnswerCheckBar({
           <span>Answer</span>
         </button>
 
-        <span className="inline-flex items-center gap-1 rounded-[2px] border border-[#077F83] px-2 py-0.5 text-[12px] leading-4 text-[#077F83] opacity-40 select-none">
-          <span>◔</span>
-          <span>Analysis</span>
-        </span>
+        {canAnalyze ? (
+          <button
+            type="button"
+            onClick={() => onOpenAnalysis?.(qInt)}
+            className="inline-flex cursor-pointer items-center gap-1 rounded-[2px] border border-[#077F83] bg-transparent px-2 py-0.5 text-[12px] leading-4 text-[#077F83] transition-colors hover:bg-[#077F83] hover:text-white"
+          >
+            <span>◔</span>
+            <span>Analysis</span>
+          </button>
+        ) : (
+          <span className="inline-flex items-center gap-1 rounded-[2px] border border-[#077F83] px-2 py-0.5 text-[12px] leading-4 text-[#077F83] opacity-40 select-none">
+            <span>◔</span>
+            <span>Analysis</span>
+          </span>
+        )}
       </div>
 
       {open && label ? (
@@ -458,6 +479,7 @@ export function ReadingPassageView({
   onArmChip,
   highlights,
   onRemoveHighlight,
+  highlightedParagraphIndex = null,
 }: {
   passage: Obj;
   partIndex: number;
@@ -469,6 +491,7 @@ export function ReadingPassageView({
   onArmChip: (chip: { letter: string; from?: string } | null) => void;
   highlights: HighlightEntry[];
   onRemoveHighlight: (id: string) => void;
+  highlightedParagraphIndex?: number | null;
 }) {
   const title = asStr(passage.title);
   const subtitle = asStr(passage.subtitle) || asStr(passage.intro);
@@ -520,7 +543,15 @@ export function ReadingPassageView({
           const circled = !hasLetterLabels ? (CIRCLED_NUMS[i] ?? `(${i + 1})`) : '';
 
           return (
-            <div key={i} className="space-y-4">
+            <div
+              key={i}
+              id={`cambridge-p-${partIndex}-${i}`}
+              className={cn(
+                'space-y-4 rounded-[8px] transition-colors duration-500',
+                highlightedParagraphIndex === i &&
+                  '-mx-2.5 bg-[#DCFCE7]/80 px-2.5 py-2 ring-2 ring-[#22C55E]/60'
+              )}
+            >
               {headingNum ? (
                 <div
                   id={`cambridge-q-${headingNum}`}
@@ -949,7 +980,13 @@ function ChoiceQuestion({
       </div>
 
       {!interaction.hideAnswerControls ? (
-        <AnswerCheckBar qNum={number} given={selected} answerKey={interaction.answerKey} />
+        <AnswerCheckBar
+          qNum={number}
+          given={selected}
+          answerKey={interaction.answerKey}
+          hasAnalysis={interaction.analysisQuestions?.has(numInt) ?? false}
+          onOpenAnalysis={interaction.onOpenAnalysis}
+        />
       ) : null}
     </div>
   );
@@ -1069,6 +1106,8 @@ function MultiChoiceBlock({ block, ...interaction }: BlockInteractionProps & { b
           answerKey={interaction.answerKey}
           labelOverride={firstKey ? firstKey.answer || firstKey.raw : null}
           correctOverride={groupCorrect}
+          hasAnalysis={interaction.analysisQuestions?.has(Number(firstNum)) ?? false}
+          onOpenAnalysis={interaction.onOpenAnalysis}
         />
       ) : null}
     </div>
@@ -1538,7 +1577,13 @@ function ShortAnswerBlock({ block, ...interaction }: BlockInteractionProps & { b
               </>
             )}
             {!interaction.hideAnswerControls ? (
-              <AnswerCheckBar qNum={qKey} given={val} answerKey={interaction.answerKey} />
+              <AnswerCheckBar
+                qNum={qKey}
+                given={val}
+                answerKey={interaction.answerKey}
+                hasAnalysis={interaction.analysisQuestions?.has(num) ?? false}
+                onOpenAnalysis={interaction.onOpenAnalysis}
+              />
             ) : null}
           </div>
         );

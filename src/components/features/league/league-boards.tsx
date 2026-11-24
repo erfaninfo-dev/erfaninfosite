@@ -8,9 +8,8 @@ import { localeHref } from '@/lib/nav';
 /**
  * The three boards the app shows.
  *
- * Type, period and sort labels are the English strings hardcoded in the app.
- * Rows are the API's leaderboard. Nothing is filled in when the call fails
- * or the reader is signed out.
+ * Visible to both signed-in learners and guests. `Weekly` and `Monthly` period
+ * tabs are omitted when fewer than 4 learners are on that board.
  */
 
 function href(locale: Locale, type: LeagueType, period: LeaguePeriod, sort: LeagueSort) {
@@ -31,10 +30,11 @@ export function LeagueBoards({
   locale,
   type,
   period,
+  visiblePeriods,
   sort,
   board,
   youId,
-  signedIn,
+  needsAuth,
   failed,
   couldNotLoad,
   needsAccount,
@@ -43,10 +43,11 @@ export function LeagueBoards({
   locale: Locale;
   type: LeagueType;
   period: LeaguePeriod;
+  visiblePeriods: readonly LeaguePeriod[];
   sort: LeagueSort;
   board: LeagueBoard | null;
   youId: number | null;
-  signedIn: boolean;
+  needsAuth: boolean;
   failed: boolean;
   couldNotLoad: string;
   needsAccount: string;
@@ -57,6 +58,7 @@ export function LeagueBoards({
     label: 'All',
     title: 'All League',
   };
+  const periodTabs = LEAGUE_PERIODS.filter((item) => visiblePeriods.includes(item.id));
   const numbers = new Intl.NumberFormat(NUMBER_LOCALE[locale]);
   const accuracy = new Intl.NumberFormat(NUMBER_LOCALE[locale], {
     minimumFractionDigits: 1,
@@ -88,7 +90,7 @@ export function LeagueBoards({
         ))}
       </div>
       <div className="mb-4 flex flex-wrap gap-2">
-        {LEAGUE_PERIODS.map((item) => (
+        {periodTabs.map((item) => (
           <Link
             key={item.id}
             href={href(locale, type, item.id, sort)}
@@ -120,7 +122,7 @@ export function LeagueBoards({
         ))}
       </div>
 
-      {!signedIn ? (
+      {needsAuth ? (
         <div>
           <p className="text-on-surface mb-3 font-bold">{needsAccount}</p>
           <Link
@@ -146,7 +148,7 @@ export function LeagueBoards({
             <li
               key={`${row.userId}-${row.rank}`}
               className={
-                row.userId === youId
+                youId != null && row.userId === youId
                   ? 'bg-primary-container text-on-primary-container flex items-center gap-3 rounded-[var(--radius-card)] px-4 py-3'
                   : 'bg-surface-1 flex items-center gap-3 rounded-[var(--radius-card)] px-4 py-3'
               }

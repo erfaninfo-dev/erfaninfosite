@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 
 import '../globals.css';
 
 import { BottomNav } from '@/components/layout/bottom-nav';
+import { NavigationProgress } from '@/components/layout/navigation-progress';
 import { SiteHeader } from '@/components/layout/site-header';
 import { LOCALES, THEME_COOKIE, dirOf, isLocale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
@@ -152,6 +154,9 @@ export default async function LocaleLayout({
         {modal}
 
         <BottomNav locale={locale} labels={navLabels} />
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
       </body>
     </html>
   );

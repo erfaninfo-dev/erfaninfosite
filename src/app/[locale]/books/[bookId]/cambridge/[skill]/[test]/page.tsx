@@ -7,6 +7,7 @@ import { IconArrowBack } from '@/components/ui/icons';
 import { Container } from '@/components/ui/primitives';
 import { fetchAccount } from '@/lib/auth/api';
 import { getAuthToken } from '@/lib/auth/session';
+import { getCambridgeReadingAnalysis } from '@/lib/cambridge/analysis';
 import {
   getCambridgeAnswerKey,
   getCambridgeSection,
@@ -64,15 +65,17 @@ export default async function CambridgeExamPage({
   const token = await getAuthToken();
   const stateMode: 'practice' | 'exam' = initialMode === 'exam' ? 'exam' : 'practice';
 
-  const [section, answerKey, account, initialServerState, translations] = await Promise.all([
-    getCambridgeSection(target.slug, testNum, skill),
-    getCambridgeAnswerKey(target.slug, testNum, skill),
-    token ? fetchAccount(token) : Promise.resolve(null),
-    token
-      ? getCambridgeUserState(token, target.slug, testNum, skill, stateMode)
-      : Promise.resolve(null),
-    getCambridgeTranslations(target.slug, testNum, skill),
-  ]);
+  const [section, answerKey, account, initialServerState, translations, readingAnalysis] =
+    await Promise.all([
+      getCambridgeSection(target.slug, testNum, skill),
+      getCambridgeAnswerKey(target.slug, testNum, skill),
+      token ? fetchAccount(token) : Promise.resolve(null),
+      token
+        ? getCambridgeUserState(token, target.slug, testNum, skill, stateMode)
+        : Promise.resolve(null),
+      getCambridgeTranslations(target.slug, testNum, skill),
+      skill === 'reading' ? getCambridgeReadingAnalysis(target.slug, testNum) : Promise.resolve(null),
+    ]);
 
   const labels = cambridgeLabels(locale);
   const t = getTranslator(locale);
@@ -113,6 +116,7 @@ export default async function CambridgeExamPage({
       initialMode={initialMode}
       initialServerState={initialServerState}
       translations={translations}
+      readingAnalysis={readingAnalysis}
       labels={labels}
     />
   );

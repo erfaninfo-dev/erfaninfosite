@@ -140,3 +140,36 @@ export function readLeagueQuery(query: {
     sort: oneOf(pick(query.sort), SORTS, 'points'),
   };
 }
+
+/** Minimum number of participants required to display the Weekly or Monthly tab. */
+export const LEAGUE_MIN_PERIOD_PARTICIPANTS = 4;
+
+export function leagueBoardCount(board: LeagueBoard | null): number {
+  if (!board) return 0;
+  return Math.max(board.participants, board.rows.length);
+}
+
+/**
+ * Hides `weekly` and `monthly` tabs whenever they have fewer than 4 learners,
+ * keeping `lifetime` always available, and falls back `activePeriod` cleanly if
+ * the requested period was hidden.
+ */
+export function resolveVisibleLeaguePeriods(
+  requested: LeaguePeriod,
+  counts: { weekly: number; monthly: number }
+): { visiblePeriods: LeaguePeriod[]; activePeriod: LeaguePeriod } {
+  const visiblePeriods: LeaguePeriod[] = [];
+  if (counts.weekly >= LEAGUE_MIN_PERIOD_PARTICIPANTS) visiblePeriods.push('weekly');
+  if (counts.monthly >= LEAGUE_MIN_PERIOD_PARTICIPANTS) visiblePeriods.push('monthly');
+  visiblePeriods.push('lifetime');
+
+  const activePeriod: LeaguePeriod = visiblePeriods.includes(requested)
+    ? requested
+    : visiblePeriods.includes('monthly')
+      ? 'monthly'
+      : visiblePeriods.includes('weekly')
+        ? 'weekly'
+        : 'lifetime';
+
+  return { visiblePeriods, activePeriod };
+}

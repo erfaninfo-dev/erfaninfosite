@@ -6,7 +6,14 @@ import { LeagueBoards } from '@/components/features/league/league-boards';
 import { IconArrowBack } from '@/components/ui/icons';
 import { Container } from '@/components/ui/primitives';
 import { authRequest, fetchAccount } from '@/lib/auth/api';
-import { parseLeague, readLeagueQuery, type LeagueBoard } from '@/lib/auth/league';
+import {
+  leagueBoardCount,
+  parseLeague,
+  readLeagueQuery,
+  resolveVisibleLeaguePeriods,
+  type LeagueBoard,
+  type LeaguePeriod,
+} from '@/lib/auth/league';
 import { getAuthToken } from '@/lib/auth/session';
 import { isLocale } from '@/lib/i18n/config';
 import { getTranslator } from '@/lib/i18n/messages';
@@ -21,11 +28,11 @@ export async function generateMetadata({
 }
 
 /**
- * League standings.
+ * League standings — visible to everyone (both guests and signed-in learners).
  *
- * Without a token the API answers 401, so the page stays a sign-in prompt and
- * does not call the endpoint. With a token the board is that response, fetched
- * uncached. Rankings are never invented.
+ * Fetches `weekly`, `monthly`, and `lifetime` in parallel so `Weekly` and
+ * `Monthly` tabs are completely hidden whenever they have fewer than 4 learners,
+ * falling back cleanly to a visible tab (`lifetime`).
  */
 export default async function LeaguePage({
   params,
@@ -35,43 +42,56 @@ export default async function LeaguePage({
   if (!isLocale(locale)) notFound();
   const t = getTranslator(locale);
   const choice = readLeagueQuery(query);
-  const token = await getAuthToken();
+  const rawToken = await getAuthToken();
 
-  let signedIn = false;
-  let failed = false;
-  let board: LeagueBoard | null = null;
+  let token: string | null = null;
   let youId: number | null = null;
 
-  if (token) {
-    const account = await fetchAccount(token);
-    if (account === 'unauthorized') {
-      signedIn = false;
-    } else if (account === 'unavailable') {
-      signedIn = true;
-      failed = true;
-    } else {
-      signedIn = true;
+  if (rawToken) {
+    const account = await fetchAccount(rawToken);
+    if (account !== 'unauthorized' && account !== 'unavailable') {
+      token = rawToken;
       youId = account.id;
-      const result = await authRequest('league.php', {
-        token,
-        params: {
-          type: choice.type,
-          period: choice.period,
-          sort: choice.sort,
-          limit: 50,
-          offset: 0,
-        },
-      });
-      if (result.status === 401) {
-        signedIn = false;
-      } else if (result.status !== 200) {
-        failed = true;
-      } else {
-        board = parseLeague(result.json);
-        failed = board == null;
-      }
     }
   }
+
+  const fetchPeriod = (period: LeaguePeriod) =>
+    authRequest('league.php', {
+      token,
+      params: {
+        type: choice.type,
+        period,
+        sort: choice.sort,
+        limit: 50,
+        offset: 0,
+      },
+    });
+
+  const [weeklyRes, monthlyRes, lifetimeRes] = await Promise.all([
+    fetchPeriod('weekly'),
+    fetchPeriod('monthly'),
+    fetchPeriod('lifetime'),
+  ]);
+
+  const needsAuth =
+    !token &&
+    weeklyRes.status === 401 &&
+    monthlyRes.status === 401 &&
+    lifetimeRes.status === 401;
+
+  const boards: Record<LeaguePeriod, LeagueBoard | null> = {
+    weekly: weeklyRes.status === 200 ? parseLeague(weeklyRes.json) : null,
+    monthly: monthlyRes.status === 200 ? parseLeague(monthlyRes.json) : null,
+    lifetime: lifetimeRes.status === 200 ? parseLeague(lifetimeRes.json) : null,
+  };
+
+  const { visiblePeriods, activePeriod } = resolveVisibleLeaguePeriods(choice.period, {
+    weekly: leagueBoardCount(boards.weekly),
+    monthly: leagueBoardCount(boards.monthly),
+  });
+
+  const board = boards[activePeriod];
+  const failed = !needsAuth && board == null;
 
   return (
     <Container size="quiz">
@@ -87,11 +107,12 @@ export default async function LeaguePage({
       <LeagueBoards
         locale={locale}
         type={choice.type}
-        period={choice.period}
+        period={activePeriod}
+        visiblePeriods={visiblePeriods}
         sort={choice.sort}
         board={board}
         youId={youId}
-        signedIn={signedIn}
+        needsAuth={needsAuth}
         failed={failed}
         couldNotLoad={t('couldNotLoadLeague')}
         needsAccount={t('couldNotLoadLeague')}

@@ -23,12 +23,18 @@ import {
   HighlightableContainer,
   type HighlightEntry,
 } from '@/components/features/cambridge/cambridge-highlighter';
+import { CambridgeAnalysisDialog } from '@/components/features/cambridge/cambridge-analysis-dialog';
 import { CambridgeReportDialog } from '@/components/features/cambridge/cambridge-report-dialog';
 import {
   CambridgeTranslationProvider,
   type CambridgeTranslationLang,
 } from '@/components/features/cambridge/cambridge-translation-context';
 import { cn } from '@/lib/cn';
+import type {
+  CambridgeAnalysisBundle,
+  CambridgeAnalysisLang,
+  CambridgeAnalysisQuestion,
+} from '@/lib/cambridge/analysis';
 import type {
   CambridgeScore,
   CambridgeSection,
@@ -161,6 +167,80 @@ function countWords(text: string): number {
   return trimmed.split(/\s+/).length;
 }
 
+function normalizeMatchText(raw: string): string {
+  return raw
+    .toLowerCase()
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Finds the passage paragraph index whose text best matches an analysis question's passage quote. */
+function findMatchingParagraphIndex(
+  passage: Obj | null,
+  hint: string | null,
+  fallbackBrief: string,
+  answerWord: string
+): number | null {
+  if (!passage) return null;
+  const paragraphs = asArr(passage.paragraphs).map((raw) => {
+    const p = asObj(raw);
+    return p ? asStr(p.text) : asStr(raw);
+  });
+  if (paragraphs.length === 0) return null;
+
+  const normParas = paragraphs.map(normalizeMatchText);
+  const normHint = hint ? normalizeMatchText(hint) : '';
+
+  // 1. Direct substring hit on the quoted passage snippet (or its first/last 5 words).
+  if (normHint.length >= 10) {
+    const exactIdx = normParas.findIndex((p) => p.includes(normHint));
+    if (exactIdx !== -1) return exactIdx;
+
+    const words = normHint.split(' ').filter((w) => w.length > 0);
+    if (words.length >= 5) {
+      const head = words.slice(0, 5).join(' ');
+      const tail = words.slice(-5).join(' ');
+      const partialIdx = normParas.findIndex((p) => p.includes(head) || p.includes(tail));
+      if (partialIdx !== -1) return partialIdx;
+    }
+  }
+
+  // 2. Weighted token overlap between hint (or brief) + answer word and each paragraph.
+  const stop = new Set([
+    'the', 'and', 'for', 'that', 'this', 'with', 'from', 'they', 'their', 'have',
+    'been', 'were', 'which', 'into', 'more', 'than', 'also', 'some', 'such', 'about',
+    'would', 'could', 'there', 'where', 'when', 'what', 'passage', 'reading', 'question',
+    'states', 'mentions', 'answer', 'therefore', 'context', 'synonym', 'phrase',
+  ]);
+  const tokens = normalizeMatchText(`${hint ?? ''} ${fallbackBrief}`)
+    .split(' ')
+    .filter((w) => w.length >= 4 && !stop.has(w));
+  const uniqueTokens = [...new Set(tokens)];
+  const normAns = normalizeMatchText(answerWord);
+
+  let bestIdx = 0;
+  let bestScore = -1;
+  normParas.forEach((p, idx) => {
+    let score = 0;
+    for (const tok of uniqueTokens) {
+      if (p.includes(tok)) score += 2;
+    }
+    if (normAns.length >= 3 && p.includes(normAns)) score += 6;
+    if (score > bestScore) {
+      bestScore = score;
+      bestIdx = idx;
+    }
+  });
+
+  return bestScore > 0 ? bestIdx : 0;
+}
+
+function asStr(v: unknown): string {
+  return typeof v === 'string' ? v : '';
+}
+
 type ToolKind =
   | 'Exit'
   | 'Pause'
@@ -276,6 +356,7 @@ export function CambridgeExamClient({
   initialMode = null,
   initialServerState = null,
   translations = null,
+  readingAnalysis = null,
   labels,
 }: {
   locale: Locale;
@@ -289,6 +370,7 @@ export function CambridgeExamClient({
   initialMode?: ExamMode | null;
   initialServerState?: CambridgeUserState | null;
   translations?: CambridgeTranslationBundle | null;
+  readingAnalysis?: CambridgeAnalysisBundle | null;
   labels: CambridgeLabels;
 }) {
   const { skill, test, slug, segments } = section;
@@ -357,12 +439,19 @@ export function CambridgeExamClient({
   );
   const [notesDrawerOpen, setNotesDrawerOpen] = useState(false);
 
-  // Settings popover (text size) + Practice Mode translation & transcript/sample drawers.
+  // Settings popover (text size) + Practice Mode translation, analysis & transcript/sample drawers.
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [textSize, setTextSize] = useState<TextSizeMode>('standard');
   const [translationLang, setTranslationLang] = useState<CambridgeTranslationLang>('off');
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [sampleOpen, setSampleOpen] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [analysisFocusQ, setAnalysisFocusQ] = useState<number | null>(null);
+  const [highlightedPara, setHighlightedPara] = useState<{
+    partIndex: number;
+    paragraphIndex: number;
+  } | null>(null);
+  const highlightTimerRef = useRef<number | null>(null);
 
   // Submission / finish / report state.
   const [submitting, setSubmitting] = useState(false);
@@ -784,12 +873,71 @@ export function CambridgeExamClient({
   const tools: ToolKind[] = isExamMode ? ['Exit', 'Pause'] : toolsForPractice(skill);
   const isLowExamTime = isExamMode && remainingSec <= 5 * 60 && remainingSec > 0;
   const hasTranslations = Boolean(translations?.available);
+  const hasAnalysis =
+    skill === 'reading' && Boolean(readingAnalysis && readingAnalysis.questions.length > 0);
+  const analysisQuestionSet = new Set((readingAnalysis?.questions ?? []).map((q) => q.q));
   const hasTranscript = skill === 'listening' && (translations?.audioscript.length ?? 0) > 0;
   const hasSampleWriting = skill === 'writing' && (translations?.sampleWriting.length ?? 0) > 0;
   const activePartNumber = activePart?.part ?? 1;
   const activeTranscriptItems = hasTranscript
     ? (translations?.audioscript ?? []).filter((it) => it.part === activePartNumber)
     : [];
+
+  function openAnalysisModal(qNum: number | null) {
+    setAnalysisFocusQ(qNum);
+    setAnalysisOpen(true);
+  }
+
+  function locateAnalysisAnswer(item: CambridgeAnalysisQuestion) {
+    const targetIdx = parts.findIndex((p) => p.part === item.part);
+    const resolvedPartIdx = targetIdx >= 0 ? targetIdx : partIndex;
+    const targetSegment = parts[resolvedPartIdx]?.segment ?? activeSegment;
+    const targetPassage = extractPassageObject(targetSegment);
+    const ansWord = initialAnswerKey[String(item.q)]?.answer ?? '';
+    const paraIdx = findMatchingParagraphIndex(
+      targetPassage,
+      item.locationHint,
+      item.en.brief,
+      ansWord
+    );
+
+    setAnalysisOpen(false);
+    if (resolvedPartIdx !== partIndex) {
+      setPartIndex(resolvedPartIdx);
+    }
+    setActiveQuestion(item.q);
+
+    if (paraIdx !== null) {
+      setHighlightedPara({ partIndex: resolvedPartIdx, paragraphIndex: paraIdx });
+      if (highlightTimerRef.current) window.clearTimeout(highlightTimerRef.current);
+      highlightTimerRef.current = window.setTimeout(() => {
+        setHighlightedPara(null);
+      }, 4500);
+
+      window.setTimeout(() => {
+        const nodes = document.querySelectorAll<HTMLElement>(
+          `[id="cambridge-p-${resolvedPartIdx}-${paraIdx}"]`
+        );
+        for (const node of nodes) {
+          if (node.offsetParent !== null) {
+            node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            break;
+          }
+        }
+      }, 80);
+    }
+  }
+
+  const defaultAnalysisLang: CambridgeAnalysisLang =
+    translationLang === 'fa' && readingAnalysis?.hasFa
+      ? 'fa'
+      : translationLang === 'ckb' && readingAnalysis?.hasCkb
+        ? 'ckb'
+        : locale === 'fa' && readingAnalysis?.hasFa
+          ? 'fa'
+          : locale === 'ckb' && readingAnalysis?.hasCkb
+            ? 'ckb'
+            : 'en';
 
   return (
     <CambridgeTranslationProvider
@@ -878,12 +1026,21 @@ export function CambridgeExamClient({
               const isPause = tool === 'Pause';
               const isReport = tool === 'Report' && isScorable;
               const isSetting = tool === 'Setting';
+              const isAnalysisBtn = tool === 'Analysis' && hasAnalysis;
               const isTranscriptBtn = tool === 'Transcript' && hasTranscript;
               const isSampleBtn = tool === 'Sample' && hasSampleWriting;
               const isActiveDrawer =
-                (isTranscriptBtn && transcriptOpen) || (isSampleBtn && sampleOpen);
+                (isAnalysisBtn && analysisOpen) ||
+                (isTranscriptBtn && transcriptOpen) ||
+                (isSampleBtn && sampleOpen);
               const enabled =
-                isExit || isPause || isReport || isSetting || isTranscriptBtn || isSampleBtn;
+                isExit ||
+                isPause ||
+                isReport ||
+                isSetting ||
+                isAnalysisBtn ||
+                isTranscriptBtn ||
+                isSampleBtn;
 
               const inner = (
                 <span className="flex flex-col items-center">
@@ -951,6 +1108,20 @@ export function CambridgeExamClient({
                     onClick={() => setSampleOpen((o) => !o)}
                     className="group shrink-0 cursor-pointer"
                     title="Sample Writing Answers"
+                  >
+                    {inner}
+                  </button>
+                );
+              }
+
+              if (isAnalysisBtn) {
+                return (
+                  <button
+                    key={tool}
+                    type="button"
+                    onClick={() => openAnalysisModal(null)}
+                    className="group shrink-0 cursor-pointer"
+                    title="Reading Analysis"
                   >
                     {inner}
                   </button>
@@ -1210,7 +1381,7 @@ export function CambridgeExamClient({
               <div
                 ref={leftPaneRef}
                 style={{ width: `${leftFraction * 100}%` }}
-                className="ielts-scroll h-full shrink-0 overflow-y-auto px-4 pt-2.5 pe-8 pb-40"
+                className="ielts-scroll h-full shrink-0 overflow-y-scroll px-4 pt-2.5 pe-7 pb-40"
               >
                 {skill === 'reading' && activePassage ? (
                   <HighlightableContainer
@@ -1235,6 +1406,11 @@ export function CambridgeExamClient({
                       onRemoveHighlight={(id) =>
                         setHighlights((prev) => prev.filter((h) => h.id !== id))
                       }
+                      highlightedParagraphIndex={
+                        highlightedPara?.partIndex === partIndex
+                          ? highlightedPara.paragraphIndex
+                          : null
+                      }
                     />
                   </HighlightableContainer>
                 ) : skill === 'writing' && activeSegment ? (
@@ -1242,7 +1418,7 @@ export function CambridgeExamClient({
                 ) : null}
               </div>
 
-              {/* Exact `<|>` Grip Handle on Pane Boundary */}
+              {/* Exact `<|>` Grip Handle centered directly on the 8px rounded middle rail */}
               <div
                 role="separator"
                 aria-orientation="vertical"
@@ -1252,11 +1428,32 @@ export function CambridgeExamClient({
                   draggingSplit.current = true;
                 }}
                 onDoubleClick={() => setLeftFraction(0.5)}
-                style={{ left: `calc(${leftFraction * 100}% - 17px)` }}
-                className="group absolute top-1/2 z-20 flex h-[33px] w-[34px] -translate-y-1/2 cursor-col-resize select-none items-center justify-center border-[1.6px] border-[#535353] bg-white text-[14px] leading-none font-bold text-[#535353] hover:border-[#1E40AF] hover:text-[#1E40AF]"
+                style={{
+                  left: `calc(${leftFraction * 100}% - 4px)`,
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '34px',
+                  height: '34px',
+                  border: '1.8px solid #535353',
+                  backgroundColor: '#FFFFFF',
+                }}
+                className="group absolute z-20 flex cursor-col-resize select-none items-center justify-center text-[#4F575E] hover:border-[#1E40AF] hover:text-[#1E40AF]"
                 title="Drag to resize · Double-click to reset"
               >
-                &lt;|&gt;
+                <svg
+                  viewBox="0 0 28 20"
+                  aria-hidden="true"
+                  style={{ width: '24px', height: '18px' }}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9.5 6.5 5 10l4.5 3.5" />
+                  <path d="M14 3.5v13" />
+                  <path d="M18.5 6.5 23 10l-4.5 3.5" />
+                </svg>
               </div>
 
               {/* Right Pane: Questions (Reading) or Answer Box (Writing) */}
@@ -1306,6 +1503,8 @@ export function CambridgeExamClient({
                       armedChip={armedChip}
                       onArmChip={setArmedChip}
                       hideAnswerControls={isExamMode}
+                      analysisQuestions={hasAnalysis && !isExamMode ? analysisQuestionSet : undefined}
+                      onOpenAnalysis={hasAnalysis && !isExamMode ? openAnalysisModal : undefined}
                     />
                   ))}
                 </div>
@@ -1337,6 +1536,11 @@ export function CambridgeExamClient({
                       highlights={highlights}
                       onRemoveHighlight={(id) =>
                         setHighlights((prev) => prev.filter((h) => h.id !== id))
+                      }
+                      highlightedParagraphIndex={
+                        highlightedPara?.partIndex === partIndex
+                          ? highlightedPara.paragraphIndex
+                          : null
                       }
                     />
                   </HighlightableContainer>
@@ -1371,6 +1575,8 @@ export function CambridgeExamClient({
                       armedChip={armedChip}
                       onArmChip={setArmedChip}
                       hideAnswerControls={isExamMode}
+                      analysisQuestions={hasAnalysis && !isExamMode ? analysisQuestionSet : undefined}
+                      onOpenAnalysis={hasAnalysis && !isExamMode ? openAnalysisModal : undefined}
                     />
                   ))
                 : null}
@@ -1823,6 +2029,19 @@ export function CambridgeExamClient({
             </div>
           </div>
         </div>
+      ) : null}
+
+      {/* ── Practice Mode Reading Analysis Modal (EN | فارسی | کوردی) ── */}
+      {analysisOpen && !isExamMode && readingAnalysis ? (
+        <CambridgeAnalysisDialog
+          bundle={readingAnalysis}
+          activePartNumber={activePartNumber}
+          focusQuestion={analysisFocusQ}
+          initialLang={defaultAnalysisLang}
+          answerKey={initialAnswerKey}
+          onClose={() => setAnalysisOpen(false)}
+          onLocateAnswer={locateAnalysisAnswer}
+        />
       ) : null}
 
       {/* ── Blurred Official Report & Band Score Dialog ── */}
