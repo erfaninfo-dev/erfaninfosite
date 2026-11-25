@@ -27,6 +27,10 @@ const nextConfig: NextConfig = {
   // No `X-Powered-By: Next.js`.
   poweredByHeader: false,
 
+  experimental: {
+    agentUpgrade: 'security',
+  },
+
   async headers() {
     return [
       {
