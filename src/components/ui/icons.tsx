@@ -396,10 +396,10 @@ export const IconMusic = (p: IconProps) => (
 
 export const IconShuffle = (p: IconProps) => (
   <Svg {...p}>
-    <path d="M16 4h4v4" />
-    <path d="M4 8c4 0 6 8 12 8h4" />
-    <path d="M16 20h4v-4" />
+    <path d="m17 5 3 3-3 3" />
     <path d="M4 16c4 0 6-8 12-8h4" />
+    <path d="m17 13 3 3-3 3" />
+    <path d="M4 8c4 0 6 8 12 8h4" />
   </Svg>
 );
 
@@ -452,6 +452,29 @@ export const IconDoubleCheck = (p: IconProps) => (
   <Svg {...p}>
     <path d="m3 12 4 4 6-7" />
     <path d="m11 12 4 4 6-7" />
+  </Svg>
+);
+
+export const IconSwords = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M14.5 17.5 3 6V3h3l11.5 11.5" />
+    <path d="m13 19 6-6" />
+    <path d="m16 16 4 4" />
+    <path d="m19 21 2-2" />
+    <path d="M9.5 17.5 21 6V3h-3L6.5 14.5" />
+    <path d="m11 19-6-6" />
+    <path d="m8 16-4 4" />
+    <path d="m5 21-2-2" />
+  </Svg>
+);
+
+export const IconShare = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="18" cy="5" r="3" />
+    <circle cx="6" cy="12" r="3" />
+    <circle cx="18" cy="19" r="3" />
+    <path d="m8.6 13.5 6.8 4" />
+    <path d="m15.4 6.5-6.8 4" />
   </Svg>
 );
 

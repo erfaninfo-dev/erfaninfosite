@@ -150,6 +150,85 @@ export const getCampaignCatalog = cache(
   }
 );
 
+export type MultilingualCatalogWord = {
+  rowId?: number;
+  bookId?: number;
+  word: string;
+  meaningEn: string;
+  meaningFa: string;
+  meaningCkb: string;
+  exampleEn: string;
+  exampleFa: string;
+  exampleCkb: string;
+};
+
+/**
+ * Loads the multilingual playable vocabulary catalog (reusing the same
+ * 15-minute in-memory `words.php?global=1` cache) so 1v1 duel snapshots
+ * carry `en`, `fa`, and `ckb` meanings for cross-locale opponents.
+ */
+export const getMultilingualCampaignCatalog = cache(
+  async (): Promise<{
+    words: MultilingualCatalogWord[];
+    bookTrackById?: BookTrackMap;
+  }> => {
+    const [globalWords, books] = await Promise.all([
+      loadGlobalBookWords(),
+      getBooks().catch(() => []),
+    ]);
+
+    if (globalWords && globalWords.length > 0 && books.length > 0) {
+      const trackById: Record<number, 'general' | 'ielts'> = {};
+      const publicBookIds = new Set<number>();
+      for (const b of books) {
+        if (!b.isPublic || b.isStudent) continue;
+        publicBookIds.add(b.id);
+        trackById[b.id] = b.track.trim().toLowerCase() === 'general' ? 'general' : 'ielts';
+      }
+
+      const words: MultilingualCatalogWord[] = [];
+      for (const w of globalWords) {
+        if (!publicBookIds.has(w.bookId)) continue;
+        if (!w.meaning.fa && !w.meaning.ckb && !w.meaning.en) continue;
+        words.push({
+          rowId: w.id,
+          bookId: w.bookId,
+          word: w.word,
+          meaningEn: w.meaning.en,
+          meaningFa: w.meaning.fa,
+          meaningCkb: w.meaning.ckb,
+          exampleEn: w.example.en,
+          exampleFa: w.example.fa,
+          exampleCkb: w.example.ckb,
+        });
+      }
+
+      if (words.length >= 150) {
+        return { words, bookTrackById: trackById };
+      }
+    }
+
+    const categories = await getGameCategories();
+    const out: MultilingualCatalogWord[] = [];
+    for (const cat of categories) {
+      for (const w of cat.words) {
+        if (!w.word || !gameLemma(w.word)) continue;
+        if (!w.meaning.fa && !w.meaning.ckb && !w.meaning.en) continue;
+        out.push({
+          word: w.word,
+          meaningEn: w.meaning.en,
+          meaningFa: w.meaning.fa,
+          meaningCkb: w.meaning.ckb,
+          exampleEn: w.example.en,
+          exampleFa: w.example.fa,
+          exampleCkb: w.example.ckb,
+        });
+      }
+    }
+    return { words: out };
+  }
+);
+
 export const getCampaignPlan = cache(
   async (gloss: GlossLang, reshuffleSeed = 0): Promise<{
     plan: CampaignPlan;

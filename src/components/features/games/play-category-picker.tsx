@@ -13,6 +13,7 @@ import {
   IconClose,
   IconSearch,
   IconSparkle,
+  IconSwords,
 } from '@/components/ui/icons';
 import { cn } from '@/lib/cn';
 import { STAGES_PER_TIER } from '@/lib/game/word-builder/campaign';
@@ -26,6 +27,7 @@ import {
   readWbProgress,
   subscribeWbProgress,
 } from '@/lib/game/word-builder/progress';
+import { formatClient } from '@/lib/i18n/client-format';
 import { NUMBER_LOCALE, type Locale } from '@/lib/i18n/config';
 import { localeHref } from '@/lib/nav';
 
@@ -44,6 +46,9 @@ export type PlayCategoryPickerLabels = {
   searchHint: string;
   normalTitle: string;
   normalSubtitle: string;
+  duelTitle: string;
+  duelSubtitle: string;
+  duelPendingTemplate: string;
   sectionTitle: string;
   emptyResults: string;
   noWordsYet: string;
@@ -52,15 +57,17 @@ export type PlayCategoryPickerLabels = {
 /**
  * Word Builder Category Picker matching Flutter's `WordBuilderCategoryPickerScreen`
  * (`lib/features/word_builder/presentation/word_builder_category_picker_screen.dart`),
- * including the prominent golden `_NormalTrackCard` right under the search bar.
+ * including the prominent golden `_NormalTrackCard` and 1v1 Duel hero card right under the search bar.
  */
 export function PlayCategoryPicker({
   locale,
   categories,
+  pendingDuelCount = 0,
   labels,
 }: {
   locale: Locale;
   categories: PlayCategoryCardItem[];
+  pendingDuelCount?: number;
   labels: PlayCategoryPickerLabels;
 }) {
   const [query, setQuery] = useState('');
@@ -132,42 +139,84 @@ export function PlayCategoryPicker({
           ) : null}
         </div>
 
-        {/* Normal Track Card matching Flutter `_NormalTrackCard` */}
-        <Link
-          href={localeHref(locale, '/play/normal')}
-          className="group relative flex items-center gap-4 rounded-[24px] border-2 border-white/65 bg-[linear-gradient(135deg,#FFF8E1,#FFECB3)] px-5 py-4.5 no-underline shadow-[0_8px_22px_rgba(255,152,0,0.32)] transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(255,152,0,0.38)] active:scale-[0.99] dark:border-[#FFB300]/55 dark:bg-[linear-gradient(135deg,#5D4037,#2D2640)]"
-        >
-          <span
-            className="grid size-13 shrink-0 place-items-center rounded-full text-[#5D4037] transition-transform duration-150 group-hover:scale-105"
-            style={{
-              backgroundImage: 'linear-gradient(135deg, #FFD54F, #FFB300)',
-              boxShadow: '0 4px 12px rgba(255, 152, 0, 0.42)',
-            }}
+        {/* Hero Cards: Normal Campaign + 1v1 Word Duel */}
+        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+          {/* Normal Track Card matching Flutter `_NormalTrackCard` */}
+          <Link
+            href={localeHref(locale, '/play/normal')}
+            className="group relative flex items-center gap-4 rounded-[24px] border-2 border-white/65 bg-[linear-gradient(135deg,#FFF8E1,#FFECB3)] px-5 py-4.5 no-underline shadow-[0_8px_22px_rgba(255,152,0,0.32)] transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(255,152,0,0.38)] active:scale-[0.99] dark:border-[#FFB300]/55 dark:bg-[linear-gradient(135deg,#5D4037,#2D2640)]"
           >
-            <IconSparkle className="size-6.5" />
-          </span>
+            <span
+              className="grid size-13 shrink-0 place-items-center rounded-full text-[#5D4037] transition-transform duration-150 group-hover:scale-105"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, #FFD54F, #FFB300)',
+                boxShadow: '0 4px 12px rgba(255, 152, 0, 0.42)',
+              }}
+            >
+              <IconSparkle className="size-6.5" />
+            </span>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-lg font-black text-[#5D4037] sm:text-xl dark:text-[#FFF8E1]">
-                {labels.normalTitle}
-              </span>
-              <span
-                dir="ltr"
-                className="inline-flex items-center rounded-full border border-[#FFB300]/60 bg-white/75 px-2.5 py-0.5 text-xs font-extrabold text-[#E65100] tabular-nums dark:bg-black/25 dark:text-[#FFD54F]"
-              >
-                {numFmt.format(totalNormalCleared)}/{numFmt.format(totalNormalStages)}
-              </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-lg font-black text-[#5D4037] sm:text-xl dark:text-[#FFF8E1]">
+                  {labels.normalTitle}
+                </span>
+                <span
+                  dir="ltr"
+                  className="inline-flex items-center rounded-full border border-[#FFB300]/60 bg-white/75 px-2.5 py-0.5 text-xs font-extrabold text-[#E65100] tabular-nums dark:bg-black/25 dark:text-[#FFD54F]"
+                >
+                  {numFmt.format(totalNormalCleared)}/{numFmt.format(totalNormalStages)}
+                </span>
+              </div>
+              <p className="mt-0.5 text-sm font-semibold text-[#795548] dark:text-[#FFECB3]/85">
+                {labels.normalSubtitle}
+              </p>
             </div>
-            <p className="mt-0.5 text-sm font-semibold text-[#795548] dark:text-[#FFECB3]/85">
-              {labels.normalSubtitle}
-            </p>
-          </div>
 
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/60 text-[#5D4037] transition-transform duration-150 group-hover:translate-x-0.5 dark:bg-white/10 dark:text-[#FFF8E1]">
-            <IconChevron className="rtl-flip size-5" />
-          </span>
-        </Link>
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/60 text-[#5D4037] transition-transform duration-150 group-hover:translate-x-0.5 dark:bg-white/10 dark:text-[#FFF8E1]">
+              <IconChevron className="rtl-flip size-5" />
+            </span>
+          </Link>
+
+          {/* 1v1 Async Word Duel Card */}
+          <Link
+            href={localeHref(locale, '/play/duel')}
+            className="group relative flex items-center gap-4 rounded-[24px] border-2 border-white/70 bg-[linear-gradient(135deg,#F3E8FF,#FFE8C2)] px-5 py-4.5 no-underline shadow-[0_8px_22px_rgba(124,58,237,0.22)] transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(124,58,237,0.3)] active:scale-[0.99] dark:border-[#A78BFA]/45 dark:bg-[linear-gradient(135deg,#3B225E,#2D2640)]"
+          >
+            <span
+              className="grid size-13 shrink-0 place-items-center rounded-full text-white transition-transform duration-150 group-hover:scale-105"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, #8B5CF6, #6D28D9)',
+                boxShadow: '0 4px 12px rgba(109, 40, 217, 0.42)',
+              }}
+            >
+              <IconSwords className="size-6.5" />
+            </span>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-lg font-black text-[#4C1D95] sm:text-xl dark:text-[#FFF8E1]">
+                  {labels.duelTitle}
+                </span>
+                {pendingDuelCount > 0 ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#7C3AED] px-2.5 py-0.5 text-xs font-extrabold text-white shadow-xs">
+                    <span className="size-1.5 animate-pulse rounded-full bg-[#FDE68A]" />
+                    {formatClient(labels.duelPendingTemplate, locale, {
+                      count: pendingDuelCount,
+                    })}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-0.5 text-sm font-semibold text-[#5B21B6]/85 dark:text-[#DDD6FE]/85">
+                {labels.duelSubtitle}
+              </p>
+            </div>
+
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/65 text-[#5B21B6] transition-transform duration-150 group-hover:translate-x-0.5 dark:bg-white/10 dark:text-[#EDE9FE]">
+              <IconChevron className="rtl-flip size-5" />
+            </span>
+          </Link>
+        </div>
 
         {filtered.length > 0 ? (
           <h2 className="text-base font-extrabold text-[#5D4037] dark:text-[#FFF8E1]/90">

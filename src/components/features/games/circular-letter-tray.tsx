@@ -99,6 +99,8 @@ export function CircularLetterTray({
   onRelease,
   onCancel,
   onClearTap,
+  centerControl,
+  swipeTheme = 'classic',
 }: {
   letters: LetterInstance[];
   path: LetterInstance[];
@@ -109,6 +111,9 @@ export function CircularLetterTray({
   onRelease: () => void;
   onCancel: () => void;
   onClearTap?: () => void;
+  /** Optional interactive control placed in the center of the wheel (e.g. Duel Shuffle button). */
+  centerControl?: React.ReactNode;
+  swipeTheme?: 'classic' | 'gold';
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 300, h: 300 });
@@ -258,7 +263,11 @@ export function CircularLetterTray({
   }
 
   const orbitR = layout.trayRadius + 8;
-  const pathStroke = pathWrong ? 'rgba(211, 47, 47, 0.86)' : 'rgba(37, 99, 235, 0.62)';
+  const pathStroke = pathWrong
+    ? 'rgba(211, 47, 47, 0.88)'
+    : swipeTheme === 'gold'
+      ? 'rgba(255, 224, 51, 0.96)'
+      : 'rgba(37, 99, 235, 0.62)';
   const lastCenter = pathIdx.length > 0 ? layout.centers[pathIdx[pathIdx.length - 1]!] : null;
 
   return (
@@ -328,28 +337,50 @@ export function CircularLetterTray({
       {/* Warm Golden Saucer (`_TraySaucerPainter`: #FFFDE7 -> #FFE0B2 -> #FFCC80) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute rounded-full border-[1.5px] border-white/60 shadow-[0_10px_28px_rgba(255,152,0,0.22),0_4px_12px_rgba(0,0,0,0.1)] dark:border-white/20"
+        className={cn(
+          'pointer-events-none absolute rounded-full',
+          swipeTheme === 'gold'
+            ? 'border-[2.5px] border-[#FFF3C4]/90 shadow-[0_10px_28px_rgba(230,120,0,0.32),0_4px_12px_rgba(0,0,0,0.12),inset_0_3px_10px_rgba(255,255,255,0.75)]'
+            : 'border-[1.5px] border-white/60 shadow-[0_10px_28px_rgba(255,152,0,0.22),0_4px_12px_rgba(0,0,0,0.1)] dark:border-white/20'
+        )}
         style={{
           width: layout.trayRadius * 2,
           height: layout.trayRadius * 2,
           left: layout.center.x - layout.trayRadius,
           top: layout.center.y - layout.trayRadius,
           backgroundImage:
-            'radial-gradient(circle at 28% 24%, #FFFDE7 0%, #FFE0B2 55%, #FFCC80 100%)',
+            swipeTheme === 'gold'
+              ? 'radial-gradient(circle at 30% 25%, #FFFDF5 0%, #FFEBC2 55%, #FFD180 100%)'
+              : 'radial-gradient(circle at 28% 24%, #FFFDE7 0%, #FFE0B2 55%, #FFCC80 100%)',
         }}
       />
 
-      {/* Subtle decorative center emblem (clean, no water/train/jail) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute rounded-full border border-[#FFB300]/25 bg-white/30"
-        style={{
-          width: layout.trayRadius * 0.58,
-          height: layout.trayRadius * 0.58,
-          left: layout.center.x - layout.trayRadius * 0.29,
-          top: layout.center.y - layout.trayRadius * 0.29,
-        }}
-      />
+      {/* Center emblem OR interactive center control (e.g. Duel Shuffle button) */}
+      {centerControl ? (
+        <div
+          className="absolute z-10 flex items-center justify-center"
+          style={{
+            left: layout.center.x,
+            top: layout.center.y,
+            transform: 'translate(-50%, -50%)',
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+        >
+          {centerControl}
+        </div>
+      ) : (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute rounded-full border border-[#FFB300]/25 bg-white/30"
+          style={{
+            width: layout.trayRadius * 0.58,
+            height: layout.trayRadius * 0.58,
+            left: layout.center.x - layout.trayRadius * 0.29,
+            top: layout.center.y - layout.trayRadius * 0.29,
+          }}
+        />
+      )}
 
       {/* Connecting path line + live rubber-band drag segment */}
       <svg
@@ -357,13 +388,18 @@ export function CircularLetterTray({
           'pointer-events-none absolute inset-0 size-full overflow-visible',
           pathWrong && 'animate-[wb-path-fade_0.66s_ease_forwards]'
         )}
+        style={
+          swipeTheme === 'gold' && !pathWrong
+            ? { filter: 'drop-shadow(0 0 6px rgba(255, 196, 0, 0.9))' }
+            : undefined
+        }
         aria-hidden="true"
       >
         {pathIdx.length >= 2 ? (
           <polyline
             fill="none"
             stroke={pathStroke}
-            strokeWidth={5}
+            strokeWidth={swipeTheme === 'gold' ? 6.5 : 5}
             strokeLinecap="round"
             strokeLinejoin="round"
             points={pathIdx
@@ -381,9 +417,9 @@ export function CircularLetterTray({
             x2={dragCursor.x}
             y2={dragCursor.y}
             stroke={pathStroke}
-            strokeWidth={4}
+            strokeWidth={swipeTheme === 'gold' ? 5.5 : 4}
             strokeLinecap="round"
-            strokeOpacity={0.75}
+            strokeOpacity={0.85}
           />
         ) : null}
       </svg>
@@ -397,30 +433,51 @@ export function CircularLetterTray({
           const half = layout.tile / 2;
           const fontSize = Math.max(16, Math.min(28, layout.tile * 0.44));
 
+          const isGold = swipeTheme === 'gold';
           const backgroundImage = error
             ? 'linear-gradient(180deg, #FF8A80, #D32F2F)'
             : selected
-              ? 'linear-gradient(180deg, #81C784, #2E7D32)'
-              : 'linear-gradient(135deg, #FFF8E1, #FFECB3)';
+              ? isGold
+                ? 'linear-gradient(180deg, #FFF176, #FFB300)'
+                : 'linear-gradient(180deg, #81C784, #2E7D32)'
+              : isGold
+                ? 'linear-gradient(180deg, #FFFDF2 0%, #FFE4A3 100%)'
+                : 'linear-gradient(135deg, #FFF8E1, #FFECB3)';
 
           const borderColor = error
             ? 'rgba(244, 67, 54, 0.78)'
             : selected
-              ? 'rgba(67, 160, 71, 0.82)'
-              : 'rgba(255, 152, 0, 0.65)';
+              ? isGold
+                ? '#FFFDE7'
+                : 'rgba(67, 160, 71, 0.82)'
+              : isGold
+                ? '#F5B041'
+                : 'rgba(255, 152, 0, 0.65)';
 
           const boxShadow = error
             ? '0 4px 18px 2px rgba(244, 67, 54, 0.45), 0 2px 6px rgba(0,0,0,0.14)'
             : selected
-              ? '0 4px 18px 3px rgba(67, 160, 71, 0.48), 0 2px 6px rgba(0,0,0,0.14)'
-              : '0 4px 14px 1px rgba(255, 152, 0, 0.38), 0 2px 6px rgba(0,0,0,0.12)';
+              ? isGold
+                ? '0 3px 0 #C67C00, 0 0 18px 3px rgba(255, 213, 79, 0.85)'
+                : '0 4px 18px 3px rgba(67, 160, 71, 0.48), 0 2px 6px rgba(0,0,0,0.14)'
+              : isGold
+                ? '0 3.5px 0 rgba(198, 128, 32, 0.55), 0 5px 12px rgba(180, 95, 0, 0.25), inset 0 2px 3px rgba(255,255,255,0.85)'
+                : '0 4px 14px 1px rgba(255, 152, 0, 0.38), 0 2px 6px rgba(0,0,0,0.12)';
 
           return (
             <div
               key={letter.id}
               className={cn(
-                'pointer-events-none absolute grid place-items-center rounded-full font-extrabold uppercase transition-transform duration-150 ease-out',
-                selected || error ? 'scale-110 text-white' : 'text-[#5D4037]'
+                'pointer-events-none absolute grid place-items-center rounded-full font-black uppercase transition-transform duration-150 ease-out',
+                error
+                  ? 'scale-110 text-white'
+                  : selected
+                    ? isGold
+                      ? 'scale-110 text-[#4E2A14]'
+                      : 'scale-110 text-white'
+                    : isGold
+                      ? 'text-[#4E2A14]'
+                      : 'text-[#5D4037]'
               )}
               style={{
                 width: layout.tile,

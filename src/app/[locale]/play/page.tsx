@@ -10,8 +10,10 @@ import { Container } from '@/components/ui/primitives';
 import { CardGridSkeleton } from '@/components/ui/states';
 import { glossOf } from '@/lib/api/normalize';
 import { getGameCategorySummaries } from '@/lib/api/queries';
+import { resolveDuelActor } from '@/lib/game/word-builder/duel-guest';
+import { fetchPendingDuelCount } from '@/lib/game/word-builder/duel-server';
 import { isLocale, type Locale } from '@/lib/i18n/config';
-import { getTranslator } from '@/lib/i18n/messages';
+import { getRawMessage, getTranslator } from '@/lib/i18n/messages';
 import { PLAY_SECTION_VISIBLE, localeHref } from '@/lib/nav';
 import { getGloss } from '@/lib/request-context';
 
@@ -51,11 +53,14 @@ export default async function PlayPage({ params }: PageProps<'/[locale]/play'>) 
  * Search bar, golden Normal Campaign card, and themed category cards.
  */
 async function CategoryPickerLoader({ locale }: { locale: Locale }) {
-  const [categories, gloss] = await Promise.all([
+  const actor = await resolveDuelActor();
+  const [categories, gloss, pendingDuelCount] = await Promise.all([
     getGameCategorySummaries(),
     getGloss(locale),
+    fetchPendingDuelCount(actor),
   ]);
   const t = getTranslator(locale);
+  const raw = getRawMessage(locale);
 
   const items: PlayCategoryCardItem[] = categories.map((category) => {
     const label =
@@ -78,12 +83,16 @@ async function CategoryPickerLoader({ locale }: { locale: Locale }) {
     <PlayCategoryPicker
       locale={locale}
       categories={items}
+      pendingDuelCount={pendingDuelCount}
       labels={{
         title: t('wordBuilderCategoryPickerTitle'),
         subtitle: t('wordBuilderCategoryPickerSubtitle'),
         searchHint: t('wordBuilderCategorySearchHint'),
         normalTitle: t('wordBuilderNormalTitle'),
         normalSubtitle: t('wordBuilderNormalSubtitle'),
+        duelTitle: t('wbDuelCardTitle'),
+        duelSubtitle: t('wbDuelCardSubtitle'),
+        duelPendingTemplate: raw('wbDuelPendingBadge'),
         sectionTitle: t('wordBuilderCategorySectionTitle'),
         emptyResults: t('wordBuilderCategoryEmptyResults'),
         noWordsYet: t('wordBuilderCategoryNoWordsYet'),

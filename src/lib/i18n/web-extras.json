@@ -261,5 +261,530 @@
     "en": "Part {n}",
     "fa": "بخش {n}",
     "ckb": "بەشی {n}"
+  },
+  "wbDuelCardTitle": {
+    "en": "1v1 Word Duel",
+    "fa": "دوئل ۱ در مقابل ۱",
+    "ckb": "دوێڵی ١ بەرامبەر ١"
+  },
+  "wbDuelCardSubtitle": {
+    "en": "Challenge a friend across 3 fast rounds with live Ghost Replay",
+    "fa": "یک دوست را در ۳ راند سریع با نمایش زنده پیشرفت حریف به چالش بکش",
+    "ckb": "هاوڕێیەکت لە ٣ خولی خێرادا بە پیشاندانی زیندووی پێشکەوتنی ڕکابەر بخە ژێر تەحەداوە"
+  },
+  "wbDuelPendingBadge": {
+    "en": "{count} your turn",
+    "fa": "{count} نوبت تو",
+    "ckb": "{count} نۆرەی تۆ"
+  },
+  "wbDuelHubTitle": {
+    "en": "1v1 Word Duel",
+    "fa": "دوئل ۱ در مقابل ۱",
+    "ckb": "دوێڵی ١ بەرامبەر ١"
+  },
+  "wbDuelHubSubtitle": {
+    "en": "Same 3 rounds, fair rules, and live Ghost Replay — play anytime within 24 hours.",
+    "fa": "۳ راند یکسان، قوانین منصفانه و نمایش زنده حریف — تا ۲۴ ساعت هر وقت خواستی بازی کن.",
+    "ckb": "٣ خولی یەکسان، یاسای دادپەروەرانە و پیشاندانی زیندووی ڕکابەر — تا ٢٤ کاتژمێر هەر کاتێک بتەوێت یاری بکە."
+  },
+  "wbDuelCreate": {
+    "en": "Create Duel",
+    "fa": "ساخت دوئل جدید",
+    "ckb": "دروستکردنی دوێڵی نوێ"
+  },
+  "wbDuelJoinPlaceholder": {
+    "en": "Enter 6-char code",
+    "fa": "کد ۶ کاراکتری اتاق",
+    "ckb": "کۆدی ٦ پیتی ژوور"
+  },
+  "wbDuelJoinAction": {
+    "en": "Join",
+    "fa": "ورود",
+    "ckb": "چوونەژوور"
+  },
+  "wbDuelSignInTitle": {
+    "en": "Sign in to play 1v1 Duels",
+    "fa": "برای دوئل ۱ در مقابل ۱ وارد حسابت شو",
+    "ckb": "بۆ یاریی دوێڵی ١ بەرامبەر ١ بچۆ ژوورەوە"
+  },
+  "wbDuelSignInBody": {
+    "en": "Track your wins, win streak, and challenge friends with shareable duel links.",
+    "fa": "برد و باخت‌ها و رکورد پیروزی‌ات را ثبت کن و با لینک دعوت دوستانت را به چالش بکش.",
+    "ckb": "بردنەوە و زنجیرەی سەرکەوتنەکانت تۆمار بکە و بە بەستەری بانگهێشت هاوڕێکانت بخە ژێر تەحەداوە."
+  },
+  "wbDuelStatWins": {
+    "en": "Wins",
+    "fa": "برد",
+    "ckb": "بردنەوە"
+  },
+  "wbDuelStatLosses": {
+    "en": "Losses",
+    "fa": "باخت",
+    "ckb": "دۆڕان"
+  },
+  "wbDuelStatDraws": {
+    "en": "Draws",
+    "fa": "مساوی",
+    "ckb": "یەکسان"
+  },
+  "wbDuelStatStreak": {
+    "en": "Streak",
+    "fa": "نوار برد",
+    "ckb": "زنجیرە"
+  },
+  "wbDuelTabYourTurn": {
+    "en": "Your Turn",
+    "fa": "نوبت تو",
+    "ckb": "نۆرەی تۆ"
+  },
+  "wbDuelTabWaiting": {
+    "en": "Waiting",
+    "fa": "در انتظار حریف",
+    "ckb": "چاوەڕوانی ڕکابەر"
+  },
+  "wbDuelTabHistory": {
+    "en": "History",
+    "fa": "تاریخچه",
+    "ckb": "مێژوو"
+  },
+  "wbDuelEmptyYourTurn": {
+    "en": "No active challenges right now. Create a duel or join with a code!",
+    "fa": "فعلاً چالشی در نوبت تو نیست. یک دوئل بساز یا با کد وارد شو!",
+    "ckb": "ئێستا هیچ تەحەدایەک لە نۆرەی تۆدا نییە. دوێڵێک دروست بکە یان بە کۆد بچۆ ژوورەوە!"
+  },
+  "wbDuelEmptyWaiting": {
+    "en": "No duels waiting for an opponent.",
+    "fa": "هیچ دوئلی در انتظار حریف نیست.",
+    "ckb": "هیچ دوێڵێک چاوەڕوانی ڕکابەر نییە."
+  },
+  "wbDuelEmptyHistory": {
+    "en": "Your completed 1v1 duels will appear here.",
+    "fa": "نتیجه دوئل‌های تمام‌شده‌ات اینجا نمایش داده می‌شود.",
+    "ckb": "ئەنجامی دوێڵە تەواوبووەکانت لێرە دەردەکەون."
+  },
+  "wbDuelCreateTitle": {
+    "en": "New 1v1 Challenge",
+    "fa": "چالش جدید ۱ در مقابل ۱",
+    "ckb": "تەحەدای نوێی ١ بەرامبەر ١"
+  },
+  "wbDuelSourceNormal": {
+    "en": "Normal Tier",
+    "fa": "سطح عادی",
+    "ckb": "ئاستی ئاسایی"
+  },
+  "wbDuelSourceCategory": {
+    "en": "Theme Category",
+    "fa": "دسته‌بندی موضوعی",
+    "ckb": "پۆلی بابەتی"
+  },
+  "wbDuelDifficultyLabel": {
+    "en": "Choose difficulty",
+    "fa": "سطح دشواری را انتخاب کن",
+    "ckb": "ئاستی قورسی هەڵبژێرە"
+  },
+  "wbDuelCategoryLabel": {
+    "en": "Choose category",
+    "fa": "موضوع را انتخاب کن",
+    "ckb": "بابەتێک هەڵبژێرە"
+  },
+  "wbDuelOpponentLabel": {
+    "en": "Opponent",
+    "fa": "حریف",
+    "ckb": "ڕکابەر"
+  },
+  "wbDuelOpenInvite": {
+    "en": "Anyone with invite link or code",
+    "fa": "هرکسی با لینک یا کد دعوت",
+    "ckb": "هەر کەسێک بە بەستەر یان کۆدی بانگهێشت"
+  },
+  "wbDuelCreateAndPlay": {
+    "en": "Create & Play First",
+    "fa": "ساخت و شروع بازی",
+    "ckb": "دروستکردن و دەستپێکردن"
+  },
+  "wbDuelCreating": {
+    "en": "Preparing 3 rounds…",
+    "fa": "در حال آماده‌سازی ۳ راند…",
+    "ckb": "ئامادەکردنی ٣ خول…"
+  },
+  "wbDuelOpenOpponent": {
+    "en": "Open Challenge",
+    "fa": "چالش آزاد (با لینک)",
+    "ckb": "تەحەدای کراوە (بە بەستەر)"
+  },
+  "wbDuelCopyLink": {
+    "en": "Copy Link",
+    "fa": "کپی لینک",
+    "ckb": "کۆپیکردنی بەستەر"
+  },
+  "wbDuelCopied": {
+    "en": "Copied!",
+    "fa": "کپی شد!",
+    "ckb": "کۆپی کرا!"
+  },
+  "wbDuelShare": {
+    "en": "Share",
+    "fa": "اشتراک‌گذاری",
+    "ckb": "هاوبەشکردن"
+  },
+  "wbDuelShareInviteText": {
+    "en": "I challenged you to a 1v1 Word Builder Duel! Code: {code}",
+    "fa": "تو را به دوئل ۱ در مقابل ۱ کلمه‌سازی دعوت کردم! کد: {code}",
+    "ckb": "تۆم بانگهێشت کردووە بۆ دوێڵی ١ بەرامبەر ١ی وشەسازی! کۆد: {code}"
+  },
+  "wbDuelShareResultText": {
+    "en": "I scored {score} points in a 1v1 Word Builder Duel! Can you beat me?",
+    "fa": "در دوئل ۱ در مقابل ۱ کلمه‌سازی {score} امتیاز گرفتم! می‌تونی شکستش بدی؟",
+    "ckb": "لە دوێڵی ١ بەرامبەر ١ی وشەسازیدا {score} خاڵم بەدەستهێنا! دەتوانیت بیبەیتەوە؟"
+  },
+  "wbDuelPlayNow": {
+    "en": "Play Now",
+    "fa": "شروع بازی",
+    "ckb": "دەستپێکردن"
+  },
+  "wbDuelAcceptChallenge": {
+    "en": "Accept & Play",
+    "fa": "قبول چالش و شروع",
+    "ckb": "قبوڵکردن و دەستپێکردن"
+  },
+  "wbDuelContinuePlaying": {
+    "en": "Resume Match",
+    "fa": "ادامه بازی",
+    "ckb": "بەردەوامبوون"
+  },
+  "wbDuelViewResult": {
+    "en": "View Breakdown",
+    "fa": "مشاهده جزئیات",
+    "ckb": "بینینی وردەکاری"
+  },
+  "wbDuelRematch": {
+    "en": "Rematch",
+    "fa": "بازی مجدد",
+    "ckb": "یاریی دووبارە"
+  },
+  "wbDuelDecline": {
+    "en": "Decline",
+    "fa": "رد چالش",
+    "ckb": "ڕەتکردنەوە"
+  },
+  "wbDuelCancel": {
+    "en": "Cancel Duel",
+    "fa": "لغو دوئل",
+    "ckb": "هەڵوەشاندنەوە"
+  },
+  "wbDuelRulesRounds": {
+    "en": "3 rounds · same letters",
+    "fa": "۳ راند · حروف یکسان",
+    "ckb": "٣ خول · پیتی یەکسان"
+  },
+  "wbDuelRulesTimer": {
+    "en": "{seconds}s total timer",
+    "fa": "تایمر کل {seconds} ثانیه",
+    "ckb": "کاتی گشتی {seconds} چرکە"
+  },
+  "wbDuelRulesHints": {
+    "en": "2 free hints (-15 pts each)",
+    "fa": "۲ راهنمایی رایگان (هرکدام ۱۵- امتیاز)",
+    "ckb": "٢ یارمەتی بێبەرامبەر (هەریەکە ١٥- خاڵ)"
+  },
+  "wbDuelGhostReadyBanner": {
+    "en": "Ghost Replay active — race your opponent's live pace!",
+    "fa": "نمایش زنده حریف فعال است — همزمان با سرعت حریفت رقابت کن!",
+    "ckb": "پیشاندانی زیندووی ڕکابەر چالاکە — هاوکات لەگەڵ خێرایی ڕکابەرەکەت پێشبڕکێ بکە!"
+  },
+  "wbDuelWaitingCreatorNote": {
+    "en": "Finish your 3 rounds first, then share the invite link with your friend.",
+    "fa": "ابتدا ۳ راند خودت را بازی کن، سپس لینک دعوت را برای دوستت بفرست.",
+    "ckb": "سەرەتا ٣ خولەکەی خۆت یاری بکە، پاشان بەستەری بانگهێشتەکە بۆ هاوڕێکەت بنێرە."
+  },
+  "wbDuelWaitingOpponentTitle": {
+    "en": "Challenge Ready!",
+    "fa": "چالش آماده شد!",
+    "ckb": "تەحەداکە ئامادەیە!"
+  },
+  "wbDuelWaitingOpponentBody": {
+    "en": "Your score is locked in. Share this code or link so your opponent can play the exact same 3 rounds.",
+    "fa": "امتیازت ثبت شد. این کد یا لینک را برای حریفت بفرست تا دقیقاً همان ۳ راند را بازی کند.",
+    "ckb": "خاڵەکەت تۆمار کرا. ئەم کۆد یان بەستەرە بۆ ڕکابەرەکەت بنێرە تا ڕێک هەمان ٣ خول یاری بکات."
+  },
+  "wbDuelRoundBadge": {
+    "en": "Round {current} / {total}",
+    "fa": "راند {current} از {total}",
+    "ckb": "خول {current} لە {total}"
+  },
+  "wbDuelRoundClearedBanner": {
+    "en": "Round {round} Cleared! +{bonus} pts",
+    "fa": "راند {round} تمام شد! +{bonus} امتیاز",
+    "ckb": "خولی {round} تەواو بوو! +{bonus} خاڵ"
+  },
+  "wbDuelBonusWordToast": {
+    "en": "Bonus word! +{points} pts",
+    "fa": "کلمه اضافه! +{points} امتیاز",
+    "ckb": "وشەی زیادە! +{points} خاڵ"
+  },
+  "wbDuelStreakLabel": {
+    "en": "{count}x streak",
+    "fa": "کمبو {count}×",
+    "ckb": "زنجیرەی {count}×"
+  },
+  "wbDuelHintsLeft": {
+    "en": "{count} left",
+    "fa": "{count} باقی‌مانده",
+    "ckb": "{count} ماوە"
+  },
+  "wbDuelNoHintsLeft": {
+    "en": "No hints left in this duel",
+    "fa": "راهنمایی دیگری برای این دوئل باقی نمانده",
+    "ckb": "یارمەتی دیکە بۆ ئەم دوێڵە نەماوە"
+  },
+  "wbDuelHintPenaltyTag": {
+    "en": "-15",
+    "fa": "۱۵-",
+    "ckb": "١٥-"
+  },
+  "wbDuelSubmitting": {
+    "en": "Calculating score…",
+    "fa": "در حال محاسبه امتیاز…",
+    "ckb": "هەژمارکردنی خاڵ…"
+  },
+  "wbDuelVictory": {
+    "en": "Victory!",
+    "fa": "برنده شدی!",
+    "ckb": "سەرکەوتیت!"
+  },
+  "wbDuelDefeat": {
+    "en": "Defeat",
+    "fa": "باختی!",
+    "ckb": "دۆڕایت!"
+  },
+  "wbDuelDraw": {
+    "en": "It's a Draw!",
+    "fa": "مساوی شد!",
+    "ckb": "یەکسان بوون!"
+  },
+  "wbDuelStatusExpired": {
+    "en": "Expired",
+    "fa": "منقضی‌شده",
+    "ckb": "بەسەرچوو"
+  },
+  "wbDuelStatusDeclined": {
+    "en": "Declined",
+    "fa": "ردشده",
+    "ckb": "ڕەتکرایەوە"
+  },
+  "wbDuelStatusWaiting": {
+    "en": "Waiting",
+    "fa": "در انتظار",
+    "ckb": "چاوەڕوان"
+  },
+  "wbDuelScoreBreakdown": {
+    "en": "Score Breakdown",
+    "fa": "جزئیات امتیازها",
+    "ckb": "وردەکاری خاڵەکان"
+  },
+  "wbDuelMetricTarget": {
+    "en": "Target words",
+    "fa": "کلمات هدف",
+    "ckb": "وشە ئامانجەکان"
+  },
+  "wbDuelMetricBonus": {
+    "en": "Bonus words",
+    "fa": "کلمات اضافه",
+    "ckb": "وشە زیادەکان"
+  },
+  "wbDuelMetricRounds": {
+    "en": "Round clear bonus",
+    "fa": "بونوس تکمیل راند",
+    "ckb": "خەڵاتی تەواوکردنی خول"
+  },
+  "wbDuelMetricStreak": {
+    "en": "Streak bonus",
+    "fa": "بونوس کمبو",
+    "ckb": "خەڵاتی زنجیرە"
+  },
+  "wbDuelMetricTimeBonus": {
+    "en": "Speed bonus",
+    "fa": "بونوس سرعت",
+    "ckb": "خەڵاتی خێرایی"
+  },
+  "wbDuelMetricHints": {
+    "en": "Hint penalty",
+    "fa": "جریمه راهنمایی",
+    "ckb": "سزای یارمەتی"
+  },
+  "wbDuelMetricElapsed": {
+    "en": "Time taken",
+    "fa": "زمان کل",
+    "ckb": "کاتی خایەنراو"
+  },
+  "wbDuelMetricTotal": {
+    "en": "Total Score",
+    "fa": "امتیاز کل",
+    "ckb": "کۆی خاڵ"
+  },
+  "wbDuelWordsComparisonTitle": {
+    "en": "Word Review & Comparison",
+    "fa": "مرور و مقایسه کلمات",
+    "ckb": "پێداچوونەوە و بەراوردی وشەکان"
+  },
+  "wbDuelWordsComparisonHint": {
+    "en": "Tap any word to hear pronunciation, meaning, and examples.",
+    "fa": "روی هر کلمه بزن تا تلفظ، معنی و مثال آن را ببینی.",
+    "ckb": "کرتە لەسەر هەر وشەیەک بکە بۆ بیستنی گۆکردن، مانا و نموونەکان."
+  },
+  "wbDuelMissedByYou": {
+    "en": "Opponent found · You missed",
+    "fa": "حریف پیدا کرد · تو جا انداختی",
+    "ckb": "ڕکابەر دۆزییەوە · تۆ لەدەستت دا"
+  },
+  "wbDuelFoundByBoth": {
+    "en": "Both found",
+    "fa": "هر دو پیدا کردید",
+    "ckb": "هەردووک دۆزیتانەوە"
+  },
+  "wbDuelFoundOnlyYou": {
+    "en": "Only you found",
+    "fa": "فقط تو پیدا کردی",
+    "ckb": "تەنها تۆ دۆزیتەوە"
+  },
+  "wbDuelMissedByBoth": {
+    "en": "Neither found",
+    "fa": "هیچ‌کدام پیدا نکردید",
+    "ckb": "هیچتان نەتان دۆزییەوە"
+  },
+  "wbDuelBackToHub": {
+    "en": "Back to Duel Hub",
+    "fa": "بازگشت به صفحه دوئل",
+    "ckb": "گەڕانەوە بۆ دوێڵەکان"
+  },
+  "wbDuelNotFoundTitle": {
+    "en": "Duel not found",
+    "fa": "دوئل پیدا نشد",
+    "ckb": "دوێڵەکە نەدۆزرایەوە"
+  },
+  "wbDuelNotFoundBody": {
+    "en": "Check the 6-character code or ask your friend for a fresh challenge link.",
+    "fa": "کد ۶ کاراکتری را بررسی کن یا از دوستت لینک چالش جدید بگیر.",
+    "ckb": "کۆدە ٦ پیتییەکە بپشکنە یان داوای بەستەری نوێ لە هاوڕێکەت بکە."
+  },
+  "wbDuelYouLabel": {
+    "en": "You",
+    "fa": "تو",
+    "ckb": "تۆ"
+  },
+  "wbDuelGhostLabel": {
+    "en": "Live Ghost",
+    "fa": "حریف زنده",
+    "ckb": "ڕکابەری زیندوو"
+  },
+  "wbDuelExpiresInHours": {
+    "en": "{hours}h left",
+    "fa": "{hours} ساعت مانده",
+    "ckb": "{hours} کاتژمێر ماوە"
+  },
+  "wbDuelExpiresInMinutes": {
+    "en": "{minutes}m left",
+    "fa": "{minutes} دقیقه مانده",
+    "ckb": "{minutes} خولەک ماوە"
+  },
+  "wbDuelPointsShort": {
+    "en": "{points} pts",
+    "fa": "{points} امتیاز",
+    "ckb": "{points} خاڵ"
+  },
+  "wbDuelGuestTitle": {
+    "en": "Play 1v1 Duel as Guest",
+    "fa": "شروع سریع دوئل ۱ در مقابل ۱",
+    "ckb": "دەستپێکردنی خێرای دوێڵی ١ بەرامبەر ١"
+  },
+  "wbDuelGuestSubtitle": {
+    "en": "Pick a nickname and avatar to play right away — no account needed!",
+    "fa": "یک اسم کوتاه و آواتار انتخاب کن و همان لحظه بدون ثبت‌نام بازی کن!",
+    "ckb": "ناوێکی کورت و ئاڤاتارێک هەڵبژێرە و هەر ئێستا بێ تۆمارکردن یاری بکە!"
+  },
+  "wbDuelGuestNameLabel": {
+    "en": "Your display name",
+    "fa": "نام نمایشی تو",
+    "ckb": "ناوی پیشاندانت"
+  },
+  "wbDuelGuestNamePlaceholder": {
+    "en": "e.g. Sara, Ali…",
+    "fa": "مثلاً سارا، علی…",
+    "ckb": "بۆ نموونە سارا، عەلی…"
+  },
+  "wbDuelGuestAvatarLabel": {
+    "en": "Choose an avatar",
+    "fa": "آواتار انتخاب کن",
+    "ckb": "ئاڤاتارێک هەڵبژێرە"
+  },
+  "wbDuelGuestContinue": {
+    "en": "Continue as Guest",
+    "fa": "ادامه به عنوان مهمان",
+    "ckb": "بەردەوامبوون وەک میوان"
+  },
+  "wbDuelGuestOrSignIn": {
+    "en": "Already have an account? Sign in",
+    "fa": "حساب کاربری داری؟ ورود",
+    "ckb": "هەژمارت هەیە؟ چوونەژوورەوە"
+  },
+  "wbDuelGuestNameTooShort": {
+    "en": "Please enter at least 2 characters.",
+    "fa": "لطفاً حداقل ۲ حرف وارد کن.",
+    "ckb": "تکایە لانیکەم ٢ پیت بنووسە."
+  },
+  "wbDuelGuestBadge": {
+    "en": "Guest",
+    "fa": "مهمان",
+    "ckb": "میوان"
+  },
+  "wbDuelGuestHubNote": {
+    "en": "Playing as guest ({name}). Sign in anytime to earn coins and join the League.",
+    "fa": "در حال بازی به عنوان مهمان ({name}). برای دریافت سکه و ثبت در لیگ هر وقت خواستی وارد شو.",
+    "ckb": "وەک میوان ({name}) یاری دەکەیت. هەر کاتێک بتەوێت بچۆ ژوورەوە بۆ وەرگرتنی سکە و بەشداربوون لە لیگ."
+  },
+  "wbDuelGuestEditName": {
+    "en": "Edit",
+    "fa": "تغییر نام",
+    "ckb": "گۆڕینی ناو"
+  },
+  "wbDuelGuestUpgradeTitle": {
+    "en": "Save your wins & join the League",
+    "fa": "رکوردت را ذخیره کن و وارد لیگ شو",
+    "ckb": "تۆمارەکانت پاشەکەوت بکە و بەشداری لیگ بکە"
+  },
+  "wbDuelGuestUpgradeBody": {
+    "en": "Create a free account to keep your duel history across devices, earn coins, and challenge League players directly.",
+    "fa": "با یک حساب رایگان، تاریخچه دوئل‌ها روی همه دستگاه‌ها ذخیره می‌شود، سکه می‌گیری و می‌توانی اعضای لیگ را مستقیم به چالش بکشی.",
+    "ckb": "بە هەژمارێکی بێبەرامبەر مێژووی دوێڵەکانت لە هەموو ئامێرەکاندا دەمێنێتەوە، سکە وەردەگریت و دەتوانیت ڕاستەوخۆ تەحەدای یاریزانانی لیگ بکەیت."
+  },
+  "wbDuelGuestUpgradeCta": {
+    "en": "Sign in / Create Account",
+    "fa": "ورود / ساخت حساب",
+    "ckb": "چوونەژوورەوە / دروستکردنی هەژمار"
+  },
+  "wbDuelShuffleShort": {
+    "en": "Shuffle",
+    "fa": "به‌هم‌ریزی",
+    "ckb": "تێکەڵ"
+  },
+  "wbDuelHintLetterShort": {
+    "en": "Reveal Letter",
+    "fa": "نمایش حرف",
+    "ckb": "پیشاندانی پیت"
+  },
+  "wbDuelHintMeaningShort": {
+    "en": "Meaning Hint",
+    "fa": "راهنمای معنی",
+    "ckb": "یارمەتی مانا"
+  },
+  "wbDuelRivalSlot": {
+    "en": "Your Friend",
+    "fa": "دوست تو",
+    "ckb": "هاوڕێکەت"
+  },
+  "wbDuelOrJoinCode": {
+    "en": "or join with invite code",
+    "fa": "یا با کد دعوت وارد شو",
+    "ckb": "یان بە کۆدی بانگهێشت بچۆ ژوورەوە"
   }
 }
