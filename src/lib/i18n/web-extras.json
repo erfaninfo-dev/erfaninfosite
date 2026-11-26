@@ -547,6 +547,26 @@
     "fa": "در حال محاسبه امتیاز…",
     "ckb": "هەژمارکردنی خاڵ…"
   },
+  "wbDuelExitTitle": {
+    "en": "Leave this duel?",
+    "fa": "خروج از دوئل؟",
+    "ckb": "دەرچوون لە دووئل؟"
+  },
+  "wbDuelExitBody": {
+    "en": "Your match timer keeps running on the server. You can return from the Duel Hub before time runs out.",
+    "fa": "تایمر مسابقه روی سرور ادامه دارد. تا قبل از اتمام زمان می‌توانید از صفحه دوئل برگردید.",
+    "ckb": "کاتژمێری یارییەکە لەسەر سێرڤەر بەردەوام دەبێت. پێش تەواوبوونی کات دەتوانیت بگەڕێیتەوە."
+  },
+  "wbDuelExitStay": {
+    "en": "Keep Playing",
+    "fa": "ادامه بازی",
+    "ckb": "بەردەوامبوون"
+  },
+  "wbDuelExitLeave": {
+    "en": "Leave Duel",
+    "fa": "خروج",
+    "ckb": "دەرچوون"
+  },
   "wbDuelVictory": {
     "en": "Victory!",
     "fa": "برنده شدی!",

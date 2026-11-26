@@ -11,6 +11,7 @@ import {
 } from '@/components/features/games/word-info-overlay';
 import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import {
+  IconArrowBack,
   IconBook,
   IconClose,
   IconFire,
@@ -99,6 +100,11 @@ export type DuelPlayLabels = WordInfoOverlayLabels & {
   ghostLabel: string;
   waitingLabel: string;
   submitting: string;
+  back: string;
+  exitTitle: string;
+  exitBody: string;
+  exitStay: string;
+  exitLeave: string;
 };
 
 type RoundState = {
@@ -148,6 +154,7 @@ export function WordBuilderDuelPlay({
   labels,
   submitting,
   onComplete,
+  onExit,
 }: {
   rounds: DuelRound[];
   bonusCatalog: DuelWordSnapshot[][];
@@ -166,6 +173,7 @@ export function WordBuilderDuelPlay({
     hintsUsed: number;
     elapsedMs: number;
   }) => void;
+  onExit: () => void;
 }) {
   const numFmt = useMemo(() => new Intl.NumberFormat(NUMBER_LOCALE[locale]), [locale]);
   const timeLimitMs = timeLimitSec * 1000;
@@ -223,6 +231,7 @@ export function WordBuilderDuelPlay({
   const [toastText, setToastText] = useState<string | null>(null);
   const [sheetTarget, setSheetTarget] = useState<WordBuilderTargetWord | null>(null);
   const [audioSheetOpen, setAudioSheetOpen] = useState(false);
+  const [exitSheetOpen, setExitSheetOpen] = useState(false);
 
   const audioPrefs = useSyncExternalStore(
     subscribeAudioPrefs,
@@ -679,10 +688,11 @@ export function WordBuilderDuelPlay({
   // Desktop keyboard support (A-Z, Backspace, Enter, Space).
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (sheetTarget || audioSheetOpen) {
+      if (sheetTarget || audioSheetOpen || exitSheetOpen) {
         if (e.key === 'Escape') {
           setSheetTarget(null);
           setAudioSheetOpen(false);
+          setExitSheetOpen(false);
         }
         return;
       }
@@ -717,7 +727,7 @@ export function WordBuilderDuelPlay({
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [appendLetter, audioSheetOpen, evaluatePath, popLastLetter, sheetTarget, shuffleCircle]);
+  }, [appendLetter, audioSheetOpen, evaluatePath, exitSheetOpen, popLastLetter, sheetTarget, shuffleCircle]);
 
   const currentLevel = levels[roundIndex] ?? levels[0]!;
   const built = roundState.path.map((p) => p.char).join('');
@@ -908,8 +918,18 @@ export function WordBuilderDuelPlay({
             </div>
           </div>
 
-          {/* Tug-of-War VS Score Bar + Sound Settings Button */}
+          {/* Back Button + Tug-of-War VS Score Bar + Sound Settings Button */}
           <div className="mt-1 flex items-center gap-2 px-1">
+            <button
+              type="button"
+              onClick={() => setExitSheetOpen(true)}
+              aria-label={labels.back}
+              title={labels.back}
+              className="wb-duel-header-back grid size-8 shrink-0 place-items-center rounded-full text-[#5D4037] transition-transform hover:scale-105 active:scale-95 dark:text-[#FFD54F]"
+            >
+              <IconArrowBack className="size-4" />
+            </button>
+
             <div className="relative flex flex-1 items-center">
               <div className="flex h-3 w-full overflow-hidden rounded-full border border-white/80 bg-[#EAD9BE] shadow-[inset_0_2px_4px_rgba(0,0,0,0.18)] dark:border-white/20 dark:bg-black/35">
                 <div
@@ -933,7 +953,7 @@ export function WordBuilderDuelPlay({
               onClick={() => setAudioSheetOpen(true)}
               aria-label={labels.soundTitle}
               title={labels.soundTitle}
-              className="grid size-8 shrink-0 place-items-center rounded-full border border-white/85 bg-[linear-gradient(180deg,#FFFDF5,#FFE8B3)] text-[#5D4037] shadow-[0_3px_0_rgba(180,105,0,0.28),0_4px_10px_rgba(0,0,0,0.1)] transition-transform active:scale-95 dark:border-white/20 dark:bg-[#2F2644] dark:text-[#FFD54F]"
+              className="wb-duel-header-back grid size-8 shrink-0 place-items-center rounded-full text-[#5D4037] transition-transform hover:scale-105 active:scale-95 dark:text-[#FFD54F]"
             >
               <IconVolume className="size-4" />
             </button>
@@ -1202,6 +1222,58 @@ export function WordBuilderDuelPlay({
         />
       ) : null}
 
+      {/* Exit match confirmation dialog */}
+      {exitSheetOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
+          onClick={() => setExitSheetOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={labels.exitTitle}
+            onClick={(e) => e.stopPropagation()}
+            className="wb-duel-preview-card w-full max-w-sm rounded-t-[26px] p-5 shadow-2xl sm:rounded-[26px]"
+          >
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-base font-black text-[#4A2508] dark:text-[#FFF8E1]">
+                {labels.exitTitle}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setExitSheetOpen(false)}
+                aria-label={labels.close}
+                className="grid size-8 place-items-center rounded-full bg-black/5 text-[#5D4037] dark:bg-white/10 dark:text-[#FFF8E1]"
+              >
+                <IconClose className="size-4" />
+              </button>
+            </div>
+            <p className="text-xs leading-relaxed font-semibold text-[#6D4C41] dark:text-[#FFECB3]/85">
+              {labels.exitBody}
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setExitSheetOpen(false)}
+                className="wb-duel-cta-gold inline-flex min-h-11 items-center justify-center rounded-full px-4 text-sm font-black text-[#4A2508] transition-all"
+              >
+                {labels.exitStay}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  stopSessionBgm();
+                  onExit();
+                }}
+                className="wb-duel-danger-pill inline-flex min-h-11 items-center justify-center rounded-full px-4 text-sm font-extrabold transition-all active:scale-95"
+              >
+                {labels.exitLeave}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* Audio settings sheet */}
       {audioSheetOpen ? (
         <div
@@ -1212,7 +1284,7 @@ export function WordBuilderDuelPlay({
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-t-[24px] border-2 border-[#FFB300]/85 bg-[linear-gradient(135deg,#FFF8E1,#FFECB3)] p-5 shadow-xl sm:rounded-[24px] dark:border-[#FFB300]/55 dark:bg-[linear-gradient(135deg,#2D2640,#1E1B24)]"
+            className="wb-duel-preview-card w-full max-w-md rounded-t-[24px] p-5 shadow-xl sm:rounded-[24px]"
           >
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">

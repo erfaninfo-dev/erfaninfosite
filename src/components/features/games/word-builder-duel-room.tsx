@@ -290,6 +290,7 @@ export function WordBuilderDuelRoom({
         labels={labels.play}
         submitting={submitting}
         onComplete={handleComplete}
+        onExit={() => router.push(localeHref(locale, '/play/duel'))}
       />
     );
   }
